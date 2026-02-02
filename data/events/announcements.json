@@ -1,0 +1,24 @@
+[
+    {
+        "title": "Grid maintenance",
+        "message": "Regions will restart between 01:00\u201302:00 NZDT.",
+        "start": "2025-12-02",
+        "end": "2025-12-02",
+        "start_time": "01:00",
+        "end_time": "02:00",
+        "type": "maintenance",
+        "priority": 20,
+        "link": ""
+    },
+    {
+        "title": "Weekend sale \u2014 The Mall",
+        "message": "Up to 50% off selected items.",
+        "start": "2025-12-06",
+        "end": "2025-12-07",
+        "type": "sale",
+        "priority": 10,
+        "link": "https://example.com/sale",
+        "start_time": "",
+        "end_time": ""
+    }
+]

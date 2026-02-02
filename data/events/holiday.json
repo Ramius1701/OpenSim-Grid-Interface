@@ -1,0 +1,1166 @@
+[
+  {
+    "date": "2025-01-01",
+    "image": "calendar/NewYearKalenderbild.jpg",
+    "title": "New Year's Day",
+    "description": "The most universally celebrated day on Earth",
+    "texts": [
+      "New Year's Day",
+      "January 1, 2025",
+      "Celebrated worldwide with fireworks, resolutions, and gatherings"
+    ],
+    "link": "https://en.wikipedia.org/wiki/New_Year%27s_Day",
+    "color": "#FFD700",
+    "txtcolor": "#111111",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-01-06",
+    "image": "calendar/EpiphanyKalenderbild.jpg",
+    "title": "Epiphany",
+    "description": "Widely observed Christian feast day",
+    "texts": [
+      "Epiphany",
+      "January 6, 2025",
+      "Celebrated in many Christian communities worldwide"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Epiphany_(holiday)",
+    "color": "#87CEEB",
+    "txtcolor": "#111111",
+    "type": "religious"
+  },
+  {
+    "date": "2025-01-24",
+    "image": "calendar/EducationDayKalenderbild.jpg",
+    "title": "International Day of Education",
+    "description": "UN-recognized day for education rights",
+    "texts": [
+      "International Day of Education",
+      "January 24, 2025",
+      "Celebrating learning as a universal human right"
+    ],
+    "link": "https://en.wikipedia.org/wiki/International_Day_of_Education",
+    "color": "#4169E1",
+    "txtcolor": "#FFFFFF",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-01-25",
+    "image": "calendar/OppositeDayKalenderbild.jpg",
+    "title": "Opposite Day",
+    "description": "Playful day of reversed meanings",
+    "texts": [
+      "Opposite Day",
+      "January 25, 2025",
+      "Say the opposite, wear clothes inside out, embrace the absurd"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Opposite_Day",
+    "color": "#FF69B4",
+    "txtcolor": "#111111",
+    "type": "fun"
+  },
+  {
+    "date": "2025-02-02",
+    "image": "calendar/DataDayKalenderbild.jpg",
+    "title": "Data Day",
+    "description": "Honoring Lt. Cmdr. Data's quest to be human",
+    "texts": [
+      "Data Day",
+      "February 2, 2025",
+      "Star Trek celebration of androids, AI, and humanity"
+    ],
+    "link": "https://memory-alpha.fandom.com/wiki/Data",
+    "color": "#B0C4DE",
+    "txtcolor": "#111111",
+    "type": "math_science"
+  },
+  {
+    "date": "2025-02-09",
+    "image": "calendar/PizzaDayKalenderbild.jpg",
+    "title": "National Pizza Day",
+    "description": "Global celebration of pizza",
+    "texts": [
+      "National Pizza Day",
+      "February 9, 2025",
+      "Sharing slices and stories worldwide"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Pizza",
+    "color": "#FF6347",
+    "txtcolor": "#FFFFFF",
+    "type": "fun"
+  },
+  {
+    "date": "2025-02-14",
+    "image": "calendar/ValentineDayKalenderbild.jpg",
+    "title": "Valentine's Day",
+    "description": "Universal celebration of love and affection",
+    "texts": [
+      "Valentine's Day",
+      "February 14, 2025",
+      "Expressing love in over 100 countries"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Valentine%27s_Day",
+    "color": "#FF1493",
+    "txtcolor": "#FFFFFF",
+    "type": "fun"
+  },
+  {
+    "date": "2025-03-08",
+    "image": "calendar/WomensDayKalenderbild.jpg",
+    "title": "International Women's Day",
+    "description": "Global recognition of women's rights and achievements",
+    "texts": [
+      "International Women's Day",
+      "March 8, 2025",
+      "Celebrating women's contributions worldwide"
+    ],
+    "link": "https://en.wikipedia.org/wiki/International_Women%27s_Day",
+    "color": "#9370DB",
+    "txtcolor": "#FFFFFF",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-03-14",
+    "image": "calendar/PiDayKalenderbild.jpg",
+    "title": "Pi Day",
+    "description": "Mathematical celebration of the constant π",
+    "texts": [
+      "Pi Day",
+      "March 14, 2025",
+      "3.14159... Eat pie, recite digits, celebrate mathematics"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Pi_Day",
+    "color": "#FF8C00",
+    "txtcolor": "#FFFFFF",
+    "type": "math_science"
+  },
+  {
+    "date": "2025-03-20",
+    "image": "calendar/HappinessDayKalenderbild.jpg",
+    "title": "International Day of Happiness",
+    "description": "UN-recognized day for global happiness",
+    "texts": [
+      "International Day of Happiness",
+      "March 20, 2025",
+      "Celebrating joy, gratitude, and well-being worldwide"
+    ],
+    "link": "https://en.wikipedia.org/wiki/International_Day_of_Happiness",
+    "color": "#FFD700",
+    "txtcolor": "#111111",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-03-22",
+    "image": "calendar/WaterDayKalenderbild.jpg",
+    "title": "World Water Day",
+    "description": "UN focus on clean water access",
+    "texts": [
+      "World Water Day",
+      "March 22, 2025",
+      "Advocating for clean water for all"
+    ],
+    "link": "https://en.wikipedia.org/wiki/World_Water_Day",
+    "color": "#00CED1",
+    "txtcolor": "#FFFFFF",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-03-31",
+    "image": "calendar/MatrixDayKalenderbild.jpg",
+    "title": "Matrix Day",
+    "description": "Celebrating The Matrix and questioning reality",
+    "texts": [
+      "Matrix Day",
+      "March 31, 2025",
+      "Red pill or blue pill? Question your reality"
+    ],
+    "link": "https://en.wikipedia.org/wiki/The_Matrix",
+    "color": "#2F4F4F",
+    "txtcolor": "#00FF00",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-04-05",
+    "image": "calendar/FirstContactDayKalenderbild.jpg",
+    "title": "Star Trek First Contact Day",
+    "description": "Commemorating Vulcan first contact with Earth",
+    "texts": [
+      "First Contact Day",
+      "April 5, 2025",
+      "Star Trek celebration of humanity's peaceful first alien encounter"
+    ],
+    "link": "https://memory-alpha.fandom.com/wiki/First_Contact_day",
+    "color": "#FF6347",
+    "txtcolor": "#FFFFFF",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-04-07",
+    "image": "calendar/HealthDayKalenderbild.jpg",
+    "title": "World Health Day",
+    "description": "WHO focus on global health equity",
+    "texts": [
+      "World Health Day",
+      "April 7, 2025",
+      "Promoting health access for all people"
+    ],
+    "link": "https://en.wikipedia.org/wiki/World_Health_Day",
+    "color": "#32CD32",
+    "txtcolor": "#FFFFFF",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-04-18",
+    "image": "calendar/GoodFridayKalenderbild.jpg",
+    "title": "Good Friday",
+    "description": "Christian observance before Easter",
+    "texts": [
+      "Good Friday",
+      "April 18, 2025",
+      "Observed by Christians worldwide"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Good_Friday",
+    "color": "#696969",
+    "txtcolor": "#FFFFFF",
+    "type": "religious",
+    "rule": "good_friday"
+  },
+  {
+    "date": "2025-04-20",
+    "image": "calendar/EasterSundayKalenderbild.jpg",
+    "title": "Easter Sunday",
+    "description": "Christian celebration of resurrection",
+    "texts": [
+      "Easter Sunday",
+      "April 20, 2025",
+      "Celebrated by Christians worldwide"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Easter",
+    "color": "#FFB6C1",
+    "txtcolor": "#111111",
+    "type": "religious",
+    "rule": "easter_sunday"
+  },
+  {
+    "date": "2025-04-21",
+    "image": "calendar/EasterMondayKalenderbild.jpg",
+    "title": "Easter Monday",
+    "description": "Christian holiday following Easter",
+    "texts": [
+      "Easter Monday",
+      "April 21, 2025",
+      "Continuing Easter celebrations"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Easter_Monday",
+    "color": "#FFB6C1",
+    "txtcolor": "#111111",
+    "type": "religious",
+    "rule": "easter_monday"
+  },
+  {
+    "date": "2025-04-21",
+    "image": "calendar/420DayKalenderbild.jpg",
+    "title": "420 Day",
+    "description": "Cannabis culture celebration",
+    "texts": [
+      "420 Day",
+      "April 21, 2025",
+      "Global cannabis culture gathering"
+    ],
+    "link": "https://en.wikipedia.org/wiki/420_(cannabis_culture)",
+    "color": "#228B22",
+    "txtcolor": "#FFFFFF",
+    "type": "fun"
+  },
+  {
+    "date": "2025-04-26",
+    "image": "calendar/AlienDayKalenderbild.jpg",
+    "title": "Alien Day",
+    "description": "Celebrating the Alien film franchise",
+    "texts": [
+      "Alien Day",
+      "April 26, 2025",
+      "In space, no one can hear you scream... but they can celebrate"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Alien_(franchise)",
+    "color": "#000000",
+    "txtcolor": "#00FF00",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-05-01",
+    "image": "calendar/LabourDayKalenderbild.jpg",
+    "title": "International Workers' Day",
+    "description": "International Workers' Day",
+    "texts": [
+      "International Workers' Day",
+      "May 1, 2025",
+      "Celebrating workers worldwide"
+    ],
+    "link": "https://en.wikipedia.org/wiki/International_Workers%27_Day",
+    "color": "#DC143C",
+    "txtcolor": "#FFFFFF",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-05-04",
+    "image": "calendar/StarWarsDayKalenderbild.jpg",
+    "title": "Star Wars Day",
+    "description": "'May the 4th be with you'",
+    "texts": [
+      "Star Wars Day",
+      "May 4, 2025",
+      "A long time ago in a galaxy far, far away... and today!"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Star_Wars_Day",
+    "color": "#000080",
+    "txtcolor": "#FFFF00",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-05-08",
+    "image": "calendar/VictoryDayKalenderbild.jpg",
+    "title": "Victory in Europe Day",
+    "description": "End of World War II in Europe",
+    "texts": [
+      "Victory in Europe Day",
+      "May 8, 2025",
+      "Commemorating peace in Europe"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Victory_in_Europe_Day",
+    "color": "#4169E1",
+    "txtcolor": "#FFFFFF",
+    "type": "remembrance"
+  },
+  {
+    "date": "2025-05-25",
+    "image": "calendar/TowelDayKalenderbild.jpg",
+    "title": "Towel Day",
+    "description": "Tribute to Douglas Adams and The Hitchhiker's Guide",
+    "texts": [
+      "Towel Day",
+      "May 25, 2025",
+      "Don't panic - carry a towel everywhere"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Towel_Day",
+    "color": "#F0E68C",
+    "txtcolor": "#111111",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-05-25",
+    "image": "calendar/GeekPrideDayKalenderbild.jpg",
+    "title": "Geek Pride Day",
+    "description": "Celebrating geek culture worldwide",
+    "texts": [
+      "Geek Pride Day",
+      "May 25, 2025",
+      "We are here, we are geeky, get used to it"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Geek_Pride_Day",
+    "color": "#9400D3",
+    "txtcolor": "#FFFFFF",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-06-06",
+    "image": "calendar/FirstFridayDonutDayKalenderbild.jpg",
+    "title": "National Donut Day",
+    "description": "Sweet celebration of donuts",
+    "texts": [
+      "National Donut Day",
+      "June 6, 2025",
+      "Free donuts and sweet gestures worldwide"
+    ],
+    "link": "https://en.wikipedia.org/wiki/National_Donut_Day",
+    "color": "#FFA500",
+    "txtcolor": "#111111",
+    "type": "fun",
+    "rule": "national_donut_day"
+  },
+  {
+    "date": "2025-06-08",
+    "image": "calendar/PentecostSundayKalenderbild.jpg",
+    "title": "Pentecost Sunday",
+    "description": "Christian celebration of the Holy Spirit",
+    "texts": [
+      "Pentecost Sunday",
+      "June 8, 2025",
+      "Christian observance of the Holy Spirit's descent"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Pentecost",
+    "color": "#FF4500",
+    "txtcolor": "#FFFFFF",
+    "type": "religious",
+    "rule": "pentecost_sunday"
+  },
+  {
+    "date": "2025-06-09",
+    "image": "calendar/PentecostMondayKalenderbild.jpg",
+    "title": "Pentecost Monday",
+    "description": "Christian holiday following Pentecost",
+    "texts": [
+      "Pentecost Monday",
+      "June 9, 2025",
+      "Continuing Pentecost celebrations"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Pentecost",
+    "color": "#FF4500",
+    "txtcolor": "#FFFFFF",
+    "type": "religious",
+    "rule": "pentecost_monday"
+  },
+  {
+    "date": "2025-06-20",
+    "image": "calendar/RefugeeDayKalenderbild.jpg",
+    "title": "World Refugee Day",
+    "description": "Supporting displaced people worldwide",
+    "texts": [
+      "World Refugee Day",
+      "June 20, 2025",
+      "Standing with those who have lost their homes"
+    ],
+    "link": "https://en.wikipedia.org/wiki/World_Refugee_Day",
+    "color": "#FF8C00",
+    "txtcolor": "#FFFFFF",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-06-21",
+    "image": "calendar/YogaDayKalenderbild.jpg",
+    "title": "International Day of Yoga",
+    "description": "UN celebration of yoga and wellness",
+    "texts": [
+      "International Day of Yoga",
+      "June 21, 2025",
+      "Connecting body, mind, and spirit worldwide"
+    ],
+    "link": "https://en.wikipedia.org/wiki/International_Day_of_Yoga",
+    "color": "#98FB98",
+    "txtcolor": "#111111",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-06-21",
+    "image": "calendar/PicardDayKalenderbild.jpg",
+    "title": "Captain Picard Day",
+    "description": "Celebrating Jean-Luc Picard and diplomacy",
+    "texts": [
+      "Captain Picard Day",
+      "June 21, 2025",
+      "Tea, Earl Grey, hot. Make it so."
+    ],
+    "link": "https://memory-alpha.fandom.com/wiki/Jean-Luc_Picard",
+    "color": "#4682B4",
+    "txtcolor": "#FFFFFF",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-07-01",
+    "image": "calendar/CanadaDayKalenderbild.jpg",
+    "title": "Canada Day",
+    "description": "Canadian national celebration",
+    "texts": [
+      "Canada Day",
+      "July 1, 2025",
+      "Celebrating Canadian culture and diversity"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Canada_Day",
+    "color": "#FF0000",
+    "txtcolor": "#FFFFFF",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-07-04",
+    "image": "calendar/IndependenceDayKalenderbild.jpg",
+    "title": "Independence Day",
+    "description": "U.S. Independence Day celebration",
+    "texts": [
+      "Independence Day",
+      "July 4, 2025",
+      "Celebrating American independence"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Independence_Day_(United_States)",
+    "color": "#0000FF",
+    "txtcolor": "#FFFFFF",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-07-17",
+    "image": "calendar/EmojiDayKalenderbild.jpg",
+    "title": "World Emoji Day",
+    "description": "Celebrating universal emoji language",
+    "texts": [
+      "World Emoji Day",
+      "July 17, 2025",
+      "Expressing emotions across all languages"
+    ],
+    "link": "https://en.wikipedia.org/wiki/World_Emoji_Day",
+    "color": "#FFD700",
+    "txtcolor": "#111111",
+    "type": "fun"
+  },
+  {
+    "date": "2025-08-01",
+    "image": "calendar/FriendshipDayKalenderbild.jpg",
+    "title": "International Friendship Day",
+    "description": "Celebrating friendships worldwide",
+    "texts": [
+      "International Friendship Day",
+      "August 1, 2025",
+      "Honoring the bonds that connect us all"
+    ],
+    "link": "https://en.wikipedia.org/wiki/International_Friendship_Day",
+    "color": "#87CEEB",
+    "txtcolor": "#111111",
+    "type": "fun"
+  },
+  {
+    "date": "2025-08-08",
+    "image": "calendar/CatDayKalenderbild.jpg",
+    "title": "International Cat Day",
+    "description": "Celebrating feline friends globally",
+    "texts": [
+      "International Cat Day",
+      "August 8, 2025",
+      "Honoring our independent, furry companions"
+    ],
+    "link": "https://en.wikipedia.org/wiki/International_Cat_Day",
+    "color": "#696969",
+    "txtcolor": "#FFFFFF",
+    "type": "fun"
+  },
+  {
+    "date": "2025-08-09",
+    "image": "calendar/IndigenousDayKalenderbild.jpg",
+    "title": "Indigenous Peoples Day",
+    "description": "Honoring Indigenous cultures worldwide",
+    "texts": [
+      "International Day of Indigenous Peoples",
+      "August 9, 2025",
+      "Celebrating First Nations, Aboriginal, and Indigenous cultures"
+    ],
+    "link": "https://en.wikipedia.org/wiki/International_Day_of_the_World%27s_Indigenous_Peoples",
+    "color": "#8B4513",
+    "txtcolor": "#FFFFFF",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-08-15",
+    "image": "calendar/AssumptionDayKalenderbild.jpg",
+    "title": "Assumption of Mary",
+    "description": "Christian feast of Mary's assumption",
+    "texts": [
+      "Assumption of Mary",
+      "August 15, 2025",
+      "Christian celebration of Mary's assumption into heaven"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Assumption_of_Mary",
+    "color": "#4169E1",
+    "txtcolor": "#FFFFFF",
+    "type": "religious"
+  },
+  {
+    "date": "2025-08-26",
+    "image": "calendar/DogDayKalenderbild.jpg",
+    "title": "International Dog Day",
+    "description": "Celebrating loyal canine companions",
+    "texts": [
+      "International Dog Day",
+      "August 26, 2025",
+      "Honoring humanity's best friends"
+    ],
+    "link": "https://en.wikipedia.org/wiki/International_Dog_Day",
+    "color": "#A0522D",
+    "txtcolor": "#FFFFFF",
+    "type": "fun"
+  },
+  {
+    "date": "2025-09-01",
+    "image": "calendar/LabourDayUSAKalenderbild.jpg",
+    "title": "Labor Day (US & Canada)",
+    "description": "U.S. and Canadian workers' celebration",
+    "texts": [
+      "Labor Day (US & Canada)",
+      "September 1, 2025",
+      "North American celebration of workers"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Labor_Day",
+    "color": "#FF6347",
+    "txtcolor": "#FFFFFF",
+    "type": "holiday",
+    "rule": "labour_day_sept_first_monday"
+  },
+  {
+    "date": "2025-09-10",
+    "image": "calendar/SuicidePreventionDayKalenderbild.jpg",
+    "title": "World Suicide Prevention Day",
+    "description": "Global mental health awareness",
+    "texts": [
+      "World Suicide Prevention Day",
+      "September 10, 2025",
+      "You matter. Your life matters. Help is available."
+    ],
+    "link": "https://en.wikipedia.org/wiki/World_Suicide_Prevention_Day",
+    "color": "#FFD700",
+    "txtcolor": "#111111",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-09-19",
+    "image": "calendar/PirateDayKalenderbild.jpg",
+    "title": "Talk Like a Pirate Day",
+    "description": "Playful day of pirate-speak",
+    "texts": [
+      "Talk Like a Pirate Day",
+      "September 19, 2025",
+      "Arrr, matey! Embrace your inner pirate"
+    ],
+    "link": "https://en.wikipedia.org/wiki/International_Talk_Like_a_Pirate_Day",
+    "color": "#8B4513",
+    "txtcolor": "#FFD700",
+    "type": "fun"
+  },
+  {
+    "date": "2025-09-21",
+    "image": "calendar/PeaceDayKalenderbild.jpg",
+    "title": "International Day of Peace",
+    "description": "UN call for global peace",
+    "texts": [
+      "International Day of Peace",
+      "September 21, 2025",
+      "Imagine all the people living life in peace"
+    ],
+    "link": "https://en.wikipedia.org/wiki/International_Day_of_Peace",
+    "color": "#87CEEB",
+    "txtcolor": "#111111",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-09-22",
+    "image": "calendar/HobbitDayKalenderbild.jpg",
+    "title": "Hobbit Day",
+    "description": "Bilbo and Frodo's shared birthday",
+    "texts": [
+      "Hobbit Day",
+      "September 22, 2025",
+      "Second breakfast, elevenses, and adventure await"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Hobbit_Day",
+    "color": "#8B4513",
+    "txtcolor": "#FFD700",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-09-23",
+    "image": "calendar/BiVisibilityDayKalenderbild.jpg",
+    "title": "Bisexual Visibility Day",
+    "description": "Celebrating bisexual visibility and rights",
+    "texts": [
+      "Bisexual Visibility Day",
+      "September 23, 2025",
+      "Honoring bisexual identity and community"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Bisexuality_Day",
+    "color": "#FF69B4",
+    "txtcolor": "#FFFFFF",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-10-01",
+    "image": "calendar/CoffeeDayKalenderbild.jpg",
+    "title": "International Coffee Day",
+    "description": "Global celebration of coffee culture",
+    "texts": [
+      "International Coffee Day",
+      "October 1, 2025",
+      "The world runs on coffee - let's celebrate it"
+    ],
+    "link": "https://en.wikipedia.org/wiki/International_Coffee_Day",
+    "color": "#8B4513",
+    "txtcolor": "#FFFFFF",
+    "type": "fun"
+  },
+  {
+    "date": "2025-10-10",
+    "image": "calendar/MentalHealthDayKalenderbild.jpg",
+    "title": "World Mental Health Day",
+    "description": "Global mental health awareness",
+    "texts": [
+      "World Mental Health Day",
+      "October 10, 2025",
+      "Your mental health matters - seek help, offer support"
+    ],
+    "link": "https://en.wikipedia.org/wiki/World_Mental_Health_Day",
+    "color": "#32CD32",
+    "txtcolor": "#FFFFFF",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-10-13",
+    "image": "calendar/BatmanDayKalenderbild.jpg",
+    "title": "Batman Day",
+    "description": "DC Comics celebration of the Dark Knight",
+    "texts": [
+      "Batman Day",
+      "October 13, 2025",
+      "I am vengeance. I am the night. I am Batman."
+    ],
+    "link": "https://en.wikipedia.org/wiki/Batman_Day",
+    "color": "#000000",
+    "txtcolor": "#FFFF00",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-10-16",
+    "image": "calendar/FoodDayKalenderbild.jpg",
+    "title": "World Food Day",
+    "description": "UN focus on ending hunger",
+    "texts": [
+      "World Food Day",
+      "October 16, 2025",
+      "Food is a human right - let's end hunger together"
+    ],
+    "link": "https://en.wikipedia.org/wiki/World_Food_Day",
+    "color": "#FF6347",
+    "txtcolor": "#FFFFFF",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-10-21",
+    "image": "calendar/BackToFutureDayKalenderbild.jpg",
+    "title": "Back to the Future Day",
+    "description": "Marty McFly arrives in 2015",
+    "texts": [
+      "Back to the Future Day",
+      "October 21, 2025",
+      "Where we're going, we don't need roads"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Back_to_the_Future_Day",
+    "color": "#FFA500",
+    "txtcolor": "#111111",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-10-31",
+    "image": "calendar/HalloweenKalenderbild.jpg",
+    "title": "Halloween",
+    "description": "Global celebration of costumes and candy",
+    "texts": [
+      "Halloween",
+      "October 31, 2025",
+      "Spooky season peaks - time for costumes, candy, and fun"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Halloween",
+    "color": "#FF8C00",
+    "txtcolor": "#000000",
+    "type": "fun"
+  },
+  {
+    "date": "2025-11-01",
+    "image": "calendar/AllSaintsDayKalenderbild.jpg",
+    "title": "All Saints' Day",
+    "description": "Christian commemoration of saints",
+    "texts": [
+      "All Saints' Day",
+      "November 1, 2025",
+      "Christian remembrance of all saints and martyrs"
+    ],
+    "link": "https://en.wikipedia.org/wiki/All_Saints%27_Day",
+    "color": "#F0E68C",
+    "txtcolor": "#111111",
+    "type": "religious"
+  },
+  {
+    "date": "2025-11-11",
+    "image": "calendar/VeteransDayKalenderbild.jpg",
+    "title": "Veterans Day",
+    "description": "Honoring military veterans",
+    "texts": [
+      "Veterans Day",
+      "November 11, 2025",
+      "Thank you for your service and sacrifice"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Veterans_Day",
+    "color": "#DC143C",
+    "txtcolor": "#FFFFFF",
+    "type": "remembrance"
+  },
+  {
+    "date": "2025-11-13",
+    "image": "calendar/KindnessDayKalenderbild.jpg",
+    "title": "World Kindness Day",
+    "description": "Global celebration of kindness",
+    "texts": [
+      "World Kindness Day",
+      "November 13, 2025",
+      "Be kind. It costs nothing but means everything"
+    ],
+    "link": "https://en.wikipedia.org/wiki/World_Kindness_Day",
+    "color": "#FFB6C1",
+    "txtcolor": "#111111",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-11-20",
+    "image": "calendar/ChildrensDayUNKalenderbild.jpg",
+    "title": "World Children's Day",
+    "description": "UN celebration of children's rights",
+    "texts": [
+      "World Children's Day",
+      "November 20, 2025",
+      "Every child deserves love, protection, and opportunity"
+    ],
+    "link": "https://en.wikipedia.org/wiki/World_Children%27s_Day",
+    "color": "#00CED1",
+    "txtcolor": "#FFFFFF",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-11-23",
+    "image": "calendar/DoctorWhoDayKalenderbild.jpg",
+    "title": "Doctor Who Day",
+    "description": "Celebrating the Doctor's adventures",
+    "texts": [
+      "Doctor Who Day",
+      "November 23, 2025",
+      "The Doctor will see you now - all of time and space awaits"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Doctor_Who",
+    "color": "#000080",
+    "txtcolor": "#00FFFF",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-11-23",
+    "image": "calendar/FibonacciDayKalenderbild.jpg",
+    "title": "Fibonacci Day",
+    "description": "Celebrating the Fibonacci sequence",
+    "texts": [
+      "Fibonacci Day",
+      "November 23, 2025",
+      "11/23: The beautiful pattern in nature's design"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Fibonacci_number",
+    "color": "#FFD700",
+    "txtcolor": "#111111",
+    "type": "math_science"
+  },
+  {
+    "date": "2025-11-27",
+    "image": "calendar/ThanksgivingKalenderbild.jpg",
+    "title": "Thanksgiving Day",
+    "description": "North American harvest celebration",
+    "texts": [
+      "Thanksgiving Day",
+      "November 27, 2025",
+      "Gratitude, family, and feast - American tradition"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Thanksgiving",
+    "color": "#D2691E",
+    "txtcolor": "#FFFFFF",
+    "type": "holiday",
+    "rule": "us_thanksgiving"
+  },
+  {
+    "date": "2025-12-03",
+    "image": "calendar/DisabilitiesDayKalenderbild.jpg",
+    "title": "International Day of Persons with Disabilities",
+    "description": "UN recognition of disability rights",
+    "texts": [
+      "International Day of Persons with Disabilities",
+      "December 3, 2025",
+      "Celebrating inclusion, accessibility, and human rights"
+    ],
+    "link": "https://en.wikipedia.org/wiki/International_Day_of_Persons_with_Disabilities",
+    "color": "#4169E1",
+    "txtcolor": "#FFFFFF",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-12-10",
+    "image": "calendar/HumanRightsDayKalenderbild.jpg",
+    "title": "Human Rights Day",
+    "description": "UN celebration of universal human rights",
+    "texts": [
+      "Human Rights Day",
+      "December 10, 2025",
+      "All human beings are born free and equal in dignity and rights"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Human_Rights_Day",
+    "color": "#00BFFF",
+    "txtcolor": "#FFFFFF",
+    "type": "awareness"
+  },
+  {
+    "date": "2025-12-25",
+    "image": "calendar/ChristmasDayKalenderbild.jpg",
+    "title": "Christmas Day",
+    "description": "Christian celebration of Jesus' birth",
+    "texts": [
+      "Christmas Day",
+      "December 25, 2025",
+      "Peace on Earth, goodwill to all - celebrated worldwide"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Christmas",
+    "color": "#FF0000",
+    "txtcolor": "#FFFFFF",
+    "type": "religious"
+  },
+  {
+    "date": "2025-12-26",
+    "image": "calendar/BoxingDayKalenderbild.jpg",
+    "title": "Boxing Day",
+    "description": "Commonwealth holiday for giving",
+    "texts": [
+      "Boxing Day",
+      "December 26, 2025",
+      "Traditional day for charity and gift-giving"
+    ],
+    "link": "https://en.wikipedia.org/wiki/Boxing_Day",
+    "color": "#4682B4",
+    "txtcolor": "#FFFFFF",
+    "type": "holiday"
+  },
+  {
+    "date": "2025-12-31",
+    "image": "calendar/NewYearsEveKalenderbild.jpg",
+    "title": "New Year's Eve",
+    "description": "Final celebration of the year",
+    "texts": [
+      "New Year's Eve",
+      "December 31, 2025",
+      "Countdown to midnight - celebrating endings and new beginnings"
+    ],
+    "link": "https://en.wikipedia.org/wiki/New_Year%27s_Eve",
+    "color": "#FFD700",
+    "txtcolor": "#111111",
+    "type": "fun"
+  },
+  {
+    "date": "2025-01-16",
+    "title": "Voyager Day",
+    "description": "Celebrating the January 16, 1995 premiere of Star Trek: Voyager.",
+    "texts": [
+      "Voyager Day",
+      "",
+      "Celebrating the January 16, 1995 premiere of Star Trek: Voyager."
+    ],
+    "color": "#1E3A8A",
+    "txtcolor": "#FFFFFF",
+    "link": "https://memory-alpha.fandom.com/wiki/Star_Trek:_Voyager",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-01-17",
+    "title": "Enterprise Day",
+    "description": "A fan observance tying NCC-1701 to 17/01, celebrating the Starship Enterprise.",
+    "texts": [
+      "Enterprise Day",
+      "",
+      "A fan observance tying NCC-1701 to 17/01, celebrating the Starship Enterprise."
+    ],
+    "color": "#2563EB",
+    "txtcolor": "#FFFFFF",
+    "link": "https://memory-alpha.fandom.com/wiki/USS_Enterprise_(NCC-1701)",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-01-29",
+    "title": "Threshold Day",
+    "description": "Fandom holiday honoring (and roasting) the infamous Voyager episode \"Threshold\".",
+    "texts": [
+      "Threshold Day",
+      "",
+      "Fandom holiday honoring (and roasting) the infamous Voyager episode \"Threshold\"."
+    ],
+    "color": "#4C1D95",
+    "txtcolor": "#FFFFFF",
+    "link": "https://memory-alpha.fandom.com/wiki/Threshold_(episode)",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-04-22",
+    "title": "Ancestors' Eve",
+    "description": "Inspired by Neelix's holiday from Voyager's \"11:59\" – an evening to honor those who came before us.",
+    "texts": [
+      "Ancestors' Eve",
+      "",
+      "Inspired by Neelix's holiday from Voyager's \"11:59\" – an evening to honor those who came before us."
+    ],
+    "color": "#065F46",
+    "txtcolor": "#FFFFFF",
+    "link": "https://memory-alpha.fandom.com/wiki/Ancestors%27_Eve",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-09-08",
+    "title": "Star Trek Day",
+    "description": "Celebrating the September 8, 1966 premiere of Star Trek: The Original Series.",
+    "texts": [
+      "Star Trek Day",
+      "",
+      "Celebrating the September 8, 1966 premiere of Star Trek: The Original Series."
+    ],
+    "color": "#0F766E",
+    "txtcolor": "#FFFFFF",
+    "link": "https://en.wikipedia.org/wiki/Star_Trek_Day",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-05-05",
+    "title": "Revenge of the Fifth",
+    "description": "A dark-side follow-up to Star Wars Day, celebrating Sith and other villains.",
+    "texts": [
+      "Revenge of the Fifth",
+      "",
+      "A dark-side follow-up to Star Wars Day, celebrating Sith and other villains."
+    ],
+    "color": "#111827",
+    "txtcolor": "#FBBF24",
+    "link": "https://starwars.fandom.com/wiki/Star_Wars_Day",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-11-17",
+    "title": "Life Day",
+    "description": "A Wookiee holiday from the Star Wars Holiday Special, now celebrated on November 17.",
+    "texts": [
+      "Life Day",
+      "",
+      "A Wookiee holiday from the Star Wars Holiday Special, now celebrated on November 17."
+    ],
+    "color": "#B91C1C",
+    "txtcolor": "#FFFFFF",
+    "link": "https://starwars.fandom.com/wiki/Life_Day",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-04-13",
+    "title": "Frontier Day",
+    "description": "Starfleet's Frontier Day as seen in Star Trek: Picard – celebrated on April 13, commemorating the April 16, 2151 launch of the Enterprise NX-01.",
+    "texts": [
+      "Frontier Day",
+      "April 13, 2025",
+      "Observed on April 13 in 2401, marking the April 16, 2151 launch of Enterprise NX-01."
+    ],
+    "color": "#0F766E",
+    "txtcolor": "#FFFFFF",
+    "link": "https://memory-alpha.fandom.com/wiki/Frontier_Day",
+    "type": "fandom"
+  },
+  {
+    "date": "2025-04-22",
+    "title": "Earth Day",
+    "description": "Global observance promoting environmental protection and climate awareness.",
+    "texts": [
+      "Earth Day",
+      "April 22, 2025",
+      "Global observance promoting environmental protection and climate awareness."
+    ],
+    "color": "#16A34A",
+    "txtcolor": "#FFFFFF",
+    "type": "awareness",
+    "link": "https://en.wikipedia.org/wiki/Earth_Day"
+  },
+  {
+    "date": "2025-06-05",
+    "title": "World Environment Day",
+    "description": "United Nations day encouraging worldwide awareness and action for the environment.",
+    "texts": [
+      "World Environment Day",
+      "June 5, 2025",
+      "United Nations day encouraging worldwide awareness and action for the environment."
+    ],
+    "color": "#15803D",
+    "txtcolor": "#FFFFFF",
+    "type": "awareness",
+    "link": "https://www.unep.org/world-environment-day"
+  },
+  {
+    "date": "2025-12-01",
+    "title": "World AIDS Day",
+    "description": "Global health day dedicated to raising awareness of HIV/AIDS and commemorating those lost.",
+    "texts": [
+      "World AIDS Day",
+      "December 1, 2025",
+      "Global health day dedicated to raising awareness of HIV/AIDS and commemorating those lost."
+    ],
+    "color": "#B91C1C",
+    "txtcolor": "#FFFFFF",
+    "type": "awareness",
+    "link": "https://www.unaids.org/en/World_AIDS_Day"
+  },
+  {
+    "date": "2025-09-13",
+    "title": "Programmer's Day",
+    "description": "Celebration of programmers held on the 256th day of each year (2^8).",
+    "texts": [
+      "Programmer's Day",
+      "September 13, 2025 (256th day)",
+      "Celebration of programmers held on the 256th day of each year (2^8)."
+    ],
+    "color": "#4B5563",
+    "txtcolor": "#FFFFFF",
+    "type": "math_science",
+    "link": "https://en.wikipedia.org/wiki/Programmers'_Day",
+    "rule": "programmers_day_256"
+  },
+  {
+    "date": "2025-07-25",
+    "title": "System Administrator Appreciation Day",
+    "description": "Day to recognize the work of system administrators and other IT professionals.",
+    "texts": [
+      "System Administrator Appreciation Day",
+      "Last Friday of July, 2025",
+      "Day to recognize the work of system administrators and other IT professionals."
+    ],
+    "color": "#1F2937",
+    "txtcolor": "#FFFFFF",
+    "type": "fun",
+    "link": "https://en.wikipedia.org/wiki/System_administrator_appreciation_day",
+    "rule": "sysadmin_day_last_fri_july"
+  },
+  {
+    "date": "2025-03-10",
+    "title": "Mario Day",
+    "description": "Nintendo celebration day for Mario, observed on March 10 (MAR10).",
+    "texts": [
+      "Mario Day",
+      "March 10, 2025",
+      "Nintendo celebration day for Mario, observed on March 10 (MAR10)."
+    ],
+    "color": "#DC2626",
+    "txtcolor": "#FFFFFF",
+    "type": "fandom",
+    "link": "https://en.wikipedia.org/wiki/Mario"
+  },
+  {
+    "date": "2025-05-25",
+    "title": "Star Wars Release Day",
+    "description": "Anniversary of the original 1977 release of Star Wars (A New Hope).",
+    "texts": [
+      "Star Wars Release Day",
+      "May 25, 2025",
+      "Anniversary of the original 1977 release of Star Wars (A New Hope)."
+    ],
+    "color": "#111827",
+    "txtcolor": "#FCD34D",
+    "type": "fandom",
+    "link": "https://en.wikipedia.org/wiki/Star_Wars_(film)"
+  },
+  {
+    "date": "2025-10-11",
+    "title": "Federation Day",
+    "description": "United Federation of Planets holiday celebrating the signing of the Federation Charter on October 11, 2161.",
+    "texts": [
+      "Federation Day",
+      "October 11, 2025",
+      "United Federation of Planets holiday celebrating the signing of the Federation Charter on October 11, 2161."
+    ],
+    "color": "#0EA5E9",
+    "txtcolor": "#FFFFFF",
+    "type": "fandom",
+    "link": "https://memory-beta.fandom.com/wiki/Federation_Day"
+  }
+]

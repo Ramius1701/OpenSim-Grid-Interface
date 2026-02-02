@@ -1,0 +1,80 @@
+{
+    "shopping": [
+        {
+            "name": "Brogals Style & Fashion",
+            "url": "hop://brogals-paradies.de:8002/Brogals%20Style%20%26%20Fashion/49/96/22",
+            "image": "destinations/BrogalsStyleFashion.jpg"
+        },
+        {
+            "name": "Zoes Mall",
+            "url": "hop://2.nymphgrid.com:8002/Zoes%20Mall%20Welcome/118/128/23",
+            "image": "destinations/ZoesMall.jpg"
+        },
+        {
+            "name": "Lani Shopping Mall",
+            "url": "hop://hg.osgrid.org:80/Lani/213/144/35",
+            "image": "destinations/Lani.jpg"
+        },
+        {
+            "name": "Moonrose Shopping",
+            "url": "hop://moonrose-grid.de:8002/Moonrose%20Shopping/10/147/29",
+            "image": "destinations/MoonroseShopping.jpg"
+        },
+        {
+            "name": "Klamotto",
+            "url": "hop://otterland.de:8002/Klamotto/71/101/23",
+            "image": "destinations/Klamotto.jpg"
+        },
+        {
+            "name": "FLORA",
+            "url": "hop://alternatemetaverse.com:8002/FLORA/100/137/24",
+            "image": "destinations/FLORA.jpg"
+        },
+        {
+            "name": "Agora",
+            "url": "hop://hg.osgrid.org:80/Agora/429/389/24",
+            "image": "destinations/Agora.jpg"
+        },
+        {
+            "name": "Sciatti Shop Clothes",
+            "url": "secondlifesciattisigrid.it8002SciattiShopClothes10512023",
+            "image": "destinations/SciattiShopClothes.jpg"
+        }
+    ],
+    "education": [
+        {
+            "name": "Lbsa Plaza",
+            "url": "hop://hg.osgrid.org:80/Lbsa%20Plaza/170/132/41",
+            "image": "destinations/LbsaPlaza.jpg"
+        },
+        {
+            "name": "Outworldz Virunga",
+            "url": "hop://www.outworldz.com:9000/Outworldz%20Virunga/128/128/23",
+            "image": "destinations/OutworldzVirunga.jpg"
+        }
+    ],
+    "art": [
+        {
+            "name": "ArtDestiny",
+            "url": "hop://artdestiny.de:8002/ArtDestinyWelcome/147/153/25",
+            "image": "destinations/ArtDestiny.jpg"
+        }
+    ],
+    "event": [
+        {
+            "name": "Tomis-World",
+            "url": "hop://tomis-world.de:8002/Tomis-World/113/106/23",
+            "image": "destinations/Tomis-World.jpg"
+        },
+        {
+            "name": "Event Plaza",
+            "url": "hop://hg.osgrid.org:80/Event%20Plaza/373/381/25",
+            "image": "destinations/EventPlaza.jpg"
+        },
+        {
+            "name": "Alternate Metaverse",
+            "url": "hop://alternatemetaverse.com:8002/Alternate%20Metaverse/304/329/64",
+            "image": "destinations/AlternateMetaverse.jpg"
+        }
+    ]
+}

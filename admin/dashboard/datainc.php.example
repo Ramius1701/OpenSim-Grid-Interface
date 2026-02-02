@@ -1,0 +1,30 @@
+<?php
+// Sicherheitsheader setzen
+header('X-Frame-Options: SAMEORIGIN');
+header('X-Content-Type-Options: nosniff');
+header('X-XSS-Protection: 1; mode=block');
+if (session_status() === PHP_SESSION_NONE) {
+	session_start([
+		'cookie_httponly' => true,
+		'cookie_secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+		'cookie_samesite' => 'Strict',
+	]);
+}
+
+// Datenbankverbindung für Statistiksoftware
+$dsn = 'mysql:host=localhost;dbname=opensim_database;charset=utf8mb4';
+$user = 'dein_db_user';
+$pass = 'dein_db_password';
+$options = [
+	PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+	PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+	PDO::ATTR_EMULATE_PREPARES => false,
+];
+
+try {
+	$pdo = new PDO($dsn, $user, $pass, $options);
+} catch (PDOException $e) {
+	// Im Produktivbetrieb keine Details ausgeben!
+	http_response_code(500);
+	exit('Interner Fehler.');
+}

@@ -1,0 +1,12 @@
+<?php
+// Datenbankverbindung für Statistiksoftware
+$dsn = 'mysql:host=localhost;dbname=opensim_database;charset=utf8mb4';
+$user = 'dein_db_user';
+$pass = 'dein_db_password';
+$options = [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION];
+
+try {
+	$pdo = new PDO($dsn, $user, $pass, $options);
+} catch (PDOException $e) {
+	die('Verbindung zur Datenbank fehlgeschlagen: ' . $e->getMessage());
+}
