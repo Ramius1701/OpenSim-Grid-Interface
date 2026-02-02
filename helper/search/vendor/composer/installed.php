@@ -1,0 +1,41 @@
+<?php return array(
+    'root' => array(
+        'name' => '__root__',
+        'pretty_version' => '1.0.0+no-version-set',
+        'version' => '1.0.0.0',
+        'reference' => null,
+        'type' => 'library',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'dev' => true,
+    ),
+    'versions' => array(
+        '__root__' => array(
+            'pretty_version' => '1.0.0+no-version-set',
+            'version' => '1.0.0.0',
+            'reference' => null,
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'phpxmlrpc/phpxmlrpc' => array(
+            'pretty_version' => '4.11.5',
+            'version' => '4.11.5.0',
+            'reference' => 'ad6df5f9e296a9ea76e58a7cb634b88a8e324dc4',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../phpxmlrpc/phpxmlrpc',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'phpxmlrpc/polyfill-xmlrpc' => array(
+            'pretty_version' => '1.0.0',
+            'version' => '1.0.0.0',
+            'reference' => '2c79dc261569a70ef9cd047b234a49be23598a3d',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../phpxmlrpc/polyfill-xmlrpc',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+    ),
+);

@@ -1,0 +1,301 @@
+/* maps/map-embed-v8.css
+   Map-only UI that *inherits* Casperia theme and avoids forcing black backgrounds.
+   (No 100vh hard locks; JS sizes the canvas based on actual on-page position.)
+*/
+
+.cp-map-page{
+  max-width: 100%;
+  padding: 16px;
+}
+
+.cp-map-toolbar{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap: 12px;
+  flex-wrap:wrap;
+  margin-bottom: 12px;
+}
+
+.cp-map-title{ min-width: 240px; }
+
+.cp-map-h1{
+  font-size: 1.25rem;
+  line-height: 1.2;
+  margin: 0;
+  font-weight: 700;
+}
+
+.cp-map-sub{
+  margin-top: 4px;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.cp-map-dot{ padding: 0 8px; opacity: 0.6; }
+
+.cp-map-actions{ display:flex; gap: 8px; align-items:center; }
+
+.cp-map-btn{
+  appearance: none;
+  border: 1px solid rgba(0,0,0,.2);
+  background: rgba(255,255,255,.06);
+  color: inherit;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  line-height: 1;
+}
+.cp-map-btn:hover{ background: rgba(255,255,255,.10); }
+.cp-map-btn:active{ transform: translateY(1px); }
+
+.cp-map-btn-ghost{
+  background: transparent;
+}
+
+.cp-map-search{
+  display:flex;
+  gap: 8px;
+  flex-wrap:wrap;
+  margin-bottom: 10px;
+}
+
+.cp-map-input{
+  flex: 1 1 320px;
+  min-width: 220px;
+  border: 1px solid rgba(0,0,0,.2);
+  background: rgba(255,255,255,.06);
+  color: inherit;
+  padding: 10px 12px;
+  border-radius: 10px;
+  outline: none;
+}
+.cp-map-input:focus{
+  border-color: rgba(102,126,234,.7);
+  box-shadow: 0 0 0 3px rgba(102,126,234,.18);
+}
+
+.cp-map-results{
+  border: 1px solid rgba(0,0,0,.15);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+/* If your map-script uses .search-result-item, give it a clean default */
+.search-result-item{
+  padding: 10px 12px;
+  cursor: pointer;
+  border-top: 1px solid rgba(0,0,0,.08);
+}
+.search-result-item:hover{
+  background: rgba(255,255,255,.08);
+}
+.search-result-item small{
+  display:block;
+  opacity: .8;
+}
+
+.cp-map-canvas{
+  position: relative;
+  border: 1px solid rgba(0,0,0,.18);
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(0,0,0,.02);
+  /* JS will set an explicit height. Provide a sane fallback. */
+  height: 70vh;
+  min-height: 520px;
+}
+
+#map{
+  width: 100%;
+  height: 100%;
+  /* Ocean-ish fallback for unloaded tiles */
+  background: #375A6D;
+}
+
+/* Loading overlay */
+.cp-map-loading{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap: 10px;
+  background: rgba(0,0,0,.55);
+  color: #fff;
+  z-index: 2000;
+}
+
+.cp-map-spinner{
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,.25);
+  border-top-color: rgba(255,255,255,.9);
+  animation: cpSpin 1s linear infinite;
+}
+@keyframes cpSpin { to { transform: rotate(360deg);} }
+
+.cp-map-loading-text{ font-weight: 700; }
+
+/* Legend overlay */
+.cp-map-legend{
+  position:absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1100;
+  background: rgba(0,0,0,.70);
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  min-width: 180px;
+}
+.cp-map-legend-title{
+  font-weight: 800;
+  font-size: .85rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  opacity: .95;
+}
+.cp-map-legend-item{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+  font-size: .92rem;
+  margin: 6px 0;
+}
+.cp-map-legend-swatch{
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  display:inline-block;
+}
+.cp-map-legend-region{ background: rgba(255,255,255,.65); }
+.cp-map-legend-selected{ background: rgba(102,126,234,.85); }
+
+/* Debug panel */
+.cp-map-debug{
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px dashed rgba(0,0,0,.25);
+  border-radius: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: .85rem;
+  white-space: pre-wrap;
+}
+
+/* ------------------------------------------------------------
+   Leaflet region popups (match original "card" look, theme-driven)
+   Scoped to this map only (won't affect site header/nav/icons)
+------------------------------------------------------------- */
+.leaflet-popup.region-popup-container .leaflet-popup-content-wrapper{
+  padding: 0;
+  border-radius: 14px;
+  background: var(--bs-card-bg, var(--bs-body-bg, #1a1d29));
+  border: 1px solid var(--bs-border-color, rgba(102, 126, 234, 0.35));
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(0,0,0,.35);
+}
+
+.leaflet-popup.region-popup-container .leaflet-popup-content{
+  margin: 0;
+}
+
+.leaflet-popup.region-popup-container .leaflet-popup-tip{
+  background: var(--bs-card-bg, var(--bs-body-bg, #1a1d29));
+  border: 1px solid var(--bs-border-color, rgba(102, 126, 234, 0.35));
+}
+
+.leaflet-popup.region-popup-container .leaflet-popup-close-button{
+  display: none !important;
+}
+
+/* Region Popup Content */
+.region-popup-content{
+  min-width: 280px;
+}
+
+.region-popup-header{
+  background: linear-gradient(135deg,
+    var(--cp-popup-accent1, var(--bs-primary, #667eea)) 0%,
+    var(--cp-popup-accent2, var(--bs-secondary, #764ba2)) 100%);
+  padding: 14px 15px;
+}
+
+.region-popup-header h3{
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0,0,0,.25);
+}
+
+.region-popup-header small{
+  display: block;
+  margin-top: 4px;
+  opacity: 0.92;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,.92);
+}
+
+.region-popup-body{
+  padding: 14px 15px;
+}
+
+.region-info-row{
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--bs-border-color, rgba(255,255,255,.10));
+}
+
+.region-info-row:last-child{
+  border-bottom: none;
+}
+
+.region-info-row strong{
+  color: var(--bs-primary, #667eea);
+}
+
+/* Footer + button */
+.region-popup-footer{
+  padding: 14px 15px;
+  background: var(--bs-card-cap-bg, rgba(0,0,0,.12));
+  border-top: 1px solid var(--bs-border-color, rgba(255,255,255,.08));
+}
+
+.btn-teleport{
+  display: block;
+  width: 100%;
+  min-height: 42px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg,
+    var(--cp-popup-accent1, var(--bs-primary, #667eea)) 0%,
+    var(--cp-popup-accent2, var(--bs-secondary, #764ba2)) 100%);
+  color: var(--cp-popup-button-text, var(--bs-warning, #ffd700)) !important;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+  border: 2px solid rgba(255, 215, 0, 0.25);
+}
+
+.btn-teleport:hover{
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.btn-teleport:active{
+  transform: translateY(0);
+  filter: brightness(1.0);
+}

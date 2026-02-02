@@ -1,0 +1,34 @@
+Configure your Robust.ini / Robust.HG.ini like this (OpenSim Grid Interface)
+
+Notes:
+- Some viewers and grid setups interpret these URLs differently. Treat this as a *working default* for the in-viewer web tabs.
+- For backwards compatibility, OpenSim Grid Interface also ships "shim" filenames (e.g. messages.php, maptile.php) that forward to the canonical pages.
+
+Recommended (canonical) endpoints:
+
+ MapTileURL      = "${Const|BaseURL}:${Const|PublicPort}/oswebinterface/gridmap.php";
+ SearchURL       = "${Const|BaseURL}:${Const|PublicPort}/oswebinterface/ossearch.php";
+ DestinationGuide= "${Const|BaseURL}/oswebinterface/guide.php";
+ AvatarPicker    = "${Const|BaseURL}/oswebinterface/avatarpicker.php";
+ GridSearch      = "${Const|BaseURL}/oswebinterface/gridsearch.php";
+ MessageURI      = "${Const|BaseURL}/oswebinterface/message.php";
+ welcome         = ${Const|BaseURL}/oswebinterface/welcome.php
+ economy         = ${Const|BaseURL}:${Const|PublicPort}/oswebinterface/economy.php
+ about           = ${Const|BaseURL}/oswebinterface/about.php
+ register        = ${Const|BaseURL}/oswebinterface/register.php
+ help            = ${Const|BaseURL}/oswebinterface/help.php
+ password        = ${Const|BaseURL}/oswebinterface/reset_password.php
+ support         = ${Const|BaseURL}/oswebinterface/support.php
+ GridStatus      = ${Const|BaseURL}:${Const|PublicPort}/oswebinterface/gridstatus.php
+ GridStatusRSS   = ${Const|BaseURL}:${Const|PublicPort}/oswebinterface/gridstatusrss.php
+
+Compatibility shims (old names that still work):
+
+ MapTileURL      = "${Const|BaseURL}:${Const|PublicPort}/oswebinterface/maptile.php";
+ SearchURL       = "${Const|BaseURL}:${Const|PublicPort}/oswebinterface/searchservice.php";
+ MessageURI      = "${Const|BaseURL}/oswebinterface/messages.php";
+ welcome         = ${Const|BaseURL}/oswebinterface/welcomesplashpage.php
+ about           = ${Const|BaseURL}/oswebinterface/aboutinformation.php
+ register        = ${Const|BaseURL}/oswebinterface/createavatar.php
+ password        = ${Const|BaseURL}/oswebinterface/passwordreset.php
+ partner         = ${Const|BaseURL}/oswebinterface/partner.php

@@ -1,0 +1,39 @@
+/* maps/map-style.css - Minimal theming that works with any Bootstrap theme */
+.sidebar-section {
+    background: #1a1d29;
+    color: #fff;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.map-section {
+    height: 100vh;
+    background: #0a0c10;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+    background: #375A6D; /* Ocean blue when empty */
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.9);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2000;
+}
+
+.search-result-item {
+    padding: 10px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.search-result-item:hover {
+    background: rgba(255,255,255,0.1);
+}
