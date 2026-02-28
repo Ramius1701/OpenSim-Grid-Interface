@@ -1,0 +1,138 @@
+/* osquide CSS v0.1 by djphil (CC-BY-NC-SA 4.0) */
+
+html {position: relative; min-height: 100%;}
+/*body {padding-top: 50px; margin-bottom: 60px;}*/
+img {border: 0px;}
+.clearfix {clear: both;}
+/*.spacer {margin-bottom: 5px;}*/
+.spacer {padding-top: 50px;}
+.spacer-sm {margin: 10px;}
+.spacer-xs {padding: 5px;}
+.progress {width: 200px;}
+.separator {margin: 10px;}
+/*.text-muted {margin: 20px 0px 0px 0px;}*/
+.container .text-muted {margin: 15px 0px 0px 0px;}
+div.shadows:hover {box-shadow: 0px 0px 10px #CCCCCC;}
+
+/* Dropdown menu animation */
+.dropdown .dropdown-menu {
+    -webkit-transition: all 0.3s;
+    -moz-transition: all 0.3s;
+    -ms-transition: all 0.3s;
+    -o-transition: all 0.3s;
+    transition: all 0.3s;
+    max-height: 0;
+    display: block;
+    overflow: hidden;
+    opacity: 0;
+}
+
+.dropdown-menu .login {width: 250px !important;}
+.login {margin-bottom:5px;}
+.dropdown.open .dropdown-menu {
+    max-height: 200px;
+    opacity: 1;
+}
+
+/*
+.footer {
+    position: absolute;
+    bottom: 0px;
+    height: 60px;
+    background-color: #F5F5F5;
+}
+*/
+
+/* BACK TO TOP */
+.btn-fixed-bottom {
+    position: fixed;
+    bottom: 10px;
+    right: 20px;
+    display: none;
+    z-index: 1;
+}
+
+/* Animated Loading */
+/*
+.glyphicon-refresh-animate {
+    -animation: spin .7s infinite linear;
+    -webkit-animation: spin2 .7s infinite linear;
+}
+
+@-webkit-keyframes spin2 {
+    from { -webkit-transform: rotate(0deg);}
+    to { -webkit-transform: rotate(360deg);}
+}
+
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg);}
+    to { transform: scale(1) rotate(360deg);}
+}
+*/
+
+/*FADE IN CONTENT*/
+@keyframes fadein {from {opacity: 0;}to {opacity: 1;}}
+.content {animation: fadein 0.5s;}
+
+
+/**/
+.details-card-body {;}
+.btn-refresh-details {margin-left: 5px;}
+.wall-card-body {padding: 0px 5px 0px 5px;} /*color: #c8c8c8;*/
+.event-title {font-size: 16px; font-weight: bold;}
+.event-desc {padding: 0px 0px 3px 0px;}
+.panel img {margin: 0px; width: 100%;}
+a.btn-link {text-decoration: none !important; color: inherit;}
+time.datetime, .regionname {font-size: 20px;}
+
+
+/* ADMINISTRATION */
+/* ANIMATED COUNTERS */
+.row.version, .row.simulators, .row.commands {;}
+.row.version h3, .row.simulators h3, .row.commands h3 {
+    margin-top: 0px; 
+    padding-left: 5px; 
+    border: 1px solid #e7e7e7;
+    border-radius: 4px;
+    text-shadow: 0 1px 0 #fff;
+    background-image: -webkit-linear-gradient(top,#fff 0,#e0e0e0 100%);
+    background-image: -o-linear-gradient(top,#fff 0,#e0e0e0 100%);
+    background-image: -webkit-gradient(linear,left top,left bottom,from(#fff),to(#e0e0e0));
+    background-image: linear-gradient(to bottom,#fff 0,#e0e0e0 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff', endColorstr='#ffe0e0e0', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+    background-repeat: repeat-x;
+    background-color: #e0e0e0; 
+    box-shadow: 0px 0px 3px #e7e7e7;
+    -webkit-box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 1px 1px rgba(0,0,0,.075);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 1px 1px rgba(0,0,0,.075);
+}
+
+/* BUTTON YESNO */
+.input-group > .btn {
+	min-width: 50px;
+	margin-left: -1px;
+}
+
+.btn-group.btn-group-yesno {
+	width: 220px;
+	max-width: 100%;
+}
+
+.btn-group.btn-group-yesno > .btn {
+	width: 50%;
+	min-width: 40px;
+	padding: 2px 0px;
+}
+
+/* BUTTON CHECKBOX SWITCH */
+/* The switch - the box around the slider */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {display:none;}

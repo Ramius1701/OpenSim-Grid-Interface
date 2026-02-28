@@ -701,12 +701,12 @@ require_once __DIR__ . '/nav_notifications.php';
                             <i class="bi bi-map"></i> Grid
                         </a>
                         <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="economy.php"><i class="bi bi-currency-dollar"></i> Grid Economy</a></li>
                             <li><a class="dropdown-item" href="gridstatus.php"><i class="bi bi-activity"></i> Grid Status</a></li>
-                            <li><a class="dropdown-item" href="gridmap.php"><i class="bi bi-map-fill"></i> Grid Map</a></li>
                             <li><a class="dropdown-item" href="gridlist.php"><i class="bi bi-list-columns-reverse"></i> Grid List</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="guide.php"><i class="bi bi-compass"></i> Guide</a></li>
-                            <li><a class="dropdown-item" href="economy.php"><i class="bi bi-currency-dollar"></i> Economy</a></li>
+                            <li><a class="dropdown-item" href="/maps/gridmap.php"><i class="bi bi-map"></i> Grid Map</a></li>
+                            <li><a class="dropdown-item" href="/maps/"><i class="bi bi-globe"></i> World Map</a></li>
                         </ul>
                     </li>
                     

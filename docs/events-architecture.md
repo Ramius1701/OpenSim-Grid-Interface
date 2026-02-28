@@ -1,6 +1,6 @@
 # Events Architecture
 
-This document describes how the OpenSim Grid Interface events system is organized and how data flows through the site.
+This document describes how the Casperia events system is organized and how data flows through the site.
 
 The implementation is intentionally split into three streams to support a Second Life–style experience while preserving clarity and avoiding regressions:
 
@@ -124,7 +124,7 @@ FROM search_events
 
 ## Time Handling (Grid Time)
 
-The OpenSim Grid Interface events system treats all event times as **grid time**.
+The Casperia events system treats all event times as **grid time**.
 
 ### Why this matters
 

@@ -1,0 +1,125 @@
+/* Casperia LCARS skin for osguide (Bootstrap 3.4.1)
+   Drop-in override: keeps osguide functionality, replaces look.
+   Tweak the color values below to match your Casperia palette exactly.
+*/
+:root{
+  --primary-color: #f2c94c;      /* LCARS gold */
+  --secondary-color: #f2994a;    /* LCARS orange */
+  --header-color: #101420;       /* card / header tone */
+  --footer-color: #0b0f18;       /* footer / input tone */
+  --bg-color: #05070b;           /* page background */
+  --text-color: var(--primary-color);
+}
+
+/* Base */
+html, body{
+  background: var(--bg-color) !important;
+  color: var(--text-color) !important;
+  font-family: "Antonio","Arial Narrow",Arial,sans-serif !important;
+}
+
+/* Containers: allow full-width in viewer */
+.container{ width: auto !important; padding-left: 8px !important; padding-right: 8px !important; }
+.spacer{ padding-top: 8px !important; } /* reduce top gap */
+
+/* Navbar */
+.navbar, .navbar-default{
+  background: var(--footer-color) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+.navbar a, .navbar-brand, .navbar-nav > li > a{
+  color: var(--primary-color) !important;
+}
+.navbar-nav > li > a:hover,
+.navbar a:hover{
+  color: var(--secondary-color) !important;
+  background: transparent !important;
+}
+
+/* Panels / cards (osguide uses BS3 panels everywhere) */
+.panel, .panel-default, .panel-fixed, .panel-wall{
+  background: var(--header-color) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  border-radius: 12px !important;
+  color: var(--text-color) !important;
+  box-shadow: none !important;
+}
+.panel-heading, .panel-footer{
+  background: transparent !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: var(--primary-color) !important;
+}
+.panel-title, .regionname{
+  color: var(--primary-color) !important;
+}
+
+/* Thumbnails / images */
+.thumbnail{
+  background: var(--header-color) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  border-radius: 10px !important;
+}
+img{ border-radius: 7px; }
+
+/* Buttons */
+.btn, button, input[type=submit], input[type=button]{
+  background: var(--primary-color) !important;
+  color: #000 !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+}
+.btn:hover, button:hover{
+  filter: brightness(1.1);
+}
+
+/* Badge / label */
+.badge, .label, .label-default{
+  background: var(--secondary-color) !important;
+  color: #000 !important;
+  font-weight: 700 !important;
+}
+
+/* Links */
+a, a:visited{ color: var(--primary-color) !important; }
+a:hover{ color: var(--secondary-color) !important; text-decoration: none !important; }
+
+/* Inputs */
+.form-control, input[type=text], input[type=password], select, textarea{
+  background: var(--footer-color) !important;
+  color: var(--text-color) !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  border-radius: 8px !important;
+}
+.form-control::placeholder{ color: rgba(242,201,76,0.7) !important; }
+
+/* Alerts */
+.alert{
+  background: var(--header-color) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  color: var(--text-color) !important;
+}
+
+/* Modal */
+.modal-content{
+  background: var(--header-color) !important;
+  border-radius: 12px !important;
+  border-color: rgba(255,255,255,0.12) !important;
+}
+
+/* Footer */
+.footer{
+  background: var(--footer-color) !important;
+  border-top: 1px solid rgba(255,255,255,0.10) !important;
+  color: var(--primary-color) !important;
+}
+
+/* Remove any leftover bright/gradient bits */
+*{ box-shadow: none !important; }
+
+/* Viewer narrow-screen friendliness */
+@media (max-width: 600px){
+  .col-xs-6, .col-sm-4, .col-md-3, .col-md-4, .col-md-6 { width: 100% !important; float: none !important; }
+  .navbar-form{ width: 100% !important; }
+}

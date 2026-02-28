@@ -1,0 +1,34 @@
+/* CSS v0.1 by djphil */
+* {margin: 0px; padding: 0px;}
+
+html, body {
+    overflow: hidden;
+	width:100% !important;
+	height:100% !important;
+}
+
+#content{
+    text-align: center;
+	width:100% !important;
+	height:100% !important;
+}
+
+.tooltips  {;}
+.copyright {;}
+.table {margin-bottom: 5px;}
+.heading {
+    background: #1d475f; 
+    color: #EEE; 
+    font-size: 24px; 
+    border-radius: 10px;
+}
+
+#map-canvas {
+    text-align: center;
+	width:100% !important;
+	height:100% !important;
+}
+.marker-style {border: none;}
+
+/* Hide The Google Map Fullscreen Control */
+/* .gm-fullscreen-control {display: none;} */

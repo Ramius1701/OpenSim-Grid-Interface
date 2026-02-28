@@ -1,8 +1,6 @@
 # Icons, Theme, and Page Titles
 
-This document explains how visual consistency is maintained across the OpenSim Grid Interface site.
-
-It also documents the theme engine (color schemes) and how pages should behave in viewer vs web context.
+This document explains how visual consistency is maintained across the Casperia site.
 
 The guiding principle is simple: **new work should look like it belongs to the existing site**.
 When in doubt, follow established, working pages rather than introducing a new layout template.
@@ -79,7 +77,7 @@ For sizing, prefer Bootstrap’s font-size utilities:
 ## Page Title Conventions
 
 - Use short, descriptive titles.
-- Prefer consistent prefixes where appropriate (e.g., “OpenSim Grid Interface — …”) if your header uses a global title template.
+- Prefer consistent prefixes where appropriate (e.g., “Casperia — …”) if your header uses a global title template.
 
 ---
 
@@ -103,7 +101,7 @@ When testing, verify both modes:
 
 Before accepting UI changes:
 
-- Does it still look like OpenSim Grid Interface (not a generic template)?
+- Does it still look like Casperia (not a generic template)?
 - Did any shared navbar/sidebar rules change unintentionally?
 - Are icon sets consistent?
 - Are colors and spacing aligned with established pages?

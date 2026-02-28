@@ -15,7 +15,14 @@ $annArr = json_decode($annRaw, true);
 if (!is_array($annArr)) { $annArr = []; }
 
 // Shared window size (days) for Daily Updates. Used both for HTML widget (unlimited items) and RSS (capped).
-$WINDOW_DAYS = defined('DAILY_UPDATE_WINDOW_DAYS') ? max(0, (int)DAILY_UPDATE_WINDOW_DAYS) : 7;
+$WINDOW_DAYS = defined('DAILY_UPDATE_WINDOW_DAYS') ? max(0, (int)DAILY_UPDATE_WINDOW_DAYS) : 90;
+
+// Behavior toggles / UI caps for the HTML "Daily Updates" widget (welcome.php):
+// - Past fallback is OFF by default (so if there are no upcoming items, we show "No updates available.")
+// - Display is capped by default to keep welcome.php short.
+$ALLOW_PAST_FALLBACK = defined('DAILY_UPDATE_ALLOW_PAST_FALLBACK') ? (bool)DAILY_UPDATE_ALLOW_PAST_FALLBACK : false;
+$HTML_DISPLAY_LIMIT  = defined('DAILY_UPDATE_DISPLAY_LIMIT') ? max(0, (int)DAILY_UPDATE_DISPLAY_LIMIT) : 6;
+$HTML_MORE_URL       = defined('DAILY_UPDATE_MORE_URL') ? (string)DAILY_UPDATE_MORE_URL : '/events.php';
 
 // ===== Normalizers ===========================================================
 // NOTE: holiday.json entries are intended to recur annually. Some entries also have a "rule" field (e.g. Easter-based dates)
@@ -337,7 +344,7 @@ if ($MAX_ITEMS > 0) {
 }
 
 // Fallback if no upcoming/active: show most recent past DAY’s items (events or announcements by start date)
-if (!$items) {
+if (!$items && $ALLOW_PAST_FALLBACK) {
     $past = array_values(array_filter($all, fn($e) => $e['ts'] && $e['ts'] <= $nowTs));
     if ($past) {
         usort($past, fn($a,$b)=> $b['ts'] <=> $a['ts']); // newest first
@@ -351,6 +358,33 @@ if (!$items) {
         });
     }
 }
+// ===== HTML display cap =======================================================
+// Keep welcome.php tidy: show only the next N items (default 6), without splitting the last included day.
+// If there are more items in the window, $moreCount will be > 0 and the HTML renderer will show a “+X more…” link.
+$moreCount = 0;
+if ($isHtml && $HTML_DISPLAY_LIMIT > 0 && count($items) > $HTML_DISPLAY_LIMIT) {
+    $origCount = count($items);
+    $kept = [];
+    $lastDate = null;
+
+    foreach ($items as $e) {
+        if (count($kept) < $HTML_DISPLAY_LIMIT) {
+            $kept[] = $e;
+            $lastDate = $e['date'] ?? null;
+            continue;
+        }
+        // Don’t split a date group: include all items on the last included date.
+        if ($lastDate !== null && (($e['date'] ?? null) === $lastDate)) {
+            $kept[] = $e;
+            continue;
+        }
+        break;
+    }
+
+    $items = $kept;
+    $moreCount = $origCount - count($items);
+}
+
 
 // ===== HTML mode (for welcome widget) =======================================
 // Use in config.php: define('RSS_FEED_URL', '/osviewer/include/rss-feed.php?format=html');
@@ -419,6 +453,11 @@ if ($isHtml) {
             echo '</li>';
         }
         echo '</ul></div>';
+    }
+
+    if (!empty($moreCount) && $moreCount > 0) {
+        $url = htmlspecialchars($HTML_MORE_URL, ENT_QUOTES, 'UTF-8');
+        echo '<div class="daily-updates-more"><a href="' . $url . '">+' . (int)$moreCount . ' more…</a></div>';
     }
     exit;
 }

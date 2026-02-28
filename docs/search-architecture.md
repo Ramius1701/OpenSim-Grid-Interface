@@ -1,6 +1,6 @@
 # Search Architecture
 
-This document explains how search is organized in the OpenSim Grid Interface web interface.
+This document explains how search is organized in the Casperia web interface.
 
 Search is intended to support both:
 - Full web browsing
