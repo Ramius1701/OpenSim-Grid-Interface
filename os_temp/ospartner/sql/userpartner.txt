@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS `userpartner` (
+  `profileUuid`        VARCHAR(36)   NOT NULL,
+  `profilePartner`     VARCHAR(36)   NOT NULL,
+  `profilePartnerText` TEXT          NOT NULL,
+  `profilePartnerStatus` TINYINT(1)  NOT NULL DEFAULT 1,
+  PRIMARY KEY (`profileUuid`),
+  KEY `by_partner` (`profilePartner`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

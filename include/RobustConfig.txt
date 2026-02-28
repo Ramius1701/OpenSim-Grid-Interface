@@ -1,8 +1,8 @@
-Configure your Robust.ini / Robust.HG.ini like this (OpenSim Grid Interface)
+Configure your Robust.ini / Robust.HG.ini like this (Casperia Prime)
 
 Notes:
 - Some viewers and grid setups interpret these URLs differently. Treat this as a *working default* for the in-viewer web tabs.
-- For backwards compatibility, OpenSim Grid Interface also ships "shim" filenames (e.g. messages.php, maptile.php) that forward to the canonical pages.
+- For backwards compatibility, Casperia Prime also ships "shim" filenames (e.g. messages.php, maptile.php) that forward to the canonical pages.
 
 Recommended (canonical) endpoints:
 

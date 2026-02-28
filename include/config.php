@@ -154,7 +154,17 @@ define('DAILYTEXT', 'Welcome to our OpenSimulator Grid! This is a sample daily m
 define('RSS_FEED_URL', '/include/rss-feed.php?format=html'); // URL des RSS-Feeds / URL of the RSS feed
 define('FEED_CACHE_PATH', __DIR__.'/feed_cache.html'); // Cache-Dateipfad / Cache file path
 define('FEED_CACHE_MAX_AGE', 3600); // Cache max. 60 Minuten alt / Cache max. 60 minutes old
-define('CALENDAR_TITLE', 'Event Calendar'); // Titel des Event-Kalenders / Title of the event calendar
+define('CALENDAR_TITLE', 'Event Calendar'); 
+
+// Registration
+// Choose how new avatars are created:
+//   'db'    = pure database inserts (no ROBUST call)
+//   'robust' = call ROBUST /accounts createuser only (fails if ROBUST not reachable)
+//   'auto'  = try ROBUST first, then fall back to DB inserts
+if (!defined('REGISTRATION_CREATE_MODE')) {
+    define('REGISTRATION_CREATE_MODE', 'db');
+}
+// Titel des Event-Kalenders / Title of the event calendar
 
 // Viewer / in-world event categories (search_events.Category).
 // Adjust labels/IDs to match your grid’s conventions if you use a custom list.

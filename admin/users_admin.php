@@ -172,7 +172,7 @@ if ($con && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $editUUID = $uuid;
 
-    // --- 3. DELETE USER ---
+// --- 3. DELETE USER (Comprehensive Cleanup) ---
     } elseif ($action === 'delete_user') {
         $uuid = trim($_POST['uuid'] ?? '');
         if ($uuid === '') {
@@ -182,31 +182,52 @@ if ($con && $_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($confirm !== 'DELETE') {
                 $statusMessage = 'Type "DELETE" to confirm destruction.'; $statusClass = 'danger'; $editUUID = $uuid;
             } else {
-                $sql = "DELETE FROM UserAccounts WHERE PrincipalID = ? LIMIT 1";
-                if ($stmt = mysqli_prepare($con, $sql)) {
-                    mysqli_stmt_bind_param($stmt, 's', $uuid);
-                    if (mysqli_stmt_execute($stmt)) {
-                        if (mysqli_stmt_affected_rows($stmt) > 0) {
-                            $statusMessage = 'User deleted from UserAccounts.'; $statusClass = 'warning';
-                            
-                            // SECURE cleanup of auth table
-                            if ($stmtAuth = mysqli_prepare($con, "DELETE FROM auth WHERE UUID = ?")) {
-                                mysqli_stmt_bind_param($stmtAuth, 's', $uuid);
-                                mysqli_stmt_execute($stmtAuth);
-                                mysqli_stmt_close($stmtAuth);
-                            }
-                            $editUUID = ''; // Clear selection
-                        } else {
-                            $statusMessage = 'User UUID not found in database.'; $statusClass = 'secondary';
+                // List of tables and their respective ID columns for a full wipe
+                $tables = [
+                    'UserAccounts'     => 'PrincipalID',
+                    'auth'             => 'UUID',
+                    'GridUser'         => 'UserID',
+                    'Avatars'          => 'PrincipalID',
+                    'Presence'         => 'UserID',
+                    'InventoryFolders' => 'agentID',
+                    'InventoryItems'   => 'avatarID',
+                    'Friends'          => 'PrincipalID'
+                ];
+
+                // SAFETY CHECK: Re-open connection if it was closed or lost
+                if (!$con || $con->connect_errno) {
+                    $con = db(); 
+                }
+
+                $con->begin_transaction();
+                try {
+                    foreach ($tables as $table => $column) {
+                        $sql = "DELETE FROM $table WHERE $column = ?";
+                        if ($stmt = mysqli_prepare($con, $sql)) {
+                            mysqli_stmt_bind_param($stmt, 's', $uuid);
+                            mysqli_stmt_execute($stmt);
+                            mysqli_stmt_close($stmt);
                         }
-                    } else {
-                        $statusMessage = 'Delete execution failed.'; $statusClass = 'danger';
                     }
-                    mysqli_stmt_close($stmt);
+
+                    // Also handle the reverse of Friends (where this user is the friend)
+                    if ($stmtF = mysqli_prepare($con, "DELETE FROM Friends WHERE Friend = ?")) {
+                        mysqli_stmt_bind_param($stmtF, 's', $uuid);
+                        mysqli_stmt_execute($stmtF);
+                        mysqli_stmt_close($stmtF);
+                    }
+
+                    $con->commit();
+                    $statusMessage = 'User and all associated data purged successfully.';
+                    $statusClass = 'success';
+                    $editUUID = ''; 
+                } catch (Throwable $e) {
+                    $con->rollback();
+                    $statusMessage = 'Purge failed: ' . $e->getMessage();
+                    $statusClass = 'danger';
                 }
             }
         }
-        if ($editUUID === $uuid) { $editUUID = ''; }
     }
 }
 

@@ -116,7 +116,7 @@ function fmt_owner_label($row): string {
         <!-- Sidebar -->
         <div class="col-md-3">
             <div class="card mb-3">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header">
                     <h5 class="mb-0">
                         <i class="bi bi-calendar-event me-1"></i> Events
                     </h5>

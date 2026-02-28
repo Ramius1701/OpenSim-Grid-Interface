@@ -250,7 +250,7 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
         <div class="col-md-3">
             <!-- Find friends / directory -->
             <div class="card">
-                <div class="card-header bg-<?php echo $isLoggedIn ? 'primary' : 'info'; ?> text-white">
+                <div class="card-header <?php echo $isLoggedIn ? 'primary' : 'info'; ?>">
                     <h5><i class="bi bi-search"></i> <?php echo $isLoggedIn ? 'Find new friends' : 'User Directory'; ?></h5>
                 </div>
                 <div class="card-body">

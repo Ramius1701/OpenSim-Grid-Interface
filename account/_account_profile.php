@@ -246,12 +246,15 @@ if (!function_exists('osv_rights_from_flags')) {
 // ------------------------------------------------------------------
 // Write helpers (email, profile, partner, password)
 // ------------------------------------------------------------------
+
 if (!function_exists('osv_ensure_profile_row')) {
     function osv_ensure_profile_row(mysqli $conn, string $UID, string $table, array $cols): void {
         $idCol = osv_pick_col($cols, ['useruuid','UserUUID','PrincipalID','UUID']);
         if (!$idCol) {
             return;
         }
+
+        // Already present?
         $sql = "SELECT 1 FROM `{$table}` WHERE `{$idCol}` = ? LIMIT 1";
         if (!($stmt = $conn->prepare($sql))) {
             return;
@@ -268,12 +271,84 @@ if (!function_exists('osv_ensure_profile_row')) {
         if ($exists) {
             return;
         }
-        $sql2 = "INSERT INTO `{$table}` (`{$idCol}`) VALUES (?)";
-        if ($stmt2 = $conn->prepare($sql2)) {
-            $stmt2->bind_param('s', $UID);
-            $stmt2->execute();
-            $stmt2->close();
+
+        // Insert a row that satisfies NOT NULL columns with no defaults (MySQL strict-safe)
+        $colMeta = [];
+        if ($rs = $conn->query("SHOW COLUMNS FROM `{$table}`")) {
+            while ($row = $rs->fetch_assoc()) {
+                $colMeta[] = $row; // Field, Type, Null, Default, Extra
+            }
+            $rs->close();
         }
+
+        $insertCols = [$idCol];
+        $params     = [$UID];
+        $types      = 's';
+
+        foreach ($colMeta as $c) {
+            $field = $c['Field'];
+            if (strcasecmp($field, $idCol) === 0) {
+                continue;
+            }
+
+            $null  = strtoupper((string)$c['Null']);
+            $def   = $c['Default']; // may be NULL
+            $extra = strtolower((string)$c['Extra']);
+            $type  = strtolower((string)$c['Type']);
+
+            // We only need to supply values for NOT NULL columns with no default and not auto-increment
+            if ($null !== 'NO' || $def !== null || strpos($extra, 'auto_increment') !== false) {
+                continue;
+            }
+
+            $insertCols[] = $field;
+
+            $lname = strtolower($field);
+            $val = '';
+
+            // UUID-ish fields
+            if (strpos($lname, 'uuid') !== false || preg_match('/\b(char|varchar)\(36\)\b/', $type)) {
+                $val = '00000000-0000-0000-0000-000000000000';
+            }
+            // numeric
+            elseif (preg_match('/\b(tinyint|smallint|mediumint|int|bigint)\b/', $type)) {
+                $val = '0';
+            }
+            elseif (preg_match('/\b(decimal|float|double)\b/', $type)) {
+                $val = '0';
+            }
+            // date/time
+            elseif (strpos($type, 'datetime') !== false || strpos($type, 'timestamp') !== false) {
+                $val = '1970-01-01 00:00:00';
+            }
+            elseif (strpos($type, 'date') !== false) {
+                $val = '1970-01-01';
+            }
+            // everything else: empty string is safe for text-ish columns
+            else {
+                $val = '';
+            }
+
+            $params[] = $val;
+            $types .= 's';
+        }
+
+        $colsSql = '`' . implode('`,`', $insertCols) . '`';
+        $phSql   = implode(',', array_fill(0, count($insertCols), '?'));
+        $sql2    = "INSERT INTO `{$table}` ({$colsSql}) VALUES ({$phSql})";
+
+        if (!($stmt2 = $conn->prepare($sql2))) {
+            return;
+        }
+
+        // Use existing helper to bind params by reference safely
+        if (!osv_bind_params($stmt2, $types, $params)) {
+            $stmt2->close();
+            return;
+        }
+
+        $stmt2->execute();
+        $stmt2->close();
     }
 }
 
@@ -1729,10 +1804,10 @@ if ($conn && $UID !== '') {
           <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
               <h5 class="mb-1"><i class="bi <?php echo h($account_icon); ?> me-1"></i> <?php echo h($title); ?></h5>
-              <div class="text-muted small"><?php echo h($account_subtitle); ?></div>
+              <div class="small"><?php echo h($account_subtitle); ?></div>
             </div>
             <div class="text-end">
-              <div class="small text-muted">Avatar UUID</div>
+              <div class="small">Avatar UUID</div>
               <code class="small"><?php echo h($profile['principal_id']); ?></code>
             </div>
           </div>

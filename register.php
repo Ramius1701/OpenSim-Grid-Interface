@@ -31,16 +31,124 @@ function gen_recovery_code() {
     return strtoupper(bin2hex(random_bytes(4))); // Generates 8-char code (e.g., A1B2C3D4)
 }
 
-// Helper: Ensure Recovery Table Exists
+// Helper: Check whether recovery table exists (NO auto-create; keep schema untouched)
 function ensure_recovery_table($conn) {
-    $sql = "CREATE TABLE IF NOT EXISTS ws_recovery_codes (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        PrincipalID CHAR(36) NOT NULL,
-        code_hash VARCHAR(255) NOT NULL,
-        is_used TINYINT(1) DEFAULT 0,
-        INDEX (PrincipalID)
-    )";
-    $conn->query($sql);
+    try {
+        if (!($conn instanceof mysqli)) return false;
+        $rs = $conn->query("SHOW TABLES LIKE 'ws_recovery_codes'");
+        $ok = ($rs && $rs->num_rows > 0);
+        if ($rs) $rs->close();
+        return $ok;
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+
+// --- Helper: Ensure GridUser row exists (needed for some grids on first login) ---
+function ensure_griduser_row(mysqli $conn, string $uuid): bool {
+    $stmt = $conn->prepare("SELECT UserID FROM GridUser WHERE UserID=? LIMIT 1");
+    if (!$stmt) return false;
+    $stmt->bind_param("s", $uuid);
+    $stmt->execute();
+    $stmt->store_result();
+    $exists = ($stmt->num_rows > 0);
+    $stmt->close();
+    if ($exists) return true;
+
+    // Insert minimal row; remaining fields have defaults per schema
+    $zero = '00000000-0000-0000-0000-000000000000';
+    $pos  = '<0,0,0>';
+    $stmt2 = $conn->prepare("INSERT INTO GridUser (UserID, HomeRegionID, HomePosition, LastRegionID, LastPosition) VALUES (?, ?, ?, ?, ?)");
+    if (!$stmt2) return false;
+    $stmt2->bind_param("sssss", $uuid, $zero, $pos, $zero, $pos);
+    $ok = $stmt2->execute();
+    $stmt2->close();
+    return (bool)$ok;
+}
+
+// --- Helper: Create default inventory folder skeleton (prevents 'Inventory service is not responding' for DB-created users) ---
+function ensure_inventory_skeleton(mysqli $conn, string $uuid, string &$err): bool {
+    $err = '';
+    $zero = '00000000-0000-0000-0000-000000000000';
+
+    // 1) Find or create root 'My Inventory'
+    $root = null;
+    $stmt = $conn->prepare("SELECT folderID FROM inventoryfolders WHERE agentID=? AND parentFolderID=? AND type=8 LIMIT 1");
+    if (!$stmt) { $err = "DB error preparing inventory root query."; return false; }
+    $stmt->bind_param("ss", $uuid, $zero);
+    $stmt->execute();
+    $stmt->bind_result($folderID);
+    if ($stmt->fetch()) {
+        $root = $folderID;
+    }
+    $stmt->close();
+
+    if (!$root) {
+        $root = gen_uuid();
+        $version = 17; // historical default used by this codebase
+        $type = 8;
+        $name = 'My Inventory';
+        $stmtIns = $conn->prepare("INSERT INTO inventoryfolders (folderName, type, version, folderID, agentID, parentFolderID) VALUES (?, ?, ?, ?, ?, ?)");
+        if (!$stmtIns) { $err = "DB error preparing inventory root insert."; return false; }
+        $stmtIns->bind_param("siisss", $name, $type, $version, $root, $uuid, $zero);
+        if (!$stmtIns->execute()) {
+            $err = "DB error creating inventory root.";
+            $stmtIns->close();
+            return false;
+        }
+        $stmtIns->close();
+    }
+
+    // 2) Standard system folders under root
+    $folders = [
+        ['Textures',        0,  1],
+        ['Sounds',          1,  1],
+        ['Calling Cards',   2,  2],
+        ['Landmarks',       3,  1],
+        ['Clothing',        5,  3],
+        ['Objects',         6,  1],
+        ['Notecards',       7,  1],
+        ['Scripts',         10, 1],
+        ['Body Parts',      13, 5],
+        ['Trash',           14, 1],
+        ['Photo Album',     15, 1],
+        ['Lost And Found',  16, 1],
+        ['Animations',      20, 1],
+        ['Gestures',        21, 1],
+        ['Favorites',       23, 1],
+        ['Current Outfit',  46, 1],
+        ['My Outfits',      48, 1],
+    ];
+
+    $stmtChk = $conn->prepare("SELECT folderID FROM inventoryfolders WHERE agentID=? AND parentFolderID=? AND folderName=? LIMIT 1");
+    $stmtAdd = $conn->prepare("INSERT INTO inventoryfolders (folderName, type, version, folderID, agentID, parentFolderID) VALUES (?, ?, ?, ?, ?, ?)");
+    if (!$stmtChk || !$stmtAdd) { $err = "DB error preparing inventory folder statements."; return false; }
+
+    foreach ($folders as $f) {
+        [$name, $type, $version] = $f;
+
+        // Skip if folder already exists (by name under root)
+        $stmtChk->bind_param("sss", $uuid, $root, $name);
+        $stmtChk->execute();
+        $stmtChk->store_result();
+        if ($stmtChk->num_rows > 0) {
+            continue;
+        }
+
+        $fid = gen_uuid();
+        $stmtAdd->bind_param("siisss", $name, $type, $version, $fid, $uuid, $root);
+        if (!$stmtAdd->execute()) {
+            $err = "DB error creating inventory folder: " . $name;
+            $stmtChk->close();
+            $stmtAdd->close();
+            return false;
+        }
+    }
+
+    $stmtChk->close();
+    $stmtAdd->close();
+    return true;
 }
 
 // Helper: Money Server Sync (Email Only - Best Effort, No Money)
@@ -127,6 +235,105 @@ function sync_money_server($uuid, $email, $conn = null) {
     }
 }
 
+
+// Helper: Create user via ROBUST /accounts createuser (preferred, uses OpenSim's own creation pipeline)
+// - Requires ROBUST [UserAccountService] AllowCreateUser = true
+// - Endpoint: POST http://<robust-host>:<private-port>/accounts with METHOD=createuser
+function osv_robust_createuser(string $first, string $last, string $pass, string $email, string $uuid, string $scope, string &$err): bool {
+    $err = '';
+
+    // Default to local Robust private port (standard default setup). Override via ROBUST_ACCOUNTS_URL if defined.
+    $url = defined('ROBUST_ACCOUNTS_URL') ? constant('ROBUST_ACCOUNTS_URL') : 'http://127.0.0.1:8003/accounts';
+
+    // Build POST body as application/x-www-form-urlencoded
+    $post = http_build_query([
+        'METHOD'      => 'createuser',
+        'FirstName'   => $first,
+        'LastName'    => $last,
+        'Password'    => $pass,
+        'Email'       => $email,
+        'PrincipalID' => $uuid,
+        'ScopeID'     => $scope,
+    ]);
+
+    $headers = [
+        'Content-Type: application/x-www-form-urlencoded',
+        'Content-Length: ' . strlen($post),
+    ];
+
+    // Optional Basic Auth (Robust supports this for private services)
+    $basicUser = defined('ROBUST_HTTP_USER') ? constant('ROBUST_HTTP_USER') : '';
+    $basicPass = defined('ROBUST_HTTP_PASS') ? constant('ROBUST_HTTP_PASS') : '';
+
+    // Use cURL if available (more reliable than file_get_contents)
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+
+        if ($basicUser !== '') {
+            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+            curl_setopt($ch, CURLOPT_USERPWD, $basicUser . ':' . $basicPass);
+        }
+
+        $resp = curl_exec($ch);
+        $curlErr = curl_error($ch);
+        $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($resp === false || $resp === '' || $httpCode >= 400) {
+            $err = $curlErr ? ("ROBUST createuser HTTP error: " . $curlErr) : ("ROBUST createuser HTTP status: " . $httpCode);
+            return false;
+        }
+
+        // Expect XML: <ServerResponse><result>Success/Failure or structured result</result></ServerResponse>
+        $xml = @simplexml_load_string($resp);
+        if ($xml === false || !isset($xml->result)) {
+            $err = 'ROBUST createuser returned unexpected response.';
+            return false;
+        }
+
+        // Failure is an explicit string "Failure"
+        if (trim((string)$xml->result) === 'Failure') {
+            $err = 'ROBUST createuser returned Failure (AllowCreateUser may be disabled).';
+            return false;
+        }
+
+        return true;
+    }
+
+    // Fallback: file_get_contents
+    $opts = [
+        'http' => [
+            'method'  => 'POST',
+            'header'  => implode("\r\n", array_merge($headers, $basicUser !== '' ? ['Authorization: Basic ' . base64_encode($basicUser . ':' . $basicPass)] : [])),
+            'content' => $post,
+            'timeout' => 5,
+        ]
+    ];
+    $context = stream_context_create($opts);
+    $resp = @file_get_contents($url, false, $context);
+    if ($resp === false || $resp === '') {
+        $err = 'ROBUST createuser request failed.';
+        return false;
+    }
+
+    $xml = @simplexml_load_string($resp);
+    if ($xml === false || !isset($xml->result)) {
+        $err = 'ROBUST createuser returned unexpected response.';
+        return false;
+    }
+    if (trim((string)$xml->result) === 'Failure') {
+        $err = 'ROBUST createuser returned Failure (AllowCreateUser may be disabled).';
+        return false;
+    }
+    return true;
+}
+
 $step = isset($_SESSION['reg_step']) ? $_SESSION['reg_step'] : 1;
 $error = "";
 
@@ -208,7 +415,7 @@ if ($fname === '' || $lname === '' || $email === '') {
 
     // --- STEP 3: CREATE ACCOUNT ---
     elseif (isset($_POST['step3'])) {
-        ensure_recovery_table($conn);
+        $hasRecovery = ensure_recovery_table($conn);
         $d = $_SESSION['reg_data'] ?? null;
         $codes = $_SESSION['reg_codes'] ?? null;
         
@@ -220,24 +427,71 @@ if ($fname === '' || $lname === '' || $email === '') {
         $scope = '00000000-0000-0000-0000-000000000000';
         $created = time();
         
+
+// Registration create mode:
+//   'db'    = pure DB inserts (no ROBUST call)
+//   'robust' = ROBUST /accounts createuser only
+//   'auto'  = try ROBUST first, then fall back to DB inserts
+$mode = defined('REGISTRATION_CREATE_MODE') ? strtolower(trim((string)constant('REGISTRATION_CREATE_MODE'))) : 'db';
+$useRobust = ($mode === 'robust' || $mode === 'auto');
+
+// Optional: ask ROBUST to create the user (preferred when enabled, because it provisions inventory/default avatar)
+$robustErr = '';
+$robustOk  = false;
+if ($useRobust) {
+    $robustOk = osv_robust_createuser($d['f'], $d['l'], $d['p'], $d['e'], $uuid, $scope, $robustErr);
+}
+
+if ($robustOk) {
+    // Store recovery codes only if ws_recovery_codes exists (best-effort)
+    if ($hasRecovery) {
+        try {
+            $sql3 = "INSERT INTO ws_recovery_codes (PrincipalID, code_hash) VALUES (?, ?)";
+            if ($stmt3 = $conn->prepare($sql3)) {
+                foreach ($codes as $c) {
+                    $c_hash = password_hash($c, PASSWORD_DEFAULT);
+                    $stmt3->bind_param("ss", $uuid, $c_hash);
+                    $stmt3->execute();
+                }
+                $stmt3->close();
+            }
+        } catch (Throwable $e) {
+            error_log("Recovery code save failed: " . $e->getMessage());
+        }
+    }
+
+    // Email sync (best-effort)
+    sync_money_server($uuid, $d['e'], $conn);
+
+    $step = 4;
+    unset($_SESSION['reg_data'], $_SESSION['reg_codes'], $_SESSION['reg_step']);
+
+} else {
+
+    // If admin forced ROBUST-only mode, do NOT DB-create partial users.
+    if ($mode === 'robust') {
+        $error = "Registration is temporarily unavailable (account service not responding). Please contact an administrator.";
+
+    } else {
+        // DB mode (or AUTO fallback): create user/auth + seed GridUser + seed inventory skeleton
+
         // 1. Create User
-        $sql1 = "INSERT INTO UserAccounts (PrincipalID, ScopeID, FirstName, LastName, Email, Created) VALUES (?, ?, ?, ?, ?, ?)";
+        $serviceUrls = 'HomeURI= InventoryServerURI= AssetServerURI=';
+        $sql1 = "INSERT INTO UserAccounts (PrincipalID, ScopeID, FirstName, LastName, Email, ServiceURLs, Created, UserLevel, UserFlags, UserTitle, active)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, '', 1)";
         $stmt1 = $conn->prepare($sql1);
-        $stmt1->bind_param("sssssi", $uuid, $scope, $d['f'], $d['l'], $d['e'], $created);
-        
+        $stmt1->bind_param("ssssssi", $uuid, $scope, $d['f'], $d['l'], $d['e'], $serviceUrls, $created);
+
         // 2. Create Auth (Password)
         $salt = md5(uniqid(mt_rand(), true));
         $hash = md5(md5($d['p']) . ":" . $salt);
-        
-        $sql2 = "INSERT INTO auth (UUID, passwordHash, passwordSalt, accountType, webLoginKey) VALUES (?, ?, ?, 'UserAccount', '00000000-0000-0000-0000-000000000000')";
+
+        $sql2 = "INSERT INTO auth (UUID, passwordHash, passwordSalt, accountType, webLoginKey)
+                 VALUES (?, ?, ?, 'UserAccount', '00000000-0000-0000-0000-000000000000')";
         $stmt2 = $conn->prepare($sql2);
         $stmt2->bind_param("sss", $uuid, $hash, $salt);
-        
-        // 3. Save Recovery Codes (Hashed for security)
-        $sql3 = "INSERT INTO ws_recovery_codes (PrincipalID, code_hash) VALUES (?, ?)";
-        $stmt3 = $conn->prepare($sql3);
-        
-        // Use a transaction so we don't create partial accounts (user/auth/codes must all succeed)
+
+        // Use a transaction so we don't create partial accounts
         $conn->begin_transaction();
         try {
             if (!$stmt1->execute()) {
@@ -247,31 +501,51 @@ if ($fname === '' || $lname === '' || $email === '') {
                 throw new Exception("Database Error creating authentication record.");
             }
 
-            foreach ($codes as $c) {
-                $c_hash = password_hash($c, PASSWORD_DEFAULT); // Secure hash
-                $stmt3->bind_param("ss", $uuid, $c_hash);
-                if (!$stmt3->execute()) {
-                    throw new Exception("Database Error saving recovery codes.");
-                }
+            if (!ensure_griduser_row($conn, $uuid)) {
+                throw new Exception("Database Error creating GridUser record.");
+            }
+
+            $invErr = '';
+            if (!ensure_inventory_skeleton($conn, $uuid, $invErr)) {
+                throw new Exception($invErr ?: "Database Error creating inventory folders.");
             }
 
             if (!$conn->commit()) {
                 throw new Exception("Database Error committing transaction.");
             }
 
-            // --- SUCCESS! SYNC EMAIL ONLY (Wait for login to give money) ---
+            // Store recovery codes only if ws_recovery_codes exists (best-effort)
+            if ($hasRecovery) {
+                try {
+                    $sql3 = "INSERT INTO ws_recovery_codes (PrincipalID, code_hash) VALUES (?, ?)";
+                    if ($stmt3 = $conn->prepare($sql3)) {
+                        foreach ($codes as $c) {
+                            $c_hash = password_hash($c, PASSWORD_DEFAULT);
+                            $stmt3->bind_param("ss", $uuid, $c_hash);
+                            $stmt3->execute();
+                        }
+                        $stmt3->close();
+                    }
+                } catch (Throwable $e) {
+                    error_log("Recovery code save failed: " . $e->getMessage());
+                }
+            }
+
+            // Email sync (best-effort)
             sync_money_server($uuid, $d['e'], $conn);
-            // ---------------------------------------------------------------
 
             $step = 4;
-            // Clean Session
-            unset($_SESSION['reg_data']);
-            unset($_SESSION['reg_codes']);
-            unset($_SESSION['reg_step']);
+            unset($_SESSION['reg_data'], $_SESSION['reg_codes'], $_SESSION['reg_step']);
+
         } catch (Throwable $e) {
             $conn->rollback();
             $error = "Database Error: " . ($conn->error ?: $e->getMessage());
         }
+
+    } // end db/auto
+
+} // end robust failed
+
 
         } // end session ok
     }

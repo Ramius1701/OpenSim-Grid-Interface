@@ -1,15 +1,14 @@
-# OpenSim Grid Interface — Documentation Overview
+# Casperia Web Interface — Overview
 
-This documentation set describes the architecture, configuration, and operational expectations of **OpenSim Grid Interface**.
-
-The project is designed to provide a unified, theme-consistent, Second Life–style web experience with clear separation between:
+This repository contains the Casperia web interface and supporting utilities for a multi-simulator OpenSimulator grid.
+The goal is a unified, theme-consistent, Second Life–style web experience with clear separation between:
 
 - **Curated site content** (JSON-backed)
 - **Grid-sourced content** (database-backed)
 - **User-managed content** (account-scoped)
 - **Admin-managed controls** (permission-gated)
 
-Key project principles:
+This project prioritizes:
 
 - **Theme consistency** across all pages
 - **Surgical fixes vs. rewrites**
@@ -19,88 +18,127 @@ Key project principles:
 
 ---
 
-## Docs index
-
-### Setup and deployment
-- `INSTALL.md` — install requirements, deployment, first-run checklist
-- `CONFIG.md` — the configuration surface (env/config, base URL rules, theming knobs)
-- `ROBUST_URLS.md` — Robust.ini / Robust.HG.ini viewer URL mapping (with canonical + shim endpoints)
-- `DATABASE.md` — which tables are expected, which tables are created by the portal
-
-### Core systems
-- `GRIDMAP.md` — how `gridmap.php` works (tiling, varregions, view controls)
-- `search-architecture.md` — search endpoints, viewer vs web behavior, logging
-- `events-architecture.md` — unified calendar (JSON + DB), permissions, grid-time rules
-- `icons-and-theme.md` — icons, theme engine, title conventions
-
-### Ops / safety
-- `SECURITY.md` — what **must not** be committed, and recommended hardening
-- `TROUBLESHOOTING.md` — “blank page”, tiles not loading, DB access issues, etc.
-
----
-
-## Canonical entry points
+## Canonical Entry Points
 
 ### Public
-- `index.php`
-- `welcome.php`
-- `gridstatus.php` / `gridstatusrss.php`
-- `gridmap.php`
-- `events.php`
 
-### Account / user
+- Home / landing pages (with live KPIs)
+- `welcome.php`
+- `stats/` (grid KPIs & region status)
+- `events.php` — unified calendar view for:
+  - Holidays (JSON)
+  - Announcements (JSON)
+  - Optional in-world events (DB)
+
+### Account / User
+
 - `account/index.php`
-- `events_manage.php`
-- `event_edit.php`
+- `events_manage.php` — manage user in-world events (past/present/future)
+- `event_edit.php` — create/edit an individual in-world event
 
 ### Admin
-- `admin/holiday_admin.php`
-- `admin/announcements_admin.php`
-- `admin/tickets_admin.php`
+
+- `admin/holiday_admin.php` — curated holidays management
+- `admin/announcements_admin.php` — curated announcements management
+- `admin/users_admin.php`
+- `admin/groups_admin.php`
 - `admin/analytics.php`
+
+**Legacy / Compatibility**
+
+- `admin/events_admin.php` (if present) is a deprecated entrypoint that historically redirected to Holiday Admin.
+  Once header/nav links are confirmed updated, this file can be removed safely.
 
 ---
 
-## Sources of truth
+## Sources of Truth
 
-### Curated JSON (admin-managed)
+### Curated JSON (Admin-managed)
 
 Canonical locations are defined in `include/config.php`:
 
 - `PATH_EVENTS_JSON` → `data/events/holiday.json`
 - `PATH_ANNOUNCEMENTS_JSON` → `data/events/announcements.json`
-- `PATH_DESTINATIONS_JSON` → `data/destinations/destinations.json`
 
-### In-world / viewer events (database)
+These represent official grid-wide, curated content.
+
+### In-world / Viewer Events (Database)
 
 User-created in-world events are sourced from:
 
-- `search_events`
+- `search_events` table
+
+UI templates may expect keys like `Name`, `Category`, `DateUTC`.
+The database uses lowercase columns (e.g., `name`, `category`, `dateUTC`), so
+when bridging DB → UI, prefer **safe aliasing** in queries rather than changing template expectations.
 
 ---
 
-## Time rules (critical)
+## Time Rules (Critical)
 
 All event times are treated as **grid time**, not the viewer or browser’s local time.
 
 - `search_events.dateUTC` is stored as an epoch.
 - The UI and calendar should interpret and bucket these timestamps using the **grid/server timezone**.
 
-To enforce a specific grid timezone across environments, set:
+If a specific grid timezone must be enforced across environments, define:
 
 ```php
 define('GRID_TIMEZONE', 'America/Los_Angeles');
 ```
 
+If not defined, the server’s default timezone is used.
+
 ---
 
-## Notes about “production-ready” and polish
+## Directory Notes
 
-The project is used in live operation. “Polish” work typically means:
+### `/admin/`
 
-- documentation improvements
-- onboarding clarity (install/config)
-- naming consistency and reduction of legacy leftovers
-- optional packaging adjustments for broader grid reuse
+Admin-only tools for curated content and grid management.
 
-These changes should not alter working logic unless explicitly planned.
+### `/account/`
+
+User-facing tools for profile, messages, notifications, and event management.
+
+### `/data/`
+
+Runtime data storage.
+Canonical event sources live under:
+
+- `data/events/`
+
+### `/helper/`
+
+Development and diagnostic tools.
+This directory is currently **exempt from cleanup** and may contain experimental or transitional utilities.
+
+---
+
+## Design & Maintenance Principles
+
+1. **Do not rewrite established pages to new templates**
+   - New pages should adopt the existing Casperia look and layout patterns.
+
+2. **Fix bugs without removing working features**
+   - Prefer additive or targeted edits.
+
+3. **Avoid implicit behavior changes**
+   - Especially in navigation, categories, filters, and time handling.
+
+4. **Use compatibility shims**
+   - When replacing older entrypoints, redirect rather than remove immediately,
+     unless the header and docs confirm removal is safe.
+
+---
+
+## Near-term Goals
+
+- Maintain a stable, unified events experience across:
+  - Calendar (`events.php`)
+  - User management (`events_manage.php`)
+  - Edit/create flow (`event_edit.php`, `event_save.php`)
+  - Admin-curated content (`holiday_admin.php`, `announcements_admin.php`)
+
+- Reduce legacy leftovers *only when confirmed unused*.
+- Keep documentation current as the primary guardrail against regressions.
