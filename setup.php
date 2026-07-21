@@ -222,7 +222,7 @@ chmod 755 cache</div>
                     <h6><i class="bi bi-server"></i> OpenSimulator Configuration</h6>
                     <p class="mb-2">Add these lines to your <code>Robust.HG.ini</code> file:</p>
                     <div class="code-block" style="font-size: 0.85rem;">
-Tip: Casperia Prime also includes compatibility shims for older filenames (maptile.php, searchservice.php, createavatar.php, etc.) if you still have old configs.
+Tip: Casperia Prime also includes compatibility shims for older filenames (searchservice.php, createavatar.php, etc.) if you still have old configs.
 
 MapTileURL = "${Const|BaseURL}:${Const|PublicPort}/oswebinterface/maps/gridmap.php"
 SearchURL = "${Const|BaseURL}:${Const|PublicPort}/oswebinterface/gridsearch.php"
