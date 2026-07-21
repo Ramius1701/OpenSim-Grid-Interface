@@ -486,15 +486,48 @@ function collect_place_names(mysqli $con, string $like, string &$meta = ''): arr
 /* -------------------------------------------------------
    Inputs / Routing
 ------------------------------------------------------- */
-$case  = strtolower(trim((string)($_GET['case'] ?? 'hub')));
-$query = trim((string)($_GET['q'] ?? ''));
+$case = strtolower(trim((string)($_GET['case'] ?? 'hub')));
+
+// Accept both local search params and viewer-style params
+$query = trim((string)(
+    $_GET['q']
+    ?? $_GET['query']
+    ?? $_GET['query_term']
+    ?? ''
+));
 
 $allowedCases = ['hub','shops','events','clubs','land','jobs','adult','dwell','vitals'];
 if (!in_array($case, $allowedCases, true)) $case = 'hub';
 
-$type = strtolower(trim((string)($_GET['type'] ?? 'all')));
-$allowedTypes = ['all','people','places','groups'];
-if (!in_array($type, $allowedTypes, true)) $type = 'all';
+// Accept viewer-style search type names and normalize them
+$type_raw = strtolower(trim((string)(
+    $_GET['type']
+    ?? $_GET['search_type']
+    ?? $_GET['collection']
+    ?? $_GET['category']
+    ?? 'all'
+)));
+
+$type_map = [
+    'all'      => 'all',
+
+    'people'   => 'people',
+    'person'   => 'people',
+    'agent'    => 'people',
+    'agents'   => 'people',
+
+    'places'   => 'places',
+    'place'    => 'places',
+    'parcel'   => 'places',
+    'parcels'  => 'places',
+    'land'     => 'places',
+
+    'groups'   => 'groups',
+    'group'    => 'groups',
+];
+
+$type = $type_map[$type_raw] ?? 'all';
+$is_search_mode = ($query !== '');
 
 $adult_ok = (bool)($_SESSION['adult_ok'] ?? false);
 if (isset($_GET['adult_ok']) && $_GET['adult_ok'] === '1') {
@@ -650,6 +683,8 @@ $people = $places = $groups = [];
 $places_meta = "";
 
 if ($query !== "") {
+    $like = '%' . $query . '%';
+
     if (($type === 'all' || $type === 'people') && table_exists($con, 'UserAccounts')) {
         $people = stmt_rows(
             $con,
@@ -1042,11 +1077,10 @@ textarea.field { min-height: 90px; resize: vertical; }
 
 <div class="pulse-bar">
     <div>
-        <span>SYSTEM: CASPERIA PRIME COMMAND HUB</span>
+        <span>CASPERIA PRIME HUB</span>
         <span class="badge"><span class="dot">●</span>LIVE</span>
     </div>
     <div class="pulse-right">
-        <span style="color:var(--neon-blue)">ALTIUS SPECTRUM</span>
         <span class="badge"><?php echo (int)$online; ?> Online</span>
         <span class="badge"><?php echo (int)$regions; ?> Regions</span>
         <span class="badge"><?php echo (int)$users; ?> Citizens</span>
@@ -1056,8 +1090,8 @@ textarea.field { min-height: 90px; resize: vertical; }
 <div class="page">
 
     <div class="hub-hero">
-        <h1>Websearch Portal</h1>
-        <p>ViewerOS: Discovery & Grid Services inside the viewer</p>
+        <h1><?php echo $is_search_mode ? 'Search Results' : 'Websearch Portal'; ?></h1>
+        <p><?php echo $is_search_mode ? 'ViewerOS: Unified search across People, Places, and Groups' : 'ViewerOS: Discovery & Grid Services inside the viewer'; ?></p>
     </div>
 
     <?php if ($flash !== ""): ?>
@@ -1066,7 +1100,7 @@ textarea.field { min-height: 90px; resize: vertical; }
 
     <div class="cmd-input-container">
         <form action="ossearch.php" method="GET" class="cmd-box">
-            <input type="hidden" name="case" value="<?php echo h($case); ?>">
+            <input type="hidden" name="case" value="<?php echo h($is_search_mode ? 'hub' : $case); ?>">
             <input type="hidden" name="type" value="<?php echo h($type); ?>">
             <input type="text" name="q"
                    placeholder="Command Console (People • Places • Groups)…"
@@ -1077,7 +1111,8 @@ textarea.field { min-height: 90px; resize: vertical; }
 
     <div class="type-chips">
         <?php
-        $base = 'ossearch.php?case=' . rawurlencode($case);
+        $base_case = $is_search_mode ? 'hub' : $case;
+        $base = 'ossearch.php?case=' . rawurlencode($base_case);
         if ($query !== '') $base .= '&q=' . rawurlencode($query);
         ?>
         <a class="type-chip <?php echo ($type==='all'?'active':''); ?>" href="<?php echo $base; ?>&type=all">All</a>
@@ -1088,7 +1123,9 @@ textarea.field { min-height: 90px; resize: vertical; }
 
     <div class="wrap">
 
-        <?php if ($query === '' && $case === 'hub'): ?>
+        <?php if (!$is_search_mode): ?>
+
+            <?php if ($case === 'hub'): ?>
 
             <div class="category-grid">
                 <a href="ossearch.php?case=shops" class="cat-card">
@@ -1416,8 +1453,10 @@ textarea.field { min-height: 90px; resize: vertical; }
 
         <?php endif; ?>
 
-        <?php if ($query !== ''): ?>
-            <div class="section-title">Command Results for “<?php echo h($query); ?>”</div>
+        <?php endif; ?>
+
+        <?php if ($is_search_mode): ?>
+            <div class="section-title">Search Results for “<?php echo h($query); ?>” • <a style="color:var(--neon-blue); text-decoration:none;" href="ossearch.php?case=hub">Back to Hub</a></div>
 
             <div class="panel">
                 <?php

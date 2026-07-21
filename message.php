@@ -23,7 +23,7 @@ if (isset($_SESSION['user']) && !empty($_SESSION['user']['principal_id'])) {
 
 if (!$isLoggedIn) {
     echo '<div class="content-card"><h1 class="mb-2">Messages</h1><p class="text-muted">Please log in to view or send messages.</p></div>';
-    include_once __DIR__ . "/include/footer.php";
+    include_once __DIR__ . "/include/" . FOOTER_FILE;
     exit;
 }
 
@@ -32,8 +32,8 @@ if (!$isLoggedIn) {
 // ------------------------------------------------------------
 $con = db();
 if (!$con) {
-    echo '<div class="content-card banner error">Database connection failed.</div>';
-    include_once __DIR__ . "/include/footer.php";
+    echo '<div class="content-card"><div class="alert alert-danger mb-0">Database connection failed.</div></div>';
+    include_once __DIR__ . "/include/" . FOOTER_FILE;
     exit;
 }
 
@@ -157,6 +157,11 @@ if ($action === 'delete' && isset($_GET['id'])) {
 // UI layout and views
 // ------------------------------------------------------------
 ?>
+<section class="page-hero">
+    <h1><i class="bi bi-chat-dots me-2"></i> Messages</h1>
+    <p class="mb-0">Send and receive web messages with other residents.</p>
+</section>
+
 <div class="container-fluid mt-4 mb-4">
   <div class="row">
 
@@ -447,5 +452,5 @@ if ($action === 'compose') {
   </div> <!-- row -->
 </div> <!-- container -->
 
-<?php include_once __DIR__ . "/include/footer.php"; ?>
+<?php include_once __DIR__ . "/include/" . FOOTER_FILE; ?>
 

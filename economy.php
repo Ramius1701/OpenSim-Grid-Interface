@@ -50,6 +50,10 @@ if (!$con) {
 if (!defined('SYSTEM_PRINCIPAL_ID')) { define('SYSTEM_PRINCIPAL_ID', '00000000-0000-0000-0000-000000000000'); }
 if (!defined('GUEST_PRINCIPAL_ID'))  { define('GUEST_PRINCIPAL_ID',  '00000000-0000-0000-0000-000000000001'); }
 
+// Fetch once and reuse everywhere on this page, instead of querying the same
+// aggregate stats three separate times (sidebar card + two different action views).
+$stats = getEconomyStats($con);
+
 function is_valid_uuid($value) {
     if (!is_string($value) || $value === '') { return false; }
     return (bool)preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $value);
@@ -138,18 +142,6 @@ if ($isLoggedIn) {
 
 <style>
 /* --- THEME ENGINE INJECTION --- */
-
-/* 1. Page Hero */
-.page-hero {
-    background: linear-gradient(135deg, 
-        color-mix(in srgb, var(--header-color), black 30%), 
-        color-mix(in srgb, var(--header-color), black 60%)
-    );
-    border-radius: 15px; padding: 3rem 2rem; margin-bottom: 2rem;
-    text-align: center; color: white;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-}
-.page-hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
 
 /* 2. Card Overrides */
 .card {
@@ -277,7 +269,6 @@ if ($isLoggedIn) {
                     <h5 class="mb-0"><i class="bi bi-info-circle"></i> Grid Economy</h5>
                 </div>
                 <div class="card-body">
-                    <?php $stats = getEconomyStats($con); ?>
                     
                     <div class="text-center">
                         <div class="mb-2">
@@ -629,7 +620,6 @@ if ($isLoggedIn) {
 
             <?php elseif ($action == 'statistics'): ?>
                 <?php
-                $stats = getEconomyStats($con);
                 $weeklyVolume = mysqli_fetch_row(mysqli_query($con, "SELECT COALESCE(SUM(amount),0) FROM transactions WHERE time > (UNIX_TIMESTAMP() - (7*86400))"))[0] ?? 0;
                 $monthlyVolume = mysqli_fetch_row(mysqli_query($con, "SELECT COALESCE(SUM(amount),0) FROM transactions WHERE time > (UNIX_TIMESTAMP() - (30*86400))"))[0] ?? 0;
                 $latestTxTs = (int)(mysqli_fetch_row(mysqli_query($con, "SELECT COALESCE(MAX(time),0) FROM transactions"))[0] ?? 0);
@@ -907,7 +897,6 @@ if ($isLoggedIn) {
                 </div>
 
                 <div class="row mt-3">
-                    <?php $stats = getEconomyStats($con); ?>
                     
                     <div class="col-md-3">
                         <div class="card text-white">

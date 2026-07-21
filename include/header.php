@@ -236,9 +236,63 @@ $__cardBorderColor = ($__bsTheme === 'dark') ? 'rgba(255,255,255,0.12)' : 'rgba(
             margin: 0 1px;
         }
         
-        .nav-link:hover, .nav-link.active { 
+        .navbar .nav-link:hover, .navbar .nav-link.active { 
             background-color: rgba(255,255,255,0.15); 
             color: #fff !important; 
+        }
+
+        /* Universal nav-pills styling (in-page tab pills, e.g. profile.php's
+           About me/Picks/Classifieds/Groups tabs) - the complete pattern (base,
+           hover, active) lives here so any page using Bootstrap nav-pills gets
+           consistent, correctly-themed tabs without needing its own local CSS. */
+        .nav-pills .nav-link {
+            color: var(--bs-body-color);
+            background-color: transparent;
+            border: 1px solid rgba(var(--bs-body-color-rgb), 0.4);
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-pills .nav-link:hover {
+            border-color: var(--bs-body-color);
+            background-color: rgba(var(--bs-body-color-rgb), 0.05);
+        }
+        .nav-pills .nav-link.active, .nav-pills .nav-link.active:hover {
+            background-color: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+            color: #fff !important;
+        }
+
+        /* Universal nav-tabs styling (e.g. groups.php's Info/Members/Roles/Notices/
+           Invitations tabs). Base state inherits its parent's text color (works
+           against a dark card-header); active state MUST set an explicit, readable
+           text color to go with its light background - this was missing before,
+           which made the active tab's text invisible (white text on white bg). */
+        .nav-tabs .nav-link {
+            border: 1px solid transparent;
+        }
+        .nav-tabs .nav-link.active {
+            background-color: var(--bs-body-bg);
+            border-color: var(--bs-border-color) var(--bs-border-color) var(--bs-body-bg);
+            color: var(--primary-color) !important;
+        }
+
+        /* Universal card hover feel - was duplicated (some fully, some partially)
+           across picks.php, admin/analytics.php, classifieds.php, groups.php,
+           and friends.php. Consolidated once; groups.php/friends.php previously
+           only had the shadow half, they now get the image-scale effect too. */
+        .card {
+            transition: box-shadow 0.2s;
+        }
+        .card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .card-img-top {
+            transition: transform 0.2s;
+        }
+        .card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+        .card-img-top {
+            background-color: black; /* Placeholder bg for transparent snapshot/texture images */
         }
         
         .dropdown-menu {
@@ -454,12 +508,6 @@ input.form-control:focus, textarea.form-control:focus, .form-select:focus {
             color: var(--primary-color) !important;
             background: transparent !important;
         }
-        .profile-tabs .nav-link.active {
-            background: var(--accent-color) !important;
-            border-color: var(--accent-color) !important;
-            color: #ffffff !important;
-        }
-
         /* --- UI consistency patch: keep card headers rounded + readable across themes --- */
         .card, .content-card, .modal-content, .stat-card {
             overflow: hidden; /* ensures header backgrounds clip to rounded corners */
@@ -533,6 +581,67 @@ input.form-control:focus, textarea.form-control:focus, .form-select:focus {
             background-color: var(--accent-color) !important;
             color: #fff !important;
         }
+
+        /* .btn-theme - solid variant, used by gridsearch.php, gridstatus.php,
+           and message.php. Same story as .btn-theme-outline below - referenced
+           everywhere, only ever actually defined locally in gridsearch.php, so
+           it did nothing at all on the other pages using it. */
+        .btn-theme {
+            background-color: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+            border-radius: var(--theme-radius);
+            color: #fff !important;
+        }
+        .btn-theme:hover, .btn-theme:focus {
+            filter: brightness(1.05);
+            color: #fff !important;
+        }
+
+        /* .btn-theme-outline - used by gridstatus.php, gridsearch.php, footer.php,
+           and message.php's tab-style buttons. Was referenced everywhere but never
+           actually defined - buttons using it had no real styling at all. */
+        .btn-theme-outline {
+            color: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+            border-radius: var(--theme-radius);
+            background-color: transparent !important;
+        }
+        .btn-theme-outline:hover, .btn-theme-outline:focus {
+            background-color: var(--accent-color) !important;
+            color: #fff !important;
+        }
+        .btn-theme-outline.active {
+            background-color: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+            color: #fff !important;
+        }
+
+        /* Shared page hero banner - used by pages that open with a title/subtitle
+           banner (e.g. gridstatus.php, economy.php, admin pages). Previously
+           duplicated separately in each page's own <style> block; consolidated
+           here so every page gets the same treatment automatically. */
+        .page-hero {
+            background: linear-gradient(135deg,
+                color-mix(in srgb, var(--header-color), black 30%),
+                color-mix(in srgb, var(--header-color), black 60%)
+            );
+            border-radius: 15px; padding: 3rem 2rem; margin-bottom: 2rem;
+            text-align: center; color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .page-hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        /* Reading-optimized variant of .content-card, for long-form text pages
+           (About, ToS, DMCA, etc.). Was being used on several pages but never
+           actually defined - text was stretching full-width with no readable
+           line length. Narrower column + taller line-height for readability. */
+        .content-card-read {
+            max-width: 720px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.7;
+        }
+        .content-card-read h2 { margin-top: 2rem; }
 </style>
     
     <script>
@@ -701,7 +810,7 @@ require_once __DIR__ . '/nav_notifications.php';
                             <i class="bi bi-map"></i> Grid
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="economy.php"><i class="bi bi-currency-dollar"></i> Grid Economy</a></li>
+                            <li><a class="dropdown-item" href="economy.php"><i class="bi bi-currency-dollar"></i> Economy Dashboard</a></li>
                             <li><a class="dropdown-item" href="gridstatus.php"><i class="bi bi-activity"></i> Grid Status</a></li>
                             <li><a class="dropdown-item" href="gridlist.php"><i class="bi bi-list-columns-reverse"></i> Grid List</a></li>
                             <li><hr class="dropdown-divider"></li>
@@ -715,7 +824,7 @@ require_once __DIR__ . '/nav_notifications.php';
                             <i class="bi bi-person"></i> Avatar
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="register.php"><i class="bi bi-person-plus"></i> Create Avatar</a></li>
+                            <li><a class="dropdown-item" href="register.php"><i class="bi bi-person-plus"></i> Register Avatar</a></li>
                             <li><a class="dropdown-item" href="avatarpicker.php"><i class="bi bi-person-bounding-box"></i> Avatar Picker</a></li>
                             <li><a class="dropdown-item" href="reset_password.php"><i class="bi bi-key"></i> Password Reset</a></li>
                         </ul>
@@ -727,7 +836,6 @@ require_once __DIR__ . '/nav_notifications.php';
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="gridsearch.php"><i class="bi bi-search"></i> Grid Search</a></li>
-                            <li><a class="dropdown-item" href="ossearch.php"><i class="bi bi-search-heart"></i> Classic Search</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <?php if (casperia_feature_enabled('classifieds')): ?>
                             <li><a class="dropdown-item" href="classifieds.php"><i class="bi bi-megaphone"></i> Classifieds</a></li>
@@ -735,6 +843,9 @@ require_once __DIR__ . '/nav_notifications.php';
                             <li><a class="dropdown-item" href="destinations.php"><i class="bi bi-signpost-2-fill"></i> Destinations</a></li>
                             <?php if (casperia_feature_enabled('groups')): ?>
                             <li><a class="dropdown-item" href="groups.php"><i class="bi bi-people-fill"></i> Groups</a></li>
+                            <?php endif; ?>
+                            <?php if (casperia_feature_enabled('friends')): ?>
+                            <li><a class="dropdown-item" href="friends.php"><i class="bi bi-people"></i> Friends</a></li>
                             <?php endif; ?>
                             <?php if (casperia_feature_enabled('picks')): ?>
                             <li><a class="dropdown-item" href="picks.php"><i class="bi bi-star"></i> Picks</a></li>
@@ -783,9 +894,9 @@ require_once __DIR__ . '/nav_notifications.php';
                             </a>
                         </li>
                             <li><a class="dropdown-item" href="admin/analytics.php"><i class="bi bi-graph-up"></i> Grid Analytics</a></li>
-                            <li><a class="dropdown-item" href="admin/users_admin.php"><i class="bi bi-person-gear"></i> User Admin</a></li>
-                            <li><a class="dropdown-item" href="admin/sims_admin.php"><i class="bi bi-geo-alt"></i> Region Admin</a></li>
-                            <li><a class="dropdown-item" href="admin/groups_admin.php"><i class="bi bi-people-fill"></i> Group Admin</a></li>
+                            <li><a class="dropdown-item" href="admin/users_admin.php"><i class="bi bi-person-gear"></i> Users Admin</a></li>
+                            <li><a class="dropdown-item" href="admin/regions_admin.php"><i class="bi bi-geo-alt"></i> Regions Admin</a></li>
+                            <li><a class="dropdown-item" href="admin/groups_admin.php"><i class="bi bi-people-fill"></i> Groups Admin</a></li>
                         </ul>
                     </li>
                     <?php endif; ?>
@@ -802,10 +913,11 @@ require_once __DIR__ . '/nav_notifications.php';
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="account/"><i class="bi bi-person-circle"></i> My Account</a></li>
-                                <a class="dropdown-item" href="events_manage.php"><i class="bi bi-pencil"></i> Edit Events</a><?php if (casperia_feature_enabled('friends')): ?>
+                                <a class="dropdown-item" href="events_manage.php"><i class="bi bi-pencil"></i> Edit Events</a>
+                                <?php if (casperia_feature_enabled('friends')): ?>
                                 <li>
-                                    <a class="dropdown-item" href="friends.php">
-                                        <i class="bi bi-people"></i> Friends
+                                    <a class="dropdown-item" href="account/friends.php">
+                                        <i class="bi bi-people"></i> My Friends
                                         <?php if (!empty($nav_pendingFriendRequestsCount)): ?>
                                             <span class="badge bg-danger-subtle text-danger-emphasis ms-2">
                                                 <?php echo (int)$nav_pendingFriendRequestsCount; ?>
@@ -813,7 +925,7 @@ require_once __DIR__ . '/nav_notifications.php';
                                         <?php endif; ?>
                                     </a>
                                 </li>
-<?php endif; ?>
+                                <?php endif; ?>
                                 <li>
                                     <a class="dropdown-item" href="message.php">
                                         <i class="bi bi-envelope"></i> Messages

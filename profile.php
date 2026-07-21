@@ -134,7 +134,7 @@ function getUserGroups($con, $userId) {
             FROM os_groups_membership ogm 
             LEFT JOIN os_groups_groups og ON ogm.GroupID = og.GroupID 
             LEFT JOIN os_groups_rolemembership ogrm ON ogm.PrincipalID = ogrm.PrincipalID AND ogm.GroupID = ogrm.GroupID 
-            LEFT JOIN os_groups_roles ogr ON ogrm.RoleID = ogr.RoleID 
+            LEFT JOIN os_groups_roles ogr ON ogrm.RoleID = ogr.RoleID AND ogrm.GroupID = ogr.GroupID 
             WHERE ogm.PrincipalID = '" . mysqli_real_escape_string($con, $userId) . "' 
             AND ogm.ListInProfile = 1 
             ORDER BY og.Name";
@@ -156,7 +156,12 @@ if ($firstName && $lastName && !$userId) {
 }
 ?>
 
-<div class="container py-4">
+<section class="page-hero">
+    <h1><i class="bi bi-person-badge me-2"></i> User Profiles</h1>
+    <p class="mb-0">Search for a resident by name, or view a profile directly.</p>
+</section>
+
+<div class="container-fluid mt-4 mb-4">
     <div class="row g-3">
         <div class="col-md-3">
             <div class="card">
@@ -300,23 +305,6 @@ if ($firstName && $lastName && !$userId) {
 
                 <div class="card mt-3">
                     <div class="card-header p-2">
-                        <style>
-                        /* Scoped profile tab "buttons" to match theme */
-                        #profileTabs .nav-link{
-                          border: 1px solid var(--bs-border-color);
-                          color: var(--bs-body-color);
-                          background: transparent;
-                          transition: background-color .15s ease, border-color .15s ease;
-                        }
-                        #profileTabs .nav-link:hover{
-                          background: var(--bs-secondary-bg);
-                        }
-                        #profileTabs .nav-link.active{
-                          background: var(--bs-tertiary-bg);
-                          border-color: rgba(255,255,255,.18);
-                          color: var(--bs-emphasis-color);
-                        }
-                        </style>
                         <ul class="nav nav-pills gap-2 mb-0 justify-content-center" id="profileTabs" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active rounded-pill" data-bs-toggle="tab" data-bs-target="#about"
@@ -416,7 +404,7 @@ if ($firstName && $lastName && !$userId) {
                                                  class="img-fluid rounded" 
                                                  alt="Profile picture"
                                                  style="max-height: 250px;"
-                                                 onerror="this.src='<?php echo ASSET_FEHLT; ?>';">
+                                                 onerror="this.onerror=null;this.src='<?php echo ASSET_FEHLT; ?>';">
                                         </div>
                                         <?php endif; ?>
 
@@ -427,7 +415,7 @@ if ($firstName && $lastName && !$userId) {
                                                  class="img-fluid rounded" 
                                                  alt="First Life image"
                                                  style="max-height: 200px;"
-                                                 onerror="this.src='<?php echo ASSET_FEHLT; ?>';">
+                                                 onerror="this.onerror=null;this.src='<?php echo ASSET_FEHLT; ?>';">
                                         </div>
                                         <?php endif; ?>
 
@@ -487,7 +475,7 @@ if ($firstName && $lastName && !$userId) {
                                                  class="card-img-top" 
                                                  alt="Pick image"
                                                  style="height: 120px; object-fit: cover;"
-                                                 onerror="this.src='<?php echo ASSET_FEHLT; ?>';">
+                                                 onerror="this.onerror=null;this.src='<?php echo ASSET_FEHLT; ?>';">
                                             <?php endif; ?>
                                             
                                             <div class="card-body">
@@ -535,7 +523,7 @@ if ($firstName && $lastName && !$userId) {
                                                  class="card-img-top" 
                                                  alt="Classified image"
                                                  style="height: 120px; object-fit: cover;"
-                                                 onerror="this.src='<?php echo ASSET_FEHLT; ?>';">
+                                                 onerror="this.onerror=null;this.src='<?php echo ASSET_FEHLT; ?>';">
                                             <?php endif; ?>
                                             
                                             <div class="card-body">
@@ -692,7 +680,7 @@ if ($firstName && $lastName && !$userId) {
                                          class="card-img-top" 
                                          alt="Profile picture"
                                          style="height: 150px; object-fit: cover;"
-                                         onerror="this.src='<?php echo ASSET_FEHLT; ?>';">
+                                         onerror="this.onerror=null;this.src='<?php echo ASSET_FEHLT; ?>';">
                                     <?php endif; ?>
                                     
                                     <div class="card-body">
@@ -733,23 +721,6 @@ if ($firstName && $lastName && !$userId) {
 /* Text Formatting */
 .text-justify {
     text-align: justify;
-}
-
-/* --- ADAPTIVE "INVERSE" PILL NAVIGATION --- */
-.nav-pills .nav-link {
-    color: var(--bs-body-color);
-    background-color: transparent;
-    border: 1px solid rgba(var(--bs-body-color-rgb), 0.4);
-    transition: all 0.2s ease-in-out;
-}
-.nav-pills .nav-link:hover {
-    border-color: var(--bs-body-color);
-    background-color: rgba(var(--bs-body-color-rgb), 0.05);
-}
-.nav-pills .nav-link.active {
-    background-color: var(--bs-body-color);
-    color: var(--bs-body-bg);
-    border-color: var(--bs-body-color);
 }
 </style>
 

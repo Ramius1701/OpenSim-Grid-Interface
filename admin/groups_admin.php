@@ -524,6 +524,16 @@ if ($con && $editGroupId !== '') {
 }
 
 ?>
+<section class="page-hero">
+    <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+        <div>
+            <h1><i class="bi bi-people-fill me-2"></i> Groups Admin</h1>
+            <p class="mb-0">View and maintain OpenSim groups (os_groups_* tables). Internal groups can be edited here; Hypergrid/external groups are read-only.</p>
+        </div>
+        <span class="badge bg-light text-dark"><?php echo (int)$stats['total_groups']; ?> group<?php echo $stats['total_groups'] === 1 ? '' : 's'; ?></span>
+    </div>
+</section>
+
 <div class="container-fluid mt-4 mb-4">
     <div class="row">
         <div class="col-md-3">
@@ -548,93 +558,65 @@ if ($con && $editGroupId !== '') {
         <a href="/admin/announcements_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-megaphone me-1"></i>Announcements</a>
         <a href="/admin/tickets_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-life-preserver me-1"></i>Tickets</a>
         <a href="/admin/users_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-people me-1"></i>Users</a>
-        <a href="/admin/sims_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-map me-1"></i>Regions</a>
+        <a href="/admin/regions_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-map me-1"></i>Regions</a>
         <a href="/admin/groups_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-collection me-1"></i>Groups</a></div>
 </details>
                 </div>
             </div>
-        </div>
-        <div class="col-md-9">
-            <div class="w-100">
-    <div class="card mb-3">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="h3 mb-1">
-                    <i class="bi bi-people-fill me-2"></i> Groups Admin
-                </h1>
-                <p class="text-white-50 mb-0">
-                    View and maintain OpenSim groups (os_groups_* tables). Internal groups can be edited here; Hypergrid/external groups are read-only.
-                </p>
-            </div>
-            <span class="badge bg-light text-primary">
-                <?php echo (int)$stats['total_groups']; ?> group<?php echo $stats['total_groups'] === 1 ? '' : 's'; ?>
-            </span>
-        </div>
-    </div>
 
-    <?php if ($statusMessage !== null): ?>
-        <div class="alert alert-<?php echo ga_h($statusClass); ?>">
-            <?php echo ga_h($statusMessage); ?>
-        </div>
-    <?php endif; ?>
-
-    <?php if ($dbError !== null): ?>
-        <div class="alert alert-danger">
-            <strong>Database error:</strong> <?php echo ga_h($dbError); ?>
-        </div>
-    <?php endif; ?>
-
-    <div class="row g-4">
-        <div class="col-md-4 col-lg-3">
             <section class="mb-4">
-                <h2 class="h5 mb-3">Filter groups</h2>
-                <form method="get" class="card card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Name contains</label>
-                        <input type="text"
-                               name="q"
-                               class="form-control"
-                               value="<?php echo ga_h($q); ?>"
-                               placeholder="Group name">
+                <div class="card">
+                    <div class="card-header bg-white fw-bold py-3"><i class="bi bi-funnel me-1"></i> Filter groups</div>
+                    <div class="card-body">
+                        <form method="get">
+                            <div class="mb-3">
+                                <label class="form-label">Name contains</label>
+                                <input type="text"
+                                       name="q"
+                                       class="form-control"
+                                       value="<?php echo ga_h($q); ?>"
+                                       placeholder="Group name">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Owner contains</label>
+                                <input type="text"
+                                       name="owner"
+                                       class="form-control"
+                                       value="<?php echo ga_h($ownerFilter); ?>"
+                                       placeholder="Owner first/last name">
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       name="open_enrollment"
+                                       value="1"
+                                       id="openEnrollCheck"
+                                    <?php echo $showOpenOnly ? 'checked' : ''; ?>>
+                                <label class="form-check-label" for="openEnrollCheck">
+                                    Open enrollment only
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       name="searchable"
+                                       value="1"
+                                       id="searchableCheck"
+                                    <?php echo $showSearchable ? 'checked' : ''; ?>>
+                                <label class="form-check-label" for="searchableCheck">
+                                    Shown in search/list only
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                Apply filters
+                            </button>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Owner contains</label>
-                        <input type="text"
-                               name="owner"
-                               class="form-control"
-                               value="<?php echo ga_h($ownerFilter); ?>"
-                               placeholder="Owner first/last name">
-                    </div>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input"
-                               type="checkbox"
-                               name="open_enrollment"
-                               value="1"
-                               id="openEnrollCheck"
-                            <?php echo $showOpenOnly ? 'checked' : ''; ?>>
-                        <label class="form-check-label" for="openEnrollCheck">
-                            Open enrollment only
-                        </label>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input"
-                               type="checkbox"
-                               name="searchable"
-                               value="1"
-                               id="searchableCheck"
-                            <?php echo $showSearchable ? 'checked' : ''; ?>>
-                        <label class="form-check-label" for="searchableCheck">
-                            Shown in search/list only
-                        </label>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        Apply filters
-                    </button>
-                </form>
+                </div>
             </section>
 
             <section>
-                <h2 class="h5 mb-3">Group statistics</h2>
+                <h2 class="h6 text-uppercase text-body-secondary mb-2">Group statistics</h2>
                 <div class="row g-2">
                     <div class="col-12">
                         <div class="card shadow-sm">
@@ -669,141 +651,28 @@ if ($con && $editGroupId !== '') {
                 </div>
             </section>
         </div>
+        <div class="col-md-9">
 
-        <div class="col-md-8 col-lg-9">
-            <section class="mb-4">
-                <h2 class="h5 mb-3">
-                    Groups (<?php echo $totalGroupsFound; ?>)
-                </h2>
+    <?php if ($statusMessage !== null): ?>
+        <div class="alert alert-<?php echo ga_h($statusClass); ?>">
+            <?php echo ga_h($statusMessage); ?>
+        </div>
+    <?php endif; ?>
 
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                        <tr>
-                            <th>Group</th>
-                            <th>Owner</th>
-                            <th>Flags</th>
-                            <th>Members/Roles</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php if (empty($groups)): ?>
-                            <tr>
-                                <td colspan="5" class="text-center text-body-secondary py-4">
-                                    No groups found with the current filters.
-                                </td>
-                            </tr>
-                        <?php else: ?>
-                            <?php foreach ($groups as $g): ?>
-                                <?php
-                                $gid       = (string)$g['GroupID'];
-                                $name      = trim((string)$g['Name']);
-                                $charter   = trim((string)$g['Charter']);
-                                $ownerId   = (string)$g['FounderID'];
-                                $ownerName = trim((string)$g['FirstName'] . ' ' . (string)$g['LastName']);
-                                if ($ownerName === '') {
-                                    $ownerName = ga_get_owner_name($con, $ownerId);
-                                }
 
-                                $isHypergridFounder = ($ownerId === '00000000-0000-0000-0000-000000000000');
+    <?php if ($dbError !== null): ?>
+        <div class="alert alert-danger">
+            <strong>Database error:</strong> <?php echo ga_h($dbError); ?>
+        </div>
+    <?php endif; ?>
 
-                                $members   = ga_count_members($con, $gid);
-                                $roles     = ga_count_roles($con, $gid);
-
-                                $showInList    = (int)$g['ShowInList'] === 1;
-                                $openEnroll    = (int)$g['OpenEnrollment'] === 1;
-                                $allowPublish  = (int)$g['AllowPublish'] === 1;
-                                $maturePublish = (int)$g['MaturePublish'] === 1;
-                                ?>
-                                <tr>
-                                    <td>
-                                        <div class="fw-semibold">
-                                            <?php if ($isHypergridFounder): ?>
-                                                <?php echo ga_h($name !== '' ? $name : '(no name)'); ?>
-                                            <?php else: ?>
-                                                <a href="/admin/groups_admin.php?edit=<?php echo urlencode($gid); ?>">
-                                                    <?php echo ga_h($name !== '' ? $name : '(no name)'); ?>
-                                                </a>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div class="small text-body-secondary">
-                                            <?php echo ga_h($gid); ?>
-                                        </div>
-                                        <?php if ($charter !== ''): ?>
-                                            <div class="small text-body-secondary mt-1">
-                                                <?php echo nl2br(ga_h($charter)); ?>
-                                            </div>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <div class="fw-semibold">
-                                            <?php echo ga_h($ownerName); ?>
-                                        </div>
-                                        <div class="small text-body-secondary">
-                                            <?php echo ga_h($ownerId); ?>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex flex-wrap gap-1">
-                                            <?php if ($showInList): ?>
-                                                <span class="badge bg-info-subtle text-dark">Searchable</span>
-                                            <?php else: ?>
-                                                <span class="badge bg-light text-body-secondary">Hidden</span>
-                                            <?php endif; ?>
-
-                                            <?php if ($openEnroll): ?>
-                                                <span class="badge bg-success-subtle text-success">Open</span>
-                                            <?php else: ?>
-                                                <span class="badge bg-light text-body-secondary">Invite only</span>
-                                            <?php endif; ?>
-
-                                            <?php if ($allowPublish): ?>
-                                                <span class="badge bg-primary-subtle text-primary">Publish</span>
-                                            <?php endif; ?>
-
-                                            <?php if ($maturePublish): ?>
-                                                <span class="badge bg-danger-subtle text-danger">Mature</span>
-                                            <?php endif; ?>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="small">
-                                            <?php echo ga_h(ga_roles_summary($roles, $members)); ?>
-                                        </div>
-                                    </td>
-                                    <td class="text-end">
-                                        <?php if ($isHypergridFounder): ?>
-                                            <span class="badge bg-light text-body-secondary">
-                                                Hypergrid (read-only)
-                                            </span>
-                                        <?php else: ?>
-                                            <a href="/admin/groups_admin.php?edit=<?php echo urlencode($gid); ?>"
-                                               class="btn btn-sm btn-outline-primary">
-                                                Edit
-                                            </a>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section>
-                <h2 class="h5 mb-3">
-                    <?php echo $editGroup ? 'Edit group' : 'Edit group (select from list)'; ?>
-                </h2>
-                <div class="card">
-                    <div class="card-body">
-                        <?php if (!$editGroup): ?>
-                            <p class="text-body-secondary mb-0">
-                                Select an internal group from the list above and click <strong>Edit</strong> to change its details.
-                                Hypergrid/external groups (zero founder UUID) are shown as read-only.
-                            </p>
-                        <?php else: ?>
+    <?php if ($editGroup): ?>
+    <div class="card border-0 shadow mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <span class="fw-bold"><i class="bi bi-pencil-square me-2"></i> Editing: <?php echo ga_h($editGroup['Name'] ?? ''); ?></span>
+            <a href="admin/groups_admin.php" class="btn btn-sm btn-light text-primary"><i class="bi bi-x-lg"></i> Close</a>
+        </div>
+        <div class="card-body p-4">
                             <?php
                             $gid          = (string)$editGroup['GroupID'];
                             $name         = trim((string)$editGroup['Name']);
@@ -974,17 +843,138 @@ if ($con && $editGroupId !== '') {
                                     </div>
                                 </div>
                             </form>
+                                </div>
+    </div>
+    <?php endif; ?>
+
+    <div class="row g-4">
+        <div class="col-12">
+            <section class="mb-4">
+                <h2 class="h5 mb-3">
+                    Groups (<?php echo $totalGroupsFound; ?>)
+                </h2>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Group</th>
+                            <th>Owner</th>
+                            <th>Flags</th>
+                            <th>Members/Roles</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php if (empty($groups)): ?>
+                            <tr>
+                                <td colspan="5" class="text-center text-body-secondary py-4">
+                                    No groups found with the current filters.
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($groups as $g): ?>
+                                <?php
+                                $gid       = (string)$g['GroupID'];
+                                $name      = trim((string)$g['Name']);
+                                $charter   = trim((string)$g['Charter']);
+                                $ownerId   = (string)$g['FounderID'];
+                                $ownerName = trim((string)$g['FirstName'] . ' ' . (string)$g['LastName']);
+                                if ($ownerName === '') {
+                                    $ownerName = ga_get_owner_name($con, $ownerId);
+                                }
+
+                                $isHypergridFounder = ($ownerId === '00000000-0000-0000-0000-000000000000');
+
+                                $members   = ga_count_members($con, $gid);
+                                $roles     = ga_count_roles($con, $gid);
+
+                                $showInList    = (int)$g['ShowInList'] === 1;
+                                $openEnroll    = (int)$g['OpenEnrollment'] === 1;
+                                $allowPublish  = (int)$g['AllowPublish'] === 1;
+                                $maturePublish = (int)$g['MaturePublish'] === 1;
+                                ?>
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">
+                                            <?php if ($isHypergridFounder): ?>
+                                                <?php echo ga_h($name !== '' ? $name : '(no name)'); ?>
+                                            <?php else: ?>
+                                                <a href="/admin/groups_admin.php?edit=<?php echo urlencode($gid); ?>">
+                                                    <?php echo ga_h($name !== '' ? $name : '(no name)'); ?>
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="small text-body-secondary">
+                                            <?php echo ga_h($gid); ?>
+                                        </div>
+                                        <?php if ($charter !== ''): ?>
+                                            <div class="small text-body-secondary mt-1">
+                                                <?php echo nl2br(ga_h($charter)); ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">
+                                            <?php echo ga_h($ownerName); ?>
+                                        </div>
+                                        <div class="small text-body-secondary">
+                                            <?php echo ga_h($ownerId); ?>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            <?php if ($showInList): ?>
+                                                <span class="badge bg-info-subtle text-dark">Searchable</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-light text-body-secondary">Hidden</span>
+                                            <?php endif; ?>
+
+                                            <?php if ($openEnroll): ?>
+                                                <span class="badge bg-success-subtle text-success">Open</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-light text-body-secondary">Invite only</span>
+                                            <?php endif; ?>
+
+                                            <?php if ($allowPublish): ?>
+                                                <span class="badge bg-primary-subtle text-primary">Publish</span>
+                                            <?php endif; ?>
+
+                                            <?php if ($maturePublish): ?>
+                                                <span class="badge bg-danger-subtle text-danger">Mature</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="small">
+                                            <?php echo ga_h(ga_roles_summary($roles, $members)); ?>
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <?php if ($isHypergridFounder): ?>
+                                            <span class="badge bg-light text-body-secondary">
+                                                Hypergrid (read-only)
+                                            </span>
+                                        <?php else: ?>
+                                            <a href="/admin/groups_admin.php?edit=<?php echo urlencode($gid); ?>"
+                                               class="btn btn-sm btn-outline-primary">
+                                                Edit
+                                            </a>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
                         <?php endif; ?>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
             </section>
+
         </div>
     </div>
 </div>
 
 </div>
         </div>
-    </div>
-</div>
 
 <?php include_once __DIR__ . '/../include/' . FOOTER_FILE; ?>

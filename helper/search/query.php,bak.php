@@ -1,26 +1,25 @@
 <?php
-ob_start();
-ini_set('display_errors', '0');
-error_reporting(E_ALL);
-
 // --- XML-RPC Polyfill for PHP 8+ ---
-require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/vendor/autoload.php'; 
 // -----------------------------------
 
 //The description of the flags used in this file are being based on the
 //DirFindFlags enum which is defined in OpenMetaverse/DirectoryManager.cs
 //of the libopenmetaverse library.
 
-require_once("databaseinfo.php");
+include("databaseinfo.php");
 
 // Attempt to connect to the database
 try {
-    $db = new PDO("mysql:host=$DB_HOST;dbname=$DB_NAME", $DB_USER, $DB_PASSWORD);
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    file_put_contents('.PDOErrors.txt', $e->getMessage() . "\n-----\n", FILE_APPEND);
-    http_response_code(500);
-    exit;
+  $db = new PDO("mysql:host=$DB_HOST;dbname=$DB_NAME", $DB_USER, $DB_PASSWORD);
+  $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+}
+catch(PDOException $e)
+{
+  echo "Error connecting to database\n";
+  // Security Fix: Hidden file with dot prefix
+  file_put_contents('.PDOErrors.txt', $e->getMessage() . "\n-----\n", FILE_APPEND);
+  exit;
 }
 
 #
@@ -31,38 +30,38 @@ try {
 
 function join_terms($glue, $terms, $add_paren)
 {
-    if (count($terms) > 1) {
+    if (count($terms) > 1)
+    {
         $type = join($glue, $terms);
-        if ($add_paren == true) {
+        if ($add_paren == True)
             $type = "(" . $type . ")";
-        }
-    } else {
-        if (count($terms) == 1) {
+    }
+    else
+    {
+        if (count($terms) == 1)
             $type = $terms[0];
-        } else {
+        else
             $type = "";
-        }
     }
 
     return $type;
 }
 
+
 function process_region_type_flags($flags)
 {
     $terms = array();
 
-    if ($flags & 16777216) { //IncludePG (1 << 24)
+    if ($flags & 16777216)  //IncludePG (1 << 24)
         $terms[] = "mature = 'PG'";
-    }
-    if ($flags & 33554432) { //IncludeMature (1 << 25)
+    if ($flags & 33554432)  //IncludeMature (1 << 25)
         $terms[] = "mature = 'Mature'";
-    }
-    if ($flags & 67108864) { //IncludeAdult (1 << 26)
+    if ($flags & 67108864)  //IncludeAdult (1 << 26)
         $terms[] = "mature = 'Adult'";
-    }
 
-    return join_terms(" OR ", $terms, true);
+    return join_terms(" OR ", $terms, True);
 }
+
 
 #
 # The XMLRPC server object
@@ -91,30 +90,31 @@ function dir_places_query($method_name, $params, $app_data)
     $pieces = explode(" ", $text);
     $text = join("%", $pieces);
 
-    if ($text != "%%%") {
+    if ($text != "%%%")
         $text = "%$text%";
-    } else {
+    else
+    {
         return array(
-            'success'      => false,
-            'errorMessage' => "Invalid search terms"
+                'success'      => False,
+                'errorMessage' => "Invalid search terms"
         );
     }
 
+    $terms = array();
     $sqldata = array();
 
     $type = process_region_type_flags($flags);
-    if ($type != "") {
+    if ($type != "")
         $type = " AND " . $type;
-    }
 
     $order = "";
-    if ($flags & 1024) {
+    if ($flags & 1024)
         $order = "dwell DESC,";
-    }
 
-    if ($category <= 0) {
+    if ($category <= 0)
         $cat_where = "";
-    } else {
+    else
+    {
         $cat_where = "searchcategory = :cat AND ";
         $sqldata['cat'] = $category;
     }
@@ -123,9 +123,8 @@ function dir_places_query($method_name, $params, $app_data)
     $sqldata['text2'] = $text;
 
     //Prevent SQL injection by checking that $query_start is a number
-    if ($query_start != 0 && ($query_start % 100 != 0)) {
+    if ($query_start != 0 && ($query_start%100 != 0))
         $query_start = 0;
-    }
 
     $query_end = 101;
 
@@ -133,25 +132,24 @@ function dir_places_query($method_name, $params, $app_data)
            " (parcelname LIKE :text1" .
            " OR description LIKE :text2)" .
            $type . " ORDER BY $order parcelname" .
-           " LIMIT " . $query_start . "," . $query_end . ";";
+           " LIMIT ".$query_start.",".$query_end.";";
     $query = $db->prepare($sql);
-    $query->execute($sqldata);
+    $result = $query->execute($sqldata);
 
     $data = array();
-    while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
+    while ($row = $query->fetch(PDO::FETCH_ASSOC))
+    {
         $data[] = array(
-            "parcel_id" => $row["infouuid"],
-            "name"      => $row["parcelname"],
-            "for_sale"  => "False",
-            "auction"   => "False",
-            "dwell"     => $row["dwell"]
-        );
+                "parcel_id" => $row["infouuid"],
+                "name" => $row["parcelname"],
+                "for_sale" => "False",
+                "auction" => "False",
+                "dwell" => $row["dwell"]);
     }
-
     return array(
-        'success'      => true,
+        'success'      => True,
         'errorMessage' => "",
-        'data'         => $data
+        'data' => $data
     );
 }
 
@@ -175,49 +173,45 @@ function dir_popular_query($method_name, $params, $app_data)
     $terms = array();
     $sqldata = array();
 
-    if ($flags & 0x1000) {   //PicturesOnly (1 << 12)
+    if ($flags & 0x1000)    //PicturesOnly (1 << 12)
         $terms[] = "has_picture = 1";
-    }
 
-    if ($flags & 0x0800) {   //PgSimsOnly (1 << 11)
+    if ($flags & 0x0800)    //PgSimsOnly (1 << 11)
         $terms[] = "mature = 0";
-    }
 
-    if ($text != "") {
+    if ($text != "")
+    {
         $terms[] = "(name LIKE :text)";
         $text = "%$text%";
         $sqldata['text'] = $text;
     }
 
-    if (count($terms) > 0) {
-        $where = " WHERE " . join_terms(" AND ", $terms, false);
-    } else {
+    if (count($terms) > 0)
+        $where = " WHERE " . join_terms(" AND ", $terms, False);
+    else
         $where = "";
-    }
 
-    $query_start = (int)$query_start;
-    if ($query_start < 0) {
-        $query_start = 0;
-    }
+    //Prevent SQL injection
+    if (!is_int($query_start))
+         $query_start = 0;
 
     $query = $db->prepare("SELECT * FROM search_popularplaces" . $where .
                           " LIMIT $query_start,101");
-    $query->execute($sqldata);
+    $result = $query->execute($sqldata);
 
     $data = array();
-    while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
+    while ($row = $query->fetch(PDO::FETCH_ASSOC))
+    {
         $data[] = array(
-            "parcel_id" => $row["infoUUID"],
-            "name"      => $row["name"],
-            "dwell"     => $row["dwell"]
-        );
+                "parcel_id" => $row["infoUUID"],
+                "name" => $row["name"],
+                "dwell" => $row["dwell"]);
     }
 
     return array(
-        'success'      => true,
-        'errorMessage' => "",
-        'data'         => $data
-    );
+            'success'      => True,
+            'errorMessage' => "",
+            'data' => $data);
 }
 
 #
@@ -242,92 +236,83 @@ function dir_land_query($method_name, $params, $app_data)
     $terms = array();
     $sqldata = array();
 
-    if ($type != 4294967295) {   //Include all types of land?
-        if (($type & 26) == 2) { // Auction
+    if ($type != 4294967295)    //Include all types of land?
+    {
+        if (($type & 26) == 2)  // Auction
+        {
             return array(
-                'success'      => false,
-                'errorMessage' => "No auctions listed"
-            );
+                    'success' => False,
+                    'errorMessage' => "No auctions listed");
         }
 
-        if (($type & 24) == 8) {  // Mainland
+        if (($type & 24) == 8)  //Mainland
             $terms[] = "parentestate = 1";
-        }
-        if (($type & 24) == 16) { // Estate
+        if (($type & 24) == 16) //Estate
             $terms[] = "parentestate <> 1";
-        }
     }
 
     $s = process_region_type_flags($flags);
-    if ($s != "") {
+    if ($s != "")
         $terms[] = $s;
-    }
 
-    if ($flags & 0x100000) { //LimitByPrice
+    if ($flags & 0x100000)  //LimitByPrice
+    {
         $terms[] = "saleprice <= :price";
         $sqldata['price'] = $price;
     }
-    if ($flags & 0x200000) { //LimitByArea
+    if ($flags & 0x200000)  //LimitByArea
+    {
         $terms[] = "area >= :area";
         $sqldata['area'] = $area;
     }
 
-    $order = "lsq"; //PerMeterSort
+    $order = "lsq";     //PerMeterSort
 
-    if ($flags & 0x80000) { //NameSort
+    if ($flags & 0x80000)   //NameSort
         $order = "parcelname";
-    }
-    if ($flags & 0x10000) { //PriceSort
+    if ($flags & 0x10000)   //PriceSort
         $order = "saleprice";
-    }
-    if ($flags & 0x40000) { //AreaSort
+    if ($flags & 0x40000)   //AreaSort
         $order = "area";
-    }
-    if (!($flags & 0x8000)) { //SortAsc
+    if (!($flags & 0x8000)) //SortAsc
         $order .= " DESC";
-    }
 
-    if (count($terms) > 0) {
-        $where = " WHERE " . join_terms(" AND ", $terms, false);
-    } else {
+    if (count($terms) > 0)
+        $where = " WHERE " . join_terms(" AND ", $terms, False);
+    else
         $where = "";
-    }
 
-    $query_start = (int)$query_start;
-    if ($query_start < 0) {
-        $query_start = 0;
-    }
+    if (!is_int($query_start))
+         $query_start = 0;
 
     $sql = "SELECT *,saleprice/area AS lsq FROM search_parcelsales" . $where .
            " ORDER BY " . $order . " LIMIT $query_start,101";
     $query = $db->prepare($sql);
-    $query->execute($sqldata);
+    $result = $query->execute($sqldata);
 
     $data = array();
-    while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
+    while ($row = $query->fetch(PDO::FETCH_ASSOC))
+    {
         $data[] = array(
-            "parcel_id"     => $row["infoUUID"],
-            "name"          => $row["parcelname"],
-            "auction"       => "false",
-            "for_sale"      => "true",
-            "sale_price"    => $row["saleprice"],
-            "landing_point" => $row["landingpoint"],
-            "region_UUID"   => $row["regionUUID"],
-            "area"          => $row["area"]
-        );
+                "parcel_id" => $row["infoUUID"],
+                "name" => $row["parcelname"],
+                "auction" => "false",
+                "for_sale" => "true",
+                "sale_price" => $row["saleprice"],
+                "landing_point" => $row["landingpoint"],
+                "region_UUID" => $row["regionUUID"],
+                "area" => $row["area"]);
     }
 
     return array(
-        'success'      => true,
-        'errorMessage' => "",
-        'data'         => $data
-    );
+            'success'      => True,
+            'errorMessage' => "",
+            'data' => $data);
 }
 
 #
 # Events Query
 #
-
 xmlrpc_server_register_method($xmlrpc_server, "dir_events_query", "dir_events_query");
 
 function dir_events_query($method_name, $params, $app_data)
@@ -340,10 +325,7 @@ function dir_events_query($method_name, $params, $app_data)
     $query_start = isset($req['query_start']) ? $req['query_start'] : 0;
 
     if ($text === "%%%") {
-        return array(
-            'success'      => false,
-            'errorMessage' => "Invalid search terms"
-        );
+        return array('success' => False, 'errorMessage' => "Invalid search terms");
     }
 
     $pieces = explode("|", $text);
@@ -363,7 +345,8 @@ function dir_events_query($method_name, $params, $app_data)
     } elseif ($dr === 'tom' || $dr === 'tm' || $dr === 'tomorrow' || $dr === 'm') {
         $day = 1;           // Tomorrow
     } elseif (preg_match('/^-?\d+$/', $dr)) {
-        $day = (int)$dr;    // Allow any integer offset
+        // Fix for "Next Day" scrolling: Allow any integer (-5, 30, etc.)
+        $day = (int)$dr;
     } else {
         $day = 0;
     }
@@ -379,11 +362,12 @@ function dir_events_query($method_name, $params, $app_data)
         $sqldata['now'] = (int)$now;
     } else {
         $base       = new DateTimeImmutable('now', $tz);
-        $startLocal = $base->setTime(0, 0, 0)->modify(((int)$day) . ' day');
+        // This line handles the math for -5 days or +30 days automatically
+        $startLocal = $base->setTime(0, 0, 0)->modify(((int)$day).' day');
         $endLocal   = $startLocal->modify('+1 day');
 
         $utcStart   = $startLocal->setTimezone(new DateTimeZone('UTC'))->getTimestamp();
-        $utcEnd     = $endLocal->setTimezone(new DateTimeZone('UTC'))->getTimestamp();
+        $utcEnd     = $endLocal  ->setTimezone(new DateTimeZone('UTC'))->getTimestamp();
 
         $terms[]             = "(dateUTC >= :utcStart AND dateUTC < :utcEnd)";
         $sqldata['utcStart'] = (int)$utcStart;
@@ -396,18 +380,10 @@ function dir_events_query($method_name, $params, $app_data)
     }
 
     $type = array();
-    if ($flags & 16777216) {
-        $type[] = "eventflags = 0";
-    }
-    if ($flags & 33554432) {
-        $type[] = "eventflags = 1";
-    }
-    if ($flags & 67108864) {
-        $type[] = "eventflags = 2";
-    }
-    if (count($type) > 0) {
-        $terms[] = join_terms(" OR ", $type, true);
-    }
+    if ($flags & 16777216) $type[] = "eventflags = 0";
+    if ($flags & 33554432) $type[] = "eventflags = 1";
+    if ($flags & 67108864) $type[] = "eventflags = 2";
+    if (count($type) > 0) $terms[] = join_terms(" OR ", $type, True);
 
     if ($search_text !== "") {
         $terms[] = "(name LIKE :text1 OR description LIKE :text2)";
@@ -415,12 +391,10 @@ function dir_events_query($method_name, $params, $app_data)
         $sqldata['text2'] = "%" . $search_text . "%";
     }
 
-    $where = (count($terms) > 0) ? " WHERE " . join_terms(" AND ", $terms, false) : "";
+    $where = (count($terms) > 0) ? " WHERE " . join_terms(" AND ", $terms, False) : "";
 
     $offset = (int)$query_start;
-    if ($offset < 0) {
-        $offset = 0;
-    }
+    if ($offset < 0) $offset = 0;
     $limit = 101;
 
     $sql = "SELECT owneruuid,name,eventid,dateUTC,duration,eventflags,simname,globalPos FROM search_events"
@@ -445,8 +419,8 @@ function dir_events_query($method_name, $params, $app_data)
                 $x = (int)round($parts[0]);
                 $y = (int)round($parts[1]);
                 $z = (int)round($parts[2]);
-                $landing_point  = $x . ',' . $y . ',' . $z;
-                $globalposition = $x . ',' . $y . ',' . $z;
+                $landing_point  = $x.','.$y.','.$z;
+                $globalposition = $x.','.$y.','.$z;
             }
             $simname = isset($row['simname']) ? (string)$row['simname'] : '';
 
@@ -467,17 +441,10 @@ function dir_events_query($method_name, $params, $app_data)
             );
         }
 
-        return array(
-            'success'      => true,
-            'errorMessage' => "",
-            'data'         => $data
-        );
+        return array('success' => True, 'errorMessage' => "", 'data' => $data);
     } catch (PDOException $e) {
         file_put_contents('.PDOErrors.txt', $e->getMessage() . "\n-----\n", FILE_APPEND);
-        return array(
-            'success'      => false,
-            'errorMessage' => "Query failed"
-        );
+        return array('success' => False, 'errorMessage' => "Query failed");
     }
 }
 
@@ -487,22 +454,23 @@ function dir_events_query($method_name, $params, $app_data)
 
 xmlrpc_server_register_method($xmlrpc_server, "dir_classified_query", "dir_classified_query");
 
-function dir_classified_query($method_name, $params, $app_data)
+function dir_classified_query ($method_name, $params, $app_data)
 {
     global $db;
 
     $req = isset($params[0]) ? $params[0] : array();
 
     // PHP 8 Fix: Check if keys exist
-    $text        = isset($req['text']) ? $req['text'] : "%%%";
-    $flags       = isset($req['flags']) ? (int)$req['flags'] : 0;
-    $category    = isset($req['category']) ? (int)$req['category'] : 0;
-    $query_start = isset($req['query_start']) ? (int)$req['query_start'] : 0;
+    $text           = isset($req['text']) ? $req['text'] : "%%%";
+    $flags          = isset($req['flags']) ? (int)$req['flags'] : 0;
+    $category       = isset($req['category']) ? (int)$req['category'] : 0;
+    $query_start    = isset($req['query_start']) ? (int)$req['query_start'] : 0;
 
-    if ($text == "%%%") {
+    if ($text == "%%%")
+    {
         return array(
-            'success'      => false,
-            'errorMessage' => "Invalid search terms"
+                'success'      => False,
+                'errorMessage' => "Invalid search terms"
         );
     }
 
@@ -510,80 +478,74 @@ function dir_classified_query($method_name, $params, $app_data)
     $sqldata = array();
 
     $maturity = 0;
-    if ($flags & 5) {   //Legacy or current PG bit?
+    if ($flags & 5)     //Legacy or current PG bit?
         $maturity |= 5;
-    }
-    if ($flags & 10) {  //Legacy or current Mature bit?
+    if ($flags & 10)    //Legacy or current Mature bit?
         $maturity |= 8;
-    }
-    if ($flags & 64) {  //Adult bit (1 << 6)
+    if ($flags & 64)    //Adult bit (1 << 6)
         $maturity |= 64;
-    }
 
-    if ($maturity) {
+    if ($maturity)
         $terms[] = "classifiedflags & $maturity";
-    }
 
-    if ($category > 0) {
+    if ($category > 0)
+    {
         $terms[] = "category = :category";
         $sqldata['category'] = $category;
     }
 
-    if ($text != "") {
-        $terms[] = "(name LIKE :text1 OR description LIKE :text2)";
+    if ($text != "")
+    {
+        $terms[] = "(name LIKE :text1" .
+                   " OR description LIKE :text2)";
+
         $text = "%$text%";
         $sqldata['text1'] = $text;
         $sqldata['text2'] = $text;
     }
 
-    if (count($terms) > 0) {
-        $where = " WHERE " . join_terms(" AND ", $terms, false);
-    } else {
+    if (count($terms) > 0)
+        $where = " WHERE " . join_terms(" AND ", $terms, False);
+    else
         $where = "";
-    }
 
-    $query_start = (int)$query_start;
-    if ($query_start < 0) {
-        $query_start = 0;
-    }
+    if (!is_int($query_start))
+         $query_start = 0;
 
     $sql = "SELECT * FROM classifieds" . $where .
            " ORDER BY priceforlisting DESC" .
            " LIMIT $query_start,101";
     $query = $db->prepare($sql);
-    $query->execute($sqldata);
+
+    $result = $query->execute($sqldata);
 
     $data = array();
-    while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
+    while ($row = $query->fetch(PDO::FETCH_ASSOC))
+    {
         $flags = $row["classifiedflags"];
-        if ($flags & 1) {
+        if ($flags & 1)
             $flags |= 4;
-        }
-        if ($flags & 2) {
+        if ($flags & 2)
             $flags |= 8;
-        }
 
         $data[] = array(
-            "classifiedid"    => $row["classifieduuid"],
-            "name"            => $row["name"],
-            "classifiedflags" => $flags,
-            "creation_date"   => $row["creationdate"],
-            "expiration_date" => $row["expirationdate"],
-            "priceforlisting" => $row["priceforlisting"]
-        );
+                "classifiedid" => $row["classifieduuid"],
+                "name" => $row["name"],
+                "classifiedflags" => $flags,
+                "creation_date"   => $row["creationdate"],
+                "expiration_date" => $row["expirationdate"],
+                "priceforlisting" => $row["priceforlisting"]);
     }
 
     return array(
-        'success'      => true,
-        'errorMessage' => "",
-        'data'         => $data
-    );
+            'success'      => True,
+            'errorMessage' => "",
+            'data' => $data);
 }
 
 #
 # Events Info Query
 #
-
 xmlrpc_server_register_method($xmlrpc_server, "event_info_query", "event_info_query");
 
 function event_info_query($method_name, $params, $app_data)
@@ -614,8 +576,8 @@ function event_info_query($method_name, $params, $app_data)
                 $x = (int)round($parts[0]);
                 $y = (int)round($parts[1]);
                 $z = (int)round($parts[2]);
-                $landing_point  = $x . ',' . $y . ',' . $z;
-                $globalposition = $x . ',' . $y . ',' . $z;
+                $landing_point  = $x.','.$y.','.$z;
+                $globalposition = $x.','.$y.','.$z;
             }
             $simname = isset($row['simname']) ? (string)$row['simname'] : '';
 
@@ -640,17 +602,10 @@ function event_info_query($method_name, $params, $app_data)
             );
         }
 
-        return array(
-            'success'      => true,
-            'errorMessage' => "",
-            'data'         => $data
-        );
+        return array('success' => True, 'errorMessage' => "", 'data' => $data);
     } catch (PDOException $e) {
         file_put_contents('.PDOErrors.txt', $e->getMessage() . "\n-----\n", FILE_APPEND);
-        return array(
-            'success'      => false,
-            'errorMessage' => "Query failed"
-        );
+        return array('success' => False, 'errorMessage' => "Query failed");
     }
 }
 
@@ -665,37 +620,37 @@ function classifieds_info_query($method_name, $params, $app_data)
     global $db;
 
     $req = isset($params[0]) ? $params[0] : array();
+    // PHP 8 Fix
     $classifiedID = isset($req['classifiedID']) ? $req['classifiedID'] : "";
 
     $query = $db->prepare("SELECT * FROM classifieds WHERE classifieduuid = ?");
-    $query->execute(array($classifiedID));
+    $result = $query->execute( array($classifiedID) );
 
     $data = array();
-    while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
+    while ($row = $query->fetch(PDO::FETCH_ASSOC))
+    {
         $data[] = array(
-            "classifieduuid"   => $row["classifieduuid"],
-            "creatoruuid"      => $row["creatoruuid"],
-            "creationdate"     => $row["creationdate"],
-            "expirationdate"   => $row["expirationdate"],
-            "category"         => $row["category"],
-            "name"             => $row["name"],
-            "description"      => $row["description"],
-            "parceluuid"       => $row["parceluuid"],
-            "parentestate"     => $row["parentestate"],
-            "snapshotuuid"     => $row["snapshotuuid"],
-            "simname"          => $row["simname"],
-            "posglobal"        => $row["posglobal"],
-            "parcelname"       => $row["parcelname"],
-            "classifiedflags"  => $row["classifiedflags"],
-            "priceforlisting"  => $row["priceforlisting"]
-        );
+                "classifieduuid" => $row["classifieduuid"],
+                "creatoruuid" => $row["creatoruuid"],
+                "creationdate" => $row["creationdate"],
+                "expirationdate" => $row["expirationdate"],
+                "category" => $row["category"],
+                "name" => $row["name"],
+                "description" => $row["description"],
+                "parceluuid" => $row["parceluuid"],
+                "parentestate" => $row["parentestate"],
+                "snapshotuuid" => $row["snapshotuuid"],
+                "simname" => $row["simname"],
+                "posglobal" => $row["posglobal"],
+                "parcelname" => $row["parcelname"],
+                "classifiedflags" => $row["classifiedflags"],
+                "priceforlisting" => $row["priceforlisting"]);
     }
 
     return array(
-        'success'      => true,
-        'errorMessage' => "",
-        'data'         => $data
-    );
+            'success'      => True,
+            'errorMessage' => "",
+            'data' => $data);
 }
 
 #
@@ -710,17 +665,12 @@ $response_xml = xmlrpc_server_call_method(
     '',
     array('encoding' => 'utf-8')
 );
-
 xmlrpc_server_destroy($xmlrpc_server);
 
-$db = null;
-
-$leaked_output = ob_get_clean();
-if (trim($leaked_output) !== '') {
-    file_put_contents('.XMLRPCOutputLeak.txt', $leaked_output . "\n-----\n", FILE_APPEND);
-}
+$db = NULL;
 
 if ($response_xml !== null) {
     header('Content-Type: text/xml; charset=utf-8');
     echo $response_xml;
 }
+?>

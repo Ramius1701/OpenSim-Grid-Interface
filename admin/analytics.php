@@ -390,6 +390,11 @@ mysqli_close($db);
 ?>
 
 
+<section class="page-hero">
+    <h1><i class="bi bi-graph-up me-2"></i> Grid Analytics</h1>
+    <p class="mb-0">Signed in as <?php echo htmlspecialchars($adminName); ?><?php echo $adminLabel ? ' (' . htmlspecialchars($adminLabel) . ')' : ''; ?></p>
+</section>
+
 <div class="container-fluid mt-4 mb-4">
   <div class="row">
     <!-- Sidebar -->
@@ -825,12 +830,5 @@ mysqli_close($db);
     </div> <!-- /.col-md-9 -->
   </div> <!-- /.row -->
 </div> <!-- /.container-fluid -->
-
-<style>
-.card-img-top { transition: transform 0.2s; }
-.card:hover .card-img-top { transform: scale(1.05); }
-.card { transition: box-shadow 0.2s; }
-.card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-</style>
 
 <?php require_once __DIR__ . "/../include/" . FOOTER_FILE; ?>

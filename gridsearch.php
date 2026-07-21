@@ -879,24 +879,6 @@ if (!empty($results)) {
     }
 }
 
-/* Theme-aware buttons for Quick Actions */
-.btn-theme{
-  background: var(--header-color);
-  border-color: var(--header-color);
-  color:#fff;
-}
-.btn-theme:hover{ filter: brightness(1.05); color:#fff; }
-
-.btn-theme-outline{
-  color: var(--header-color);
-  border-color: var(--header-color);
-  background: transparent;
-}
-.btn-theme-outline:hover{
-  background: var(--header-color);
-  color:#fff;
-}
-
 .card-img-top { transition: transform 0.2s; }
 .card:hover .card-img-top { transform: scale(1.05); }
 .card { transition: box-shadow 0.2s; }

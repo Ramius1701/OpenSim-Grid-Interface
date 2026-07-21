@@ -76,29 +76,11 @@ $catKey = ($category === 'all') ? 'all' : (int)$category;
 /* --- THEME ENGINE INJECTION --- */
 /* This block forces the layout to adapt to the selected theme without changing HTML structure */
 
-/* 1. Hero Section */
-.page-hero {
-    background: linear-gradient(135deg, 
-        color-mix(in srgb, var(--header-color), black 30%), 
-        color-mix(in srgb, var(--header-color), black 60%)
-    );
-    border-radius: 15px; padding: 3rem 2rem; margin-bottom: 2rem;
-    text-align: center; color: white;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-}
-.page-hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-
 /* 2. Card Overrides */
 .card {
     background-color: var(--card-bg);
     border: 1px solid var(--card-border-color) !important;
     color: var(--primary-color);
-}
-.card-header {
-    background-color: var(--header-color) !important;
-    background-image: none !important;
-    color: var(--header-text-color) !important;
-    border-bottom: 1px solid var(--card-border-color) !important;
 }
 .card-header {
     background-color: var(--header-color) !important;
@@ -115,7 +97,7 @@ $catKey = ($category === 'all') ? 'all' : (int)$category;
 }
 
 /* 5. Image & Interactive Styling */
-.card-img-top, .img-fluid { 
+.img-fluid { 
     background-color: black; /* Placeholder bg for transparent images */
 }
 .btn-outline-primary {
@@ -239,7 +221,7 @@ $catKey = ($category === 'all') ? 'all' : (int)$category;
                                          class="img-fluid rounded" 
                                          alt="Listing image"
                                          style="max-height: 200px;"
-                                         onerror="this.src='<?php echo ASSET_FEHLT; ?>';">
+                                         onerror="this.onerror=null;this.src='<?php echo ASSET_FEHLT; ?>';">
                                 </div>
                                 <?php endif; ?>
 
@@ -299,7 +281,7 @@ $catKey = ($category === 'all') ? 'all' : (int)$category;
                                          class="card-img-top" 
                                          alt="Listing image"
                                          style="height: 150px; object-fit: cover;"
-                                         onerror="this.src='<?php echo ASSET_FEHLT; ?>';">
+                                         onerror="this.onerror=null;this.src='<?php echo ASSET_FEHLT; ?>';">
                                     <?php endif; ?>
 
                                     <div class="card-body d-flex flex-column">
@@ -403,13 +385,6 @@ $catKey = ($category === 'all') ? 'all' : (int)$category;
         </div>
     </div>
 </div>
-
-<style>
-.card-img-top { transition: transform 0.2s; }
-.card:hover .card-img-top { transform: scale(1.05); }
-.card { transition: box-shadow 0.2s; }
-.card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-</style>
 
 <script>
 // Auto-submit on category change

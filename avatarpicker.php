@@ -1,7 +1,7 @@
 <?php
 if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
 
-$title = "AvatarPicker Service";
+$title = "Avatar Picker";
 include_once 'include/header.php';
 
 // Enable error reporting

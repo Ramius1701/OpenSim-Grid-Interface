@@ -1,383 +1,489 @@
 /**
- * OpenSim Grid - Interactive Map Script (Leaflet)
- * - No hard-coded grid branding
- * - Portable paths (relative to this script's directory)
- * - Requires: map-data.php (JSON) + map-tile.php (tile proxy)
+ * Casperia Prime World Map
+ * Version: 1.0.0
+ * Requires Leaflet 1.9.x
  */
+(function () {
+    'use strict';
 
-let map;
-let regionsData = [];
-let regionLayers = [];   // Leaflet layers for region tiles (image overlays)
-let currentSearchResults = [];
+    const CONFIG = {
+        defaultCenter: [1000.5, 1000.5],
+        defaultZoom: 6,
+        minZoom: 2,
+        maxZoom: 8,
+        mapTileZoom: 1,
+        tileMeters: 256
+    };
 
-// Derive base URLs from the script location so this works in any folder
-const SCRIPT_URL = new URL(document.currentScript.src);
-const BASE_URL = new URL('.', SCRIPT_URL);           // directory/
-const TILE_BASE_URL = new URL('data/', BASE_URL);
+    const state = {
+        map: null,
+        regions: [],
+        layers: [],
+        regionBounds: null,
+        apiUrl: '',
+        tileUrl: '',
+        resizeTimer: null,
+        tileLoadToken: 0
+    };
 
-// Configuration
-// Configuration
-const CONFIG = {
-    // Point to your new map-data.php (handles stats, regions, search)
-    apiUrl: new URL('map-data.php', BASE_URL).toString(), 
-    
-    // Point to the Proxy File
-    proxyUrl: new URL('map-tile.php', BASE_URL).toString(),
-
-    defaultCenter: [1000, 1000], 
-    defaultZoom: 6,
-    minZoom: 2,
-    maxZoom: 8,
-    tileSize: 256
-};
-
-function safeSetText(id, value) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = value;
-}
-
-function formatInt(n) {
-    const v = Number.isFinite(n) ? Math.trunc(n) : 0;
-    return v.toLocaleString();
-}
-
-function escapeHtml(str) {
-    return String(str ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-
-/**
- * Initialize map
- */
-function initMap() {
-    // Create custom CRS for OpenSim grid (simple planar)
-    const gridCRS = L.extend({}, L.CRS.Simple, {
-        transformation: new L.Transformation(1, 0, -1, 0)
-    });
-
-    map = L.map('map', {
-        crs: gridCRS,
-        minZoom: CONFIG.minZoom,
-        maxZoom: CONFIG.maxZoom,
-        zoomControl: true,
-        attributionControl: true
-    });
-
-    map.setView(CONFIG.defaultCenter, CONFIG.defaultZoom);
-
-    // attribution prefix will be replaced once stats are loaded (if provided)
-    map.attributionControl.setPrefix('OpenSim Map');
-
-    loadGridStats();
-    loadRegions();
-    setupSearch();
-}
-
-/**
- * Load grid statistics (and update sidebar counts)
- */
-async function loadGridStats() {
-    try {
-        const response = await fetch(`${CONFIG.apiUrl}?action=stats`, { cache: 'no-store' });
-        const data = await response.json();
-
-        if (!data || !data.success) return;
-
-        const stats = data.data || {};
-
-        // If API provides gridName, use it
-        if (stats.gridName) {
-            map.attributionControl.setPrefix(escapeHtml(stats.gridName));
-        }
-
-        const totalRegions = Number(stats.totalRegions || 0);
-        const onlineRegions = Number(stats.onlineRegions || 0);
-        const totalUsers = Number(stats.totalUsers || 0);
-        const usersOnline = Number(stats.usersOnline || 0);
-        const newUsersToday = Number(stats.newUsersToday || 0);
-
-        safeSetText('statOnlineNow', formatInt(usersOnline));
-        safeSetText('statTotalUsers', formatInt(totalUsers));
-        safeSetText('statRegions', formatInt(totalRegions));
-        safeSetText('statTransactions', formatInt(onlineRegions));
-
-        // header line under title
-        const header = totalRegions > 0 ? `${formatInt(totalRegions)} regions` : 'No region data';
-        safeSetText('headerRegionCount', header);
-
-        // sublabels
-        const newUsersEl = document.getElementById('statNewUsersToday');
-        if (newUsersEl) newUsersEl.textContent = newUsersToday > 0 ? `+${formatInt(newUsersToday)} today` : '';
-
-        const regionsSub = document.getElementById('statRegionsSub');
-        if (regionsSub) {
-            const available = Number(stats.availableRegions || 0);
-            regionsSub.textContent = available > 0 ? `${formatInt(available)} available to claim` : '';
-        }
-
-        const transVol = document.getElementById('transVolume');
-        if (transVol) {
-            const ts = stats.timestamp ? new Date(stats.timestamp * 1000) : null;
-            transVol.textContent = ts ? `Updated ${ts.toLocaleString()}` : '';
-        }
-    } catch (error) {
-        console.error('Failed to load stats:', error);
-    }
-}
-
-/**
- * Load all regions
- */
-async function loadRegions() {
-    try {
-        const response = await fetch(`${CONFIG.apiUrl}?action=regions`, { cache: 'no-store' });
-        const data = await response.json();
-
-        if (data && data.success) {
-            regionsData = (data.data && data.data.regions) ? data.data.regions : [];
-            addRegionTiles();
-        }
-    } catch (error) {
-        console.error('Failed to load regions:', error);
-    } finally {
-        const overlay = document.getElementById('loadingOverlay');
-        if (overlay) overlay.style.display = 'none';
-    }
-}
-
-/**
- * Add image overlays for region tiles (supports varregions by splitting into 256m tiles)
- */
-function addRegionTiles() {
-    // remove previous layers
-    regionLayers.forEach(layer => map.removeLayer(layer));
-    regionLayers = [];
-
-    if (!Array.isArray(regionsData) || regionsData.length === 0) {
-        return;
+    function byId(id) {
+        return document.getElementById(id);
     }
 
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
 
-    regionsData.forEach(region => {
-        const tilesX = Math.max(1, Math.ceil((Number(region.sizeX) || 256) / 256));
-        const tilesY = Math.max(1, Math.ceil((Number(region.sizeY) || 256) / 256));
+    function setText(id, value) {
+        const element = byId(id);
+        if (element) {
+            element.textContent = String(value);
+        }
+    }
 
-        for (let ty = 0; ty < tilesY; ty++) {
-            for (let tx = 0; tx < tilesX; tx++) {
-                const tileGridX = Number(region.gridX) + tx;
-                const tileGridY = Number(region.gridY) + ty;
+    function formatInt(value) {
+        const number = Number(value);
+        return Number.isFinite(number) ? Math.trunc(number).toLocaleString() : '0';
+    }
 
-                if (!Number.isFinite(tileGridX) || !Number.isFinite(tileGridY)) continue;
+    function setLoading(visible, message = 'Loading map…') {
+        const overlay = byId('loadingOverlay');
+        if (!overlay) return;
 
-                // Bounds are in Leaflet "tile units": 1 unit = 256m
-                const imageBounds = [
-                    [tileGridY, tileGridX],
-                    [tileGridY + 1, tileGridX + 1]
-                ];
+        const text = overlay.querySelector('.cp-map-loading-text');
+        if (text) text.textContent = message;
+        overlay.hidden = !visible;
+    }
 
-                // OLD: const tileUrl = `${CONFIG.tileBaseUrl}map-1-${tileGridX}-${tileGridY}-objects.jpg`;
-                // NEW: Use the proxy URL with query parameters
-                const tileUrl = `${CONFIG.proxyUrl}?x=${tileGridX}&y=${tileGridY}`;
+    function showStatus(message, type = 'info') {
+        const status = byId('mapStatus');
+        if (!status) return;
 
-                const layer = L.imageOverlay(tileUrl, imageBounds, {
-                    opacity: 1.0,
-                    interactive: true
-                }).addTo(map);
+        status.textContent = message;
+        status.dataset.type = type;
+        status.hidden = false;
+    }
 
-                // tag layer for search jump
-                layer._regionUuid = region.uuid;
+    function hideStatus() {
+        const status = byId('mapStatus');
+        if (status) status.hidden = true;
+    }
 
-                layer.bindPopup(() => createRegionPopup(region), {
-                    maxWidth: 350,
-                    className: 'region-popup-container',
-                    closeButton: false,
-                });
+    async function fetchJson(url) {
+        const response = await fetch(url, {
+            cache: 'no-store',
+            headers: { Accept: 'application/json' }
+        });
 
-                regionLayers.push(layer);
+        const text = await response.text();
+        let json;
 
-                // track extents
-                minX = Math.min(minX, tileGridX);
-                minY = Math.min(minY, tileGridY);
-                maxX = Math.max(maxX, tileGridX + 1);
-                maxY = Math.max(maxY, tileGridY + 1);
+        try {
+            json = JSON.parse(text);
+        } catch (error) {
+            throw new Error(`Invalid JSON from ${url} (HTTP ${response.status})`);
+        }
+
+        if (!response.ok) {
+            throw new Error(json.error || `HTTP ${response.status}`);
+        }
+
+        if (!json || json.success !== true) {
+            throw new Error(json && json.error ? json.error : 'API request failed');
+        }
+
+        return json.data || {};
+    }
+
+    function buildTileUrl(x, y) {
+        const url = new URL(state.tileUrl, window.location.href);
+        url.searchParams.set('x', String(x));
+        url.searchParams.set('y', String(y));
+        url.searchParams.set('z', String(CONFIG.mapTileZoom));
+        return url.toString();
+    }
+
+    function createPopup(region) {
+        const sizeX = Number(region.sizeX) || CONFIG.tileMeters;
+        const sizeY = Number(region.sizeY) || CONFIG.tileMeters;
+        const gridX = Number(region.gridX) || 0;
+        const gridY = Number(region.gridY) || 0;
+        const teleportLink = region.teleportLink || '#';
+
+        return `
+            <div class="region-popup-content">
+                <div class="region-popup-header">
+                    <h3>${escapeHtml(region.regionName)}</h3>
+                    <small>${region.isOnline ? '🟢 Online' : '⚪ Offline'}</small>
+                </div>
+                <div class="region-popup-body">
+                    <div class="region-info-row">
+                        <span><strong>Owner:</strong></span>
+                        <span>${escapeHtml(region.ownerName || '—')}</span>
+                    </div>
+                    <div class="region-info-row">
+                        <span><strong>Size:</strong></span>
+                        <span>${sizeX}m × ${sizeY}m</span>
+                    </div>
+                    <div class="region-info-row">
+                        <span><strong>Location:</strong></span>
+                        <span>(${gridX}, ${gridY})</span>
+                    </div>
+                </div>
+                <div class="region-popup-footer">
+                    <a href="${escapeHtml(teleportLink)}" class="btn-teleport">Visit Now</a>
+                </div>
+            </div>`;
+    }
+
+    function sizeMapCanvas() {
+        const canvas = byId('cpMapCanvas');
+        if (!canvas) return;
+
+        const rect = canvas.getBoundingClientRect();
+        let height = Math.floor(window.innerHeight - rect.top - 16);
+
+        if (!Number.isFinite(height)) height = 620;
+        height = Math.max(420, Math.min(1200, height));
+        canvas.style.height = `${height}px`;
+
+        if (state.map) {
+            window.requestAnimationFrame(() => {
+                state.map.invalidateSize({ pan: false });
+            });
+        }
+    }
+
+    function scheduleResize() {
+        if (state.resizeTimer !== null) {
+            window.clearTimeout(state.resizeTimer);
+        }
+
+        state.resizeTimer = window.setTimeout(() => {
+            state.resizeTimer = null;
+            sizeMapCanvas();
+        }, 80);
+    }
+
+    function fitToRegions() {
+        if (!state.map) return;
+
+        if (state.regionBounds && state.regionBounds.isValid()) {
+            state.map.fitBounds(state.regionBounds, {
+                padding: [24, 24],
+                animate: false
+            });
+        } else {
+            state.map.setView(CONFIG.defaultCenter, CONFIG.defaultZoom, { animate: false });
+        }
+    }
+
+    function clearRegionLayers() {
+        if (!state.map) return;
+
+        state.layers.forEach((layer) => state.map.removeLayer(layer));
+        state.layers = [];
+        state.regionBounds = null;
+    }
+
+    function addRegionTiles() {
+        clearRegionLayers();
+
+        if (!Array.isArray(state.regions) || state.regions.length === 0) {
+            setLoading(false);
+            showStatus('No regions were returned by map-data.php.', 'error');
+            return;
+        }
+
+        const bounds = L.latLngBounds([]);
+        const loadToken = ++state.tileLoadToken;
+        let expected = 0;
+        let settled = 0;
+        let loaded = 0;
+        let failed = 0;
+
+        function settleTile(ok, tileUrl, regionName) {
+            if (loadToken !== state.tileLoadToken) return;
+
+            settled += 1;
+            if (ok) {
+                loaded += 1;
+            } else {
+                failed += 1;
+                console.error('Map tile failed:', regionName, tileUrl);
+            }
+
+            if (settled >= expected) {
+                setLoading(false);
+                if (failed > 0) {
+                    showStatus(`${failed} of ${expected} map tiles failed to load.`, 'error');
+                } else {
+                    hideStatus();
+                }
             }
         }
-    });
 
-    // Fit view to available region extents (with padding)
-    if (Number.isFinite(minX) && Number.isFinite(minY) && Number.isFinite(maxX) && Number.isFinite(maxY)) {
-        const bounds = [[minY, minX], [maxY, maxX]];
-        map.fitBounds(bounds, { padding: [20, 20] });
-    }
-}
+        state.regions.forEach((region) => {
+            const gridX = Number(region.gridX);
+            const gridY = Number(region.gridY);
+            if (!Number.isFinite(gridX) || !Number.isFinite(gridY)) return;
 
-function createRegionPopup(region) {
-    return `
-        <div class="region-popup-content">
-            <div class="region-popup-header">
-                <h3>${escapeHtml(region.regionName)}</h3>
-                <small>${region.isOnline ? '🟢 Online' : '⚪ Offline'}</small>
-            </div>
-            <div class="region-popup-body">
-                <div class="region-info-row">
-                    <span><strong>Owner:</strong></span>
-                    <span>${escapeHtml(region.ownerName || '—')}</span>
-                </div>
-                <div class="region-info-row">
-                    <span><strong>Size:</strong></span>
-                    <span>${Number(region.sizeX) || 256}m × ${Number(region.sizeY) || 256}m</span>
-                </div>
-                <div class="region-info-row">
-                    <span><strong>Location:</strong></span>
-                    <span>(${Number(region.gridX) || 0}, ${Number(region.gridY) || 0})</span>
-                </div>
-            </div>
-            <div class="region-popup-footer">
-                <a href="${escapeHtml(region.teleportLink || '#')}" class="btn-teleport">Visit Now</a>
-            </div>
-        </div>
-    `;
-}
+            const sizeX = Number(region.sizeX) || CONFIG.tileMeters;
+            const sizeY = Number(region.sizeY) || CONFIG.tileMeters;
+            const tilesX = Math.max(1, Math.ceil(sizeX / CONFIG.tileMeters));
+            const tilesY = Math.max(1, Math.ceil(sizeY / CONFIG.tileMeters));
 
-/**
- * Search
- */
-function setupSearch() {
-    const searchInput = document.getElementById('searchInput');
-    const searchBtn = document.getElementById('searchBtn');
-    const resultsDiv = document.getElementById('searchResults');
-    const clearBtn = document.getElementById('clearSearch');
+            for (let tileY = 0; tileY < tilesY; tileY += 1) {
+                for (let tileX = 0; tileX < tilesX; tileX += 1) {
+                    const x = gridX + tileX;
+                    const y = gridY + tileY;
+                    const imageBounds = [[y, x], [y + 1, x + 1]];
+                    const tileUrl = buildTileUrl(x, y);
 
-    if (!searchInput || !searchBtn || !resultsDiv || !clearBtn) return;
+                    expected += 1;
+                    bounds.extend(imageBounds[0]);
+                    bounds.extend(imageBounds[1]);
 
-    const setClearVisible = (visible) => {
-        clearBtn.classList.toggle('d-none', !visible);
-    };
+                    const layer = L.imageOverlay(tileUrl, imageBounds, {
+                        opacity: 1,
+                        interactive: true
+                    });
 
-    setClearVisible(false);
+                    layer._regionUuid = String(region.uuid || '');
+                    layer.once('load', () => settleTile(true, tileUrl, region.regionName));
+                    layer.once('error', () => settleTile(false, tileUrl, region.regionName));
+                    layer.bindPopup(() => createPopup(region), {
+                        maxWidth: 350,
+                        className: 'region-popup-container',
+                        closeButton: false
+                    });
 
-    const doSearch = () => {
-        const query = searchInput.value.trim();
-        if (query.length >= 2) performSearch(query);
-    };
+                    layer.addTo(state.map);
+                    state.layers.push(layer);
+                }
+            }
+        });
 
-    searchBtn.addEventListener('click', doSearch);
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') doSearch();
-    });
+        state.regionBounds = bounds;
+        fitToRegions();
 
-    searchInput.addEventListener('input', () => {
-        if (searchInput.value.trim().length === 0) {
-            resultsDiv.style.display = 'none';
-            resultsDiv.innerHTML = '';
-            currentSearchResults = [];
-            setClearVisible(false);
+        if (expected === 0) {
+            setLoading(false);
+            showStatus('Region data contained no usable map coordinates.', 'error');
+            return;
         }
-    });
 
-    clearBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        resultsDiv.style.display = 'none';
-        resultsDiv.innerHTML = '';
-        currentSearchResults = [];
-        setClearVisible(false);
-    });
-}
-
-async function performSearch(query) {
-    try {
-        const [regionsResponse, landsResponse] = await Promise.all([
-            fetch(`${CONFIG.apiUrl}?action=search&query=${encodeURIComponent(query)}`),
-            fetch(`${CONFIG.apiUrl}?action=search_lands&query=${encodeURIComponent(query)}`)
-        ]);
-
-        const regionsJson = await regionsResponse.json().catch(() => null);
-        const landsJson = await landsResponse.json().catch(() => null);
-
-        const results = {
-            regions: (regionsJson && regionsJson.success && regionsJson.data && regionsJson.data.results) ? regionsJson.data.results : [],
-            lands: (landsJson && landsJson.success && landsJson.data && landsJson.data.results) ? landsJson.data.results : []
-        };
-
-        currentSearchResults = results.regions.concat(results.lands);
-        displaySearchResults(results);
-    } catch (error) {
-        console.error('Search failed:', error);
-    }
-}
-
-function displaySearchResults(results) {
-    const resultsDiv = document.getElementById('searchResults');
-    const clearBtn = document.getElementById('clearSearch');
-    if (!resultsDiv || !clearBtn) return;
-
-    const total = (results.regions?.length || 0) + (results.lands?.length || 0);
-
-    if (total === 0) {
-        resultsDiv.innerHTML = '<div class="search-result-item">No results found</div>';
-        resultsDiv.style.display = 'block';
-        clearBtn.classList.remove('d-none');
-        return;
+        window.setTimeout(() => {
+            if (loadToken !== state.tileLoadToken || settled >= expected) return;
+            setLoading(false);
+            showStatus(`Map tile loading timed out: ${loaded} loaded, ${failed} failed, ${expected - settled} still pending.`, 'error');
+        }, 12000);
     }
 
-    let html = '';
+    async function loadRegions() {
+        setLoading(true, 'Loading regions…');
 
-    if (results.regions && results.regions.length > 0) {
-        html += `<div style="padding:10px;font-weight:bold;color:#667eea;border-bottom:1px solid rgba(102,126,234,0.3);">📍 REGIONS (${results.regions.length})</div>`;
-        results.regions.forEach(region => {
-            const statusIcon = region.isOnline ? '🟢' : '⚪';
-            html += `
-                <div class="search-result-item" onclick="flyToRegion(${Number(region.gridX)||0}, ${Number(region.gridY)||0}, '${escapeHtml(region.uuid)}')">
-                    <strong>${statusIcon} ${escapeHtml(region.regionName)}</strong>
-                    <small>Region at (${Number(region.gridX)||0}, ${Number(region.gridY)||0})</small>
-                </div>
-            `;
+        try {
+            const data = await fetchJson(`${state.apiUrl}?action=regions`);
+            state.regions = Array.isArray(data.regions) ? data.regions : [];
+            addRegionTiles();
+        } catch (error) {
+            console.error('Failed to load regions:', error);
+            setLoading(false);
+            showStatus(`Unable to load region data: ${error.message}`, 'error');
+        }
+    }
+
+    async function loadStats() {
+        try {
+            const stats = await fetchJson(`${state.apiUrl}?action=stats`);
+            const totalRegions = Number(stats.totalRegions) || 0;
+            const usersOnline = Number(stats.usersOnline) || 0;
+
+            setText('headerRegionCount', formatInt(totalRegions));
+            setText('statOnlineNow', formatInt(usersOnline));
+
+            if (stats.gridName && state.map && state.map.attributionControl) {
+                state.map.attributionControl.setPrefix(escapeHtml(stats.gridName));
+            }
+        } catch (error) {
+            console.error('Failed to load map stats:', error);
+        }
+    }
+
+    function clearSearch() {
+        const input = byId('searchInput');
+        const results = byId('searchResults');
+        const clearButton = byId('clearSearch');
+
+        if (input) input.value = '';
+        if (results) {
+            results.replaceChildren();
+            results.hidden = true;
+        }
+        if (clearButton) clearButton.classList.add('d-none');
+    }
+
+    function findRegionLayer(uuid) {
+        const wanted = String(uuid || '');
+        return state.layers.find((layer) => layer._regionUuid === wanted) || null;
+    }
+
+    function flyToRegion(region) {
+        if (!state.map) return;
+
+        const gridX = Number(region.gridX) || 0;
+        const gridY = Number(region.gridY) || 0;
+        state.map.flyTo([gridY + 0.5, gridX + 0.5], Math.min(8, CONFIG.maxZoom), {
+            duration: 0.8
+        });
+
+        window.setTimeout(() => {
+            const layer = findRegionLayer(region.uuid);
+            if (layer) layer.openPopup();
+        }, 850);
+    }
+
+    function renderSearchResults(regions) {
+        const results = byId('searchResults');
+        const clearButton = byId('clearSearch');
+        if (!results || !clearButton) return;
+
+        results.replaceChildren();
+        results.hidden = false;
+        clearButton.classList.remove('d-none');
+
+        if (!Array.isArray(regions) || regions.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'search-result-item';
+            empty.textContent = 'No regions found';
+            results.appendChild(empty);
+            return;
+        }
+
+        regions.forEach((region) => {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'search-result-item';
+
+            const title = document.createElement('strong');
+            title.textContent = `${region.isOnline ? '🟢' : '⚪'} ${region.regionName || 'Unnamed Region'}`;
+
+            const detail = document.createElement('small');
+            detail.textContent = `Region at (${Number(region.gridX) || 0}, ${Number(region.gridY) || 0})`;
+
+            item.append(title, detail);
+            item.addEventListener('click', () => flyToRegion(region));
+            results.appendChild(item);
         });
     }
 
-    if (results.lands && results.lands.length > 0) {
-        html += `<div style="padding:10px;font-weight:bold;color:#4ecdc4;border-bottom:1px solid rgba(78,205,196,0.3);">🏡 LANDS (${results.lands.length})</div>`;
-        results.lands.forEach(land => {
-            html += `
-                <div class="search-result-item" onclick="flyToLand(${Number(land.gridX)||0}, ${Number(land.gridY)||0}, '${escapeHtml(land.parceluuid)}', '${escapeHtml(land.teleportLink)}')">
-                    <strong>🏡 ${escapeHtml(land.landname)}</strong>
-                    <small>${escapeHtml(land.regionname)}</small>
-                </div>
-            `;
-        });
+    async function performSearch() {
+        const input = byId('searchInput');
+        if (!input) return;
+
+        const query = input.value.trim();
+        if (query.length < 2) return;
+
+        try {
+            const data = await fetchJson(`${state.apiUrl}?action=search&query=${encodeURIComponent(query)}`);
+            renderSearchResults(Array.isArray(data.results) ? data.results : []);
+        } catch (error) {
+            console.error('Map search failed:', error);
+            renderSearchResults([]);
+        }
     }
 
-    resultsDiv.innerHTML = html;
-    resultsDiv.style.display = 'block';
-    clearBtn.classList.remove('d-none');
-}
+    function setupControls() {
+        const searchButton = byId('searchBtn');
+        const searchInput = byId('searchInput');
+        const clearButton = byId('clearSearch');
+        const resetButton = byId('cpMapResetBtn');
 
-/**
- * Jump to a region and open its popup
- */
-function flyToRegion(gridX, gridY, regionUuid) {
-    map.flyTo([gridY + 0.5, gridX + 0.5], 9, { duration: 1.2 });
-
-    setTimeout(() => {
-        const layer = regionLayers.find(l => l._regionUuid === regionUuid);
-        if (layer && typeof layer.openPopup === 'function') {
-            layer.openPopup();
+        if (searchButton) searchButton.addEventListener('click', performSearch);
+        if (clearButton) clearButton.addEventListener('click', clearSearch);
+        if (resetButton) {
+            resetButton.addEventListener('click', () => {
+                clearSearch();
+                state.map.closePopup();
+                fitToRegions();
+            });
         }
-    }, 900);
-}
 
-// Stub: lands are optional. Keep this so the UI doesn't break if you add lands later.
-function flyToLand(gridX, gridY, parcelUuid, teleportLink) {
-    map.flyTo([gridY + 0.5, gridX + 0.5], 9, { duration: 1.2 });
-    // You can implement parcel popups later if you want.
-}
+        if (searchInput) {
+            searchInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') performSearch();
+            });
+            searchInput.addEventListener('input', () => {
+                if (searchInput.value.trim() === '') clearSearch();
+            });
+        }
+    }
 
-document.addEventListener('DOMContentLoaded', () => {
-    initMap();
-});
+    function showDebug() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('debug') !== '1') return;
+
+        const debug = byId('cpMapDebug');
+        const canvas = byId('cpMapCanvas');
+        if (!debug) return;
+
+        debug.hidden = false;
+        const lines = [
+            'Casperia World Map v1.0.0',
+            `Leaflet: ${window.L ? L.version : 'MISSING'}`,
+            `API: ${state.apiUrl}`,
+            `Tile proxy: ${state.tileUrl}`,
+            `Canvas: ${canvas ? `${canvas.clientWidth}x${canvas.clientHeight}` : 'MISSING'}`
+        ];
+
+        debug.textContent = lines.join('\n');
+    }
+
+    function init() {
+        const mapElement = byId('map');
+        if (!mapElement) return;
+
+        if (!window.L) {
+            setLoading(false);
+            showStatus('Leaflet failed to load.', 'error');
+            return;
+        }
+
+        state.apiUrl = mapElement.dataset.apiUrl || 'map-data.php';
+        state.tileUrl = mapElement.dataset.tileUrl || 'map-tile.php';
+
+        sizeMapCanvas();
+
+        state.map = L.map(mapElement, {
+            crs: L.CRS.Simple,
+            minZoom: CONFIG.minZoom,
+            maxZoom: CONFIG.maxZoom,
+            zoomControl: true,
+            attributionControl: true
+        });
+
+        state.map.setView(CONFIG.defaultCenter, CONFIG.defaultZoom);
+        state.map.attributionControl.setPrefix('Casperia Prime');
+
+        setupControls();
+        loadStats();
+        loadRegions();
+        showDebug();
+
+        window.addEventListener('resize', scheduleResize, { passive: true });
+        window.setTimeout(sizeMapCanvas, 250);
+        window.setTimeout(sizeMapCanvas, 1000);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init, { once: true });
+    } else {
+        init();
+    }
+}());

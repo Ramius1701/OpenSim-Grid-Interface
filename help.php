@@ -34,7 +34,7 @@ if (!empty($IS_VIEWER)) {
                 <div class="border rounded p-3 h-100">
                     <h3 class="h6 mb-2">Search, friends &amp; regions</h3>
                     <ul class="mb-0 small">
-                        <li>Use <a href="gridsearch.php">Search</a> (or use the <a href="ossearch.php">Classic Search</a> interface) for places, events, classifieds, people,
+                        <li>Use <a href="gridsearch.php">Search</a> for places, events, classifieds, people,
                             groups and land.</li>
                         <li>Manage your friends list and permissions from the Account page, or use viewer tools in-world.</li>
                         <li>See a list of regions you own or manage on the Account page.</li>
@@ -48,7 +48,7 @@ if (!empty($IS_VIEWER)) {
         <h2 class="h5">Using search from the viewer</h2>
         <p class="small text-muted">
             When you open the Search window in your viewer, it loads this website inside the viewer.
-            The same tabs are also available when you open <a href="gridsearch.php">Search</a> (or use the <a href="ossearch.php">Classic Search</a> interface) in a normal browser.
+            The same tabs are also available when you open <a href="gridsearch.php">Search</a> in a normal browser.
         </p>
         <ul class="small mb-0">
             <li><strong>Places</strong> – find regions and parcels by name, description or keywords.</li>

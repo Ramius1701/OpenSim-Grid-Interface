@@ -8,16 +8,6 @@ include_once 'include/header.php';
 /* Maps standard Bootstrap classes to your Theme Engine variables without breaking layout */
 
 /* 1. Page Hero (Added to match other pages) */
-.page-hero {
-    background: linear-gradient(135deg, 
-        color-mix(in srgb, var(--header-color), black 30%), 
-        color-mix(in srgb, var(--header-color), black 60%)
-    );
-    border-radius: 15px; padding: 3rem 2rem; margin-bottom: 2rem;
-    text-align: center; color: white;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-}
-
 /* 2. Card overrides */
 .card {
     background-color: var(--card-bg);
@@ -48,19 +38,6 @@ include_once 'include/header.php';
 /* 5. Text Colors */
 .text-muted { color: color-mix(in srgb, var(--primary-color), transparent 40%) !important; }
 .fw-bold { color: var(--primary-color); }
-
-/* 6. Buttons */
-.btn-theme-outline {
-    background: transparent;
-    border: 1px solid var(--card-border-color) !important;
-    color: var(--primary-color);
-    text-align: left;
-}
-.btn-theme-outline:hover {
-    background: var(--accent-color);
-    color: white;
-    border-color: var(--accent-color);
-}
 
 /* Status Dots */
 .status-dot{ display:inline-block;width:.65rem;height:.65rem;border-radius:50%;margin-right:.4rem; }

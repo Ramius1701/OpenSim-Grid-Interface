@@ -125,12 +125,19 @@ $userId  = isset($_GET['user']) ? $_GET['user'] : '';
 // Use logged-in user if available, otherwise fall back to demo ID
 if (!empty($_SESSION['user']['principal_id'])) {
     $currentUserId = $_SESSION['user']['principal_id'];
+    $isLoggedIn = true;
 } else {
     // Demo / public view only
     $currentUserId = '00000000-0000-0000-0000-000000000001';
+    $isLoggedIn = false;
 }
 
 ?>
+
+<section class="page-hero">
+    <h1><i class="bi bi-people-fill me-2"></i> Groups</h1>
+    <p class="mb-0">Browse and search for groups active on the grid.</p>
+</section>
 
 <div class="container-fluid mt-4 mb-4">
     <div class="row">
@@ -249,29 +256,29 @@ if (!empty($_SESSION['user']['principal_id'])) {
                 <!-- Group tabs -->
                 <div class="card mt-3">
                     <div class="card-header">
-                        <ul class="nav nav-tabs card-header-tabs" id="groupTabs">
+                        <ul class="nav nav-pills gap-2" id="groupTabs">
                             <li class="nav-item">
-                                <a class="nav-link active" data-bs-toggle="tab" href="#info">
+                                <a class="nav-link active rounded-pill" data-bs-toggle="tab" href="#info">
                                     <i class="bi bi-info-circle"></i> Info
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" data-bs-toggle="tab" href="#members">
+                                <a class="nav-link rounded-pill" data-bs-toggle="tab" href="#members">
                                     <i class="bi bi-people"></i> Members (<?php echo $group['MemberCount']; ?>)
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" data-bs-toggle="tab" href="#roles">
+                                <a class="nav-link rounded-pill" data-bs-toggle="tab" href="#roles">
                                     <i class="bi bi-person-badge"></i> Roles
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" data-bs-toggle="tab" href="#notices">
+                                <a class="nav-link rounded-pill" data-bs-toggle="tab" href="#notices">
                                     <i class="bi bi-megaphone"></i> Notices
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" data-bs-toggle="tab" href="#invites">
+                                <a class="nav-link rounded-pill" data-bs-toggle="tab" href="#invites">
                                     <i class="bi bi-envelope"></i> Invitations
                                 </a>
                             </li>
@@ -332,7 +339,13 @@ if (!empty($_SESSION['user']['principal_id'])) {
                                         <!-- Join/leave group -->
                                         <div class="card bg-light">
                                             <div class="card-body text-center">
-                                                <?php if ($group['OpenEnrollment']): ?>
+                                                <?php if (!$isLoggedIn): ?>
+                                                <h6 class="card-title">Want to join?</h6>
+                                                <p class="card-text">Log in to join or request an invite to this group.</p>
+                                                <a href="login.php?next=<?php echo urlencode($_SERVER['REQUEST_URI']); ?>" class="btn btn-primary">
+                                                    <i class="bi bi-box-arrow-in-right"></i> Log in
+                                                </a>
+                                                <?php elseif ($group['OpenEnrollment']): ?>
                                                 <h6 class="card-title">Join group</h6>
                                                 <p class="card-text">This group is open to everyone.</p>
                                                 <?php if ($group['MembershipFee'] > 0): ?>
@@ -793,25 +806,8 @@ if (!empty($_SESSION['user']['principal_id'])) {
 </div>
 
 <style>
-.card {
-    transition: box-shadow 0.2s;
-}
-
-.card:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
 .border-success, .border-warning {
     border-width: 2px !important;
-}
-
-.nav-tabs .nav-link {
-    border: 1px solid transparent;
-}
-
-.nav-tabs .nav-link.active {
-    background-color: var(--bs-body-bg);
-    border-color: var(--bs-border-color) var(--bs-border-color) var(--bs-body-bg);
 }
 </style>
 

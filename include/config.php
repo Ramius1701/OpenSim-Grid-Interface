@@ -137,10 +137,16 @@ define('VERIFICATION_METHOD', 'email'); // 'email' oder 'uuid' / 'email' or 'uui
 
 // Asset images
 define('ASSETPFAD', 'cache/'); // Pfad zum Asset-Cache / Path to the asset cache
-define('ASSET_FEHLT', ASSETPFAD . '00000000-0000-0000-0000-000000000002'); // Standardbild für fehlende Assets / Default image for missing assets
+define('ASSET_FEHLT', 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 200 200%22><rect width=%22200%22 height=%22200%22 fill=%22%23e9ecef%22/><circle cx=%22100%22 cy=%2278%22 r=%2234%22 fill=%22%23adb5bd%22/><path d=%22M35 172c0-46 30-70 65-70s65 24 65 70%22 fill=%22%23adb5bd%22/></svg>'); // Default image for missing assets - inline SVG so it can never 404. All quotes percent-encoded (%22) so this value is safe inside any surrounding HTML attribute or JS string context.
 define('GRID_PORT', ':8002'); // Port für Grid-Dienste / Port for grid services
 define('GRID_ASSETS', ':8003/assets/'); // Pfad für Grid-Assets / Path for grid assets
 define('GRID_ASSETS_SERVER', BASE_URL . GRID_ASSETS); // URL des Asset-Servers / URL of the asset server
+
+// URL of the new Robust-side TexturePngService endpoint (see
+// opensim-enhanced/TexturePngService.ini.example) - decodes a JPEG2000
+// texture asset to PNG server-side, no local OpenJPEG install needed.
+// Same host/port as GRID_ASSETS_SERVER since it's the same Robust instance.
+define('TEXTURE_PNG_SERVICE_URL', BASE_URL . ':8003/texture_png');
 
 // Guide
 define('GRIDLIST_FILE', 'include/gridlist.csv'); // Datei für die Grid-Liste / File for the grid list

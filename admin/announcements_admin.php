@@ -139,6 +139,16 @@ $annCount        = count($ann);
 $self = $_SERVER['PHP_SELF'] ?? 'announcements_admin.php';
 $self = ann_h($self);
 ?>
+<section class="page-hero">
+    <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+        <div>
+            <h1><i class="bi bi-megaphone me-2"></i> Announcements Admin</h1>
+            <p class="mb-0">Manage grid-wide announcements and notices.</p>
+        </div>
+        <span class="badge bg-light text-dark"><?php echo (int)$annCount; ?> announcement<?php echo $annCount === 1 ? '' : 's'; ?></span>
+    </div>
+</section>
+
 <div class="container-fluid mt-4 mb-4">
     <div class="row">
         <div class="col-md-3">
@@ -170,7 +180,7 @@ $self = ann_h($self);
         <a href="/admin/announcements_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-megaphone me-1"></i>Announcements</a>
         <a href="/admin/tickets_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-life-preserver me-1"></i>Tickets</a>
         <a href="/admin/users_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-people me-1"></i>Users</a>
-        <a href="/admin/sims_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-map me-1"></i>Regions</a>
+        <a href="/admin/regions_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-map me-1"></i>Regions</a>
         <a href="/admin/groups_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-collection me-1"></i>Groups</a></div>
 </details>
                 </div>
@@ -178,21 +188,6 @@ $self = ann_h($self);
         </div>
         <div class="col-md-9">
     <div class="card mb-3">
-        <div class="card-header bg-primary text-white">
-            <div class="d-flex justify-content-between align-items-center mb-0">
-            <div>
-            <h1 class="h3 mb-1">
-            <i class="bi bi-megaphone me-2"></i> Announcements Admin
-            </h1>
-            <p class="text-white-50 mb-0">
-            Manage grid-wide announcements and notices.
-            </p>
-            </div>
-            <span class="badge bg-light text-primary">
-            <?php echo (int)$annCount; ?> announcement<?php echo $annCount === 1 ? '' : 's'; ?>
-            </span>
-            </div>
-        </div>
         <div class="card-body">
 
     <?php if ($statusMessage !== null): ?>
@@ -201,13 +196,11 @@ $self = ann_h($self);
         </div>
     <?php endif; ?>
 
-    <div class="row g-4">
-        <div class="col-lg-5">
-            <section>
-                <h2 class="h5 mb-3">
+    <div class="card mb-4">
+            <div class="card-header bg-white fw-bold py-3">
                     <?php echo $isEditing ? 'Edit announcement' : 'Add new announcement'; ?>
-                </h2>
-
+                </div>
+                <div class="card-body">
                 <form method="post" class="row g-2 align-items-end">
                     <input type="hidden" name="action" value="save" />
                     <input type="hidden" name="idx" value="<?php echo $isEditing ? ann_h((string)$currentEditIndex) : ''; ?>" />
@@ -281,12 +274,12 @@ $self = ann_h($self);
                         <?php endif; ?>
                     </div>
                 </form>
-            </section>
-        </div>
+                </div>
+            </div>
 
-        <div class="col-lg-7">
-            <section>
-                <h2 class="h5 mb-3">Existing announcements</h2>
+    <div class="card">
+            <div class="card-header bg-white fw-bold py-3">Existing announcements</div>
+                <div class="card-body">
 
                 <div class="table-responsive">
                     <table class="table table-sm table-striped align-middle">
@@ -358,14 +351,13 @@ $self = ann_h($self);
                         </tbody>
                     </table>
                 </div>
-            </section>
+                </div>
+            </div>
         </div>
     </div>
         </div>
     </div>
         </div>
-    </div>
-</div>
 
 <?php
 include_once __DIR__ . '/../include/' . FOOTER_FILE;

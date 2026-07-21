@@ -95,6 +95,11 @@ $userId = isset($_GET['user']) ? $_GET['user'] : '';
 
 ?>
 
+<section class="page-hero">
+    <h1><i class="bi bi-star me-2"></i> Picks</h1>
+    <p class="mb-0">Browse resident-favorite places and destinations across the grid.</p>
+</section>
+
 <div class="container-fluid mt-4 mb-4">
     <div class="row">
         <!-- Sidebar -->
@@ -241,7 +246,7 @@ $userId = isset($_GET['user']) ? $_GET['user'] : '';
                                          class="img-fluid rounded" 
                                          alt="Pick image"
                                          style="max-height: 200px;"
-                                         onerror="this.src='<?php echo ASSET_FEHLT; ?>';">
+                                         onerror="this.onerror=null;this.src='<?php echo ASSET_FEHLT; ?>';">
                                 </div>
                                 <?php endif; ?>
                                 
@@ -309,7 +314,7 @@ $userId = isset($_GET['user']) ? $_GET['user'] : '';
                                          class="card-img-top" 
                                          alt="Pick image"
                                          style="height: 150px; object-fit: cover;"
-                                         onerror="this.src='<?php echo ASSET_FEHLT; ?>';">
+                                         onerror="this.onerror=null;this.src='<?php echo ASSET_FEHLT; ?>';">
                                     <?php endif; ?>
                                     
                                     <div class="card-body d-flex flex-column">
@@ -409,7 +414,7 @@ $userId = isset($_GET['user']) ? $_GET['user'] : '';
                                          class="card-img-top" 
                                          alt="Pick image"
                                          style="height: 150px; object-fit: cover;"
-                                         onerror="this.src='<?php echo ASSET_FEHLT; ?>';">
+                                         onerror="this.onerror=null;this.src='<?php echo ASSET_FEHLT; ?>';">
                                     <?php endif; ?>
                                     
                                     <div class="card-body d-flex flex-column">
@@ -471,22 +476,6 @@ $userId = isset($_GET['user']) ? $_GET['user'] : '';
 </div>
 
 <style>
-.card-img-top {
-    transition: transform 0.2s;
-}
-
-.card:hover .card-img-top {
-    transform: scale(1.05);
-}
-
-.card {
-    transition: box-shadow 0.2s;
-}
-
-.card:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
 .border-warning {
     border-width: 2px !important;
 }

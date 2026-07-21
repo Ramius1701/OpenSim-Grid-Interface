@@ -72,22 +72,6 @@ include_once __DIR__ . '/include/header.php';
         --cal-pill: color-mix(in srgb, var(--card-bg), var(--primary-color) 8%);
     }
 
-    /* --- 1. HERO SECTION --- */
-    .events-hero {
-        background: linear-gradient(135deg, 
-            color-mix(in srgb, var(--header-color), black 30%), 
-            color-mix(in srgb, var(--header-color), black 60%)
-        );
-        border-radius: 15px;
-        padding: 4rem 2rem;
-        margin-bottom: 1.5rem;
-        text-align: center;
-        color: white;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-    .events-hero h1 { font-size: 3rem; font-weight: 800; margin-bottom: 0.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-    .events-hero p { color: rgba(255,255,255,0.9); max-width: 700px; margin: 0 auto; font-size: 1.2rem; }
-
     /* --- 2. CONTROL BAR --- */
     .control-card {
         background: var(--card-bg);
@@ -240,7 +224,7 @@ include_once __DIR__ . '/include/header.php';
     }
 </style>
 
-<section class="events-hero">
+<section class="page-hero">
   <h1><i class="bi bi-calendar2-week me-2"></i> Event Calendar</h1>
   <p>Track holidays, community announcements, and in-world events in Grid Time.</p>
 </section>

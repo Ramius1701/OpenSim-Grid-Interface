@@ -59,7 +59,7 @@ if (!$con) {
     echo '<div class="container-fluid mt-4 mb-4"><div class="row"><div class="col-12 col-xl-10 mx-auto">'
        . '<div class="content-card shadow-sm p-3 p-md-4"><div class="alert alert-danger mb-0"><i class="bi bi-x-circle me-2"></i>'
        . 'Database connection failed.</div></div></div></div></div>';
-    include_once __DIR__ . '/../include/footer.php';
+    include_once __DIR__ . '/../include/' . FOOTER_FILE;
     exit;
 }
 
@@ -185,6 +185,11 @@ if ($res) {
 
 ?>
 
+<section class="page-hero">
+    <h1><i class="bi bi-life-preserver me-2"></i> Support tickets</h1>
+    <p class="mb-0">View and manage support tickets submitted by residents.</p>
+</section>
+
 <div class="container-fluid mt-4 mb-4">
     <div class="row">
         <div class="col-md-3">
@@ -221,7 +226,7 @@ if ($res) {
         <a href="/admin/announcements_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-megaphone me-1"></i>Announcements</a>
         <a href="/admin/tickets_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-life-preserver me-1"></i>Tickets</a>
         <a href="/admin/users_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-people me-1"></i>Users</a>
-        <a href="/admin/sims_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-map me-1"></i>Regions</a>
+        <a href="/admin/regions_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-map me-1"></i>Regions</a>
         <a href="/admin/groups_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-collection me-1"></i>Groups</a></div>
 </details>
                 </div>
@@ -230,12 +235,6 @@ if ($res) {
 <div class="col-md-9">
             <div class="content-card shadow-sm p-3 p-md-4">
                 <!-- CASPERIA_SUPPORT_TICKETS_PADDING_FIX_V4 -->
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <h1 class="mb-1"><i class="bi bi-life-preserver me-2"></i> Support tickets</h1>
-                        <p class="text-body-secondary mb-0">View and manage support tickets submitted by residents.</p>
-                    </div>
-                </div>
 
                 <?php if ($flash): ?>
                     <div class="alert alert-<?php echo h($flashType); ?> mb-3">
@@ -359,4 +358,4 @@ if ($res) {
     </div>
 </div>
 
-<?php include_once __DIR__ . '/../include/footer.php'; ?>
+<?php include_once __DIR__ . '/../include/' . FOOTER_FILE; ?>

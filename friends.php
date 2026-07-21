@@ -254,28 +254,24 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
                     <h5><i class="bi bi-search"></i> <?php echo $isLoggedIn ? 'Find new friends' : 'User Directory'; ?></h5>
                 </div>
                 <div class="card-body">
-                    <?php if ($isLoggedIn): ?>
-                        <form method="GET" action="friends.php">
-                            <input type="hidden" name="action" value="search">
-                            <div class="mb-3">
-                                <label for="search" class="form-label">Search users:</label>
-                                <input type="text" class="form-control" id="search" name="search"
-                                       value="<?php echo htmlspecialchars($search); ?>"
-                                       placeholder="First or last name...">
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="bi bi-search"></i> Search
-                            </button>
-                        </form>
-                    <?php else: ?>
-                        <div class="text-center">
-                            <p class="text-muted">
+                    <form method="GET" action="friends.php">
+                        <input type="hidden" name="action" value="search">
+                        <div class="mb-3">
+                            <label for="search" class="form-label">Search users:</label>
+                            <input type="text" class="form-control" id="search" name="search"
+                                   value="<?php echo htmlspecialchars($search); ?>"
+                                   placeholder="First or last name...">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </form>
+                    <?php if (!$isLoggedIn): ?>
+                        <div class="text-center mt-3">
+                            <p class="text-muted small mb-2">
                                 <i class="bi bi-info-circle"></i>
                                 <a href="login.php?next=<?php echo urlencode($_SERVER['REQUEST_URI']); ?>">Log in</a> to add friends and manage your social network
                             </p>
-                            <a href="login.php?next=<?php echo urlencode($_SERVER['REQUEST_URI']); ?>" class="btn btn-primary btn-sm">
-                                <i class="bi bi-box-arrow-in-right"></i> Log in to find friends
-                            </a>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -399,7 +395,7 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
                                              class="card-img-top"
                                              alt="Profile image"
                                              style="height: 120px; object-fit: cover;"
-                                             onerror="this.src='<?php echo ASSET_FEHLT; ?>';">
+                                             onerror="this.onerror=null;this.src='<?php echo ASSET_FEHLT; ?>';">
                                         <?php endif; ?>
 
                                         <div class="card-body">
@@ -744,8 +740,6 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
 </div>
 
 <style>
-.card { transition: box-shadow 0.2s; }
-.card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
 .border-success, .border-warning { border-width: 2px !important; }
 </style>
 

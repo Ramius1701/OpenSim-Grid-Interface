@@ -171,6 +171,16 @@ $eventsCount  = count($events);
 $self = $_SERVER['PHP_SELF'] ?? 'holiday_admin.php';
 $self = ev_h($self);
 ?>
+<section class="page-hero">
+    <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+        <div>
+            <h1><i class="bi bi-calendar-heart me-2"></i> Holiday Admin</h1>
+            <p class="mb-0">Manage holiday and special events used by the web calendar and viewer.</p>
+        </div>
+        <span class="badge bg-light text-dark"><?php echo (int)$eventsCount; ?> event<?php echo $eventsCount === 1 ? '' : 's'; ?></span>
+    </div>
+</section>
+
 <div class="container-fluid mt-4 mb-4">
     <div class="row">
         <div class="col-md-3">
@@ -289,21 +299,6 @@ $self = ev_h($self);
 
     
     <div class="card mb-3">
-        <div class="card-header bg-primary text-white">
-            <div class="d-flex justify-content-between align-items-center mb-0">
-            <div>
-            <h1 class="h3 mb-1">
-            <i class="bi bi-calendar-event me-2"></i> Events Admin
-            </h1>
-            <p class="text-white-50 mb-0">
-            Manage holiday and special events used by the web calendar and viewer.
-            </p>
-            </div>
-            <span class="badge bg-light text-primary">
-            <?php echo (int)$eventsCount; ?> event<?php echo $eventsCount === 1 ? '' : 's'; ?>
-            </span>
-            </div>
-        </div>
         <div class="card-body">
 
     <?php if ($statusMessage !== null): ?>

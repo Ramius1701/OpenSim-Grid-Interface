@@ -30,13 +30,13 @@ $return = (string)($_GET['return'] ?? '');
 
 /* Prefer explicit return; else safe-referer; else hub */
 function safe_return_url(string $candidate): string {
-    $fallback = "ossearch.php?case=hub";
+    $fallback = "gridsearch.php";
 
     $candidate = trim($candidate);
     if ($candidate === '') return $fallback;
 
     // Allow relative URLs only (prevents open redirects)
-    // Examples allowed: "ossearch.php?case=events", "/casperia/ossearch.php?case=hub"
+    // Examples allowed: "gridsearch.php?type=events", "/casperia/gridsearch.php"
     if (preg_match('#^https?://#i', $candidate)) {
         // Disallow absolute URLs entirely
         return $fallback;

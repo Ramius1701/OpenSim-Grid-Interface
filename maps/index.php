@@ -2,163 +2,132 @@
 declare(strict_types=1);
 
 /**
- * Casperia Prime /maps/ - site-integrated wrapper (MAP-ONLY UI)
+ * Casperia Prime World Map
+ * Version: 1.0.0
  *
- * Goal:
- *  - Keep the working map logic (map-script.js, map-data.php, map-tile.php) intact.
- *  - Use Casperia's real header/footer.
- *  - Avoid header/footer breaking map assets (<base href> / CSP).
- *  - Fix "top alignment" by letting the page flow normally and sizing the map canvas
- *    from its on-page position (not hard 100vh).
- *
- * Optional debug: add ?debug=1
+ * Site-integrated Leaflet map.
+ * Runtime files:
+ *   - map-data.php
+ *   - map-tile.php
+ *   - map-script.js
+ *   - map-style.css
  */
 
 $siteRoot = realpath(__DIR__ . '/..') ?: dirname(__DIR__);
+$configFile = $siteRoot . '/include/config.php';
 
-// Load baseline config (for title only; safe)
-$cfg = $siteRoot . '/include/config.php';
-if (is_file($cfg)) {
-    require_once $cfg;
+if (is_file($configFile)) {
+    require_once $configFile;
 }
 
-$gridName = defined('APP_NAME') ? (string)APP_NAME : (defined('SITE_NAME') ? (string)SITE_NAME : 'Casperia Prime');
+$gridName = defined('SITE_NAME') ? (string) SITE_NAME : 'Casperia Prime';
 
-// Compute /maps URL (absolute URLs survive <base href>)
-$scriptName = isset($_SERVER['SCRIPT_NAME']) ? (string)$_SERVER['SCRIPT_NAME'] : '';
+$scriptName = isset($_SERVER['SCRIPT_NAME']) ? (string) $_SERVER['SCRIPT_NAME'] : '/maps/index.php';
 $mapsUrl = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
-if ($mapsUrl === '') $mapsUrl = '/maps';
+if ($mapsUrl === '' || $mapsUrl === '.') {
+    $mapsUrl = '/maps';
+}
 
-$debug = isset($_GET['debug']) && (string)$_GET['debug'] !== '0';
+$headerFile = $siteRoot . '/include/header.php';
+$footerFile = $siteRoot . '/include/footer.php';
 
-// Files
-$headerFile = is_file($siteRoot . '/include/header.php') ? ($siteRoot . '/include/header.php') : null;
-$footerFile = is_file($siteRoot . '/include/footer.php') ? ($siteRoot . '/include/footer.php') : null;
+$leafletCss = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+$leafletJs  = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+$mapCss     = $mapsUrl . '/map-style.css?v=1.0.0';
+$mapJs      = $mapsUrl . '/map-script.js?v=1.0.0';
+$apiUrl     = $mapsUrl . '/map-data.php';
+$tileUrl    = $mapsUrl . '/map-tile.php';
 
-// Leaflet (prefer self-hosted if user adds it later)
-$leafletCssCdn = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-$leafletJsCdn  = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-$leafletCss = is_file(__DIR__ . '/vendor/leaflet/leaflet.css') ? ($mapsUrl . '/vendor/leaflet/leaflet.css') : $leafletCssCdn;
-$leafletJs  = is_file(__DIR__ . '/vendor/leaflet/leaflet.js')  ? ($mapsUrl . '/vendor/leaflet/leaflet.js')  : $leafletJsCdn;
-
-// Map assets
-$mapJs      = $mapsUrl . '/map-script.js';
-$embedCss   = $mapsUrl . '/map-embed-v8.css';
-$embedJs    = $mapsUrl . '/map-embed-v8.js';
-
-// CSP: keep it permissive enough for Leaflet CDN (only for /maps/index.php).
-// If your server enforces CSP globally, this page-level header may not override it;
-// in that case, self-host Leaflet under /maps/vendor/leaflet/.
-$csp = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; "
-     . "img-src 'self' data: blob: https: http:; "
-     . "style-src 'self' 'unsafe-inline' https: http:; "
-     . "script-src 'self' 'unsafe-inline' https: http:; "
-     . "connect-src 'self' https: http:;";
-
-function inject_before(string $html, string $needle, string $insert): string {
+function cpInjectBefore(string $html, string $needle, string $insert): string
+{
     $pos = stripos($html, $needle);
-    if ($pos === false) return $html . $insert;
+    if ($pos === false) {
+        return $html . $insert;
+    }
+
     return substr($html, 0, $pos) . $insert . substr($html, $pos);
 }
 
-function strip_meta_csp_and_base(string $html): string {
-    // Remove meta http-equiv CSP tags (we set CSP as HTTP header for this page)
-    $html = preg_replace('~<meta\b[^>]*http-equiv=["\']Content-Security-Policy["\'][^>]*>\s*~i', '', $html) ?? $html;
-    $html = preg_replace('~<meta\b[^>]*http-equiv=["\']Content-Security-Policy-Report-Only["\'][^>]*>\s*~i', '', $html) ?? $html;
-    // Remove <base ...> so it cannot rewrite relative URLs inside injected chrome
-    return $html;
-}
+$mapBody = sprintf(
+    '<main class="cp-map-page" aria-label="%s World Map">
+        <div class="cp-map-toolbar">
+            <div class="cp-map-title">
+                <h1 class="cp-map-h1">World Map</h1>
+                <div class="cp-map-sub">
+                    Regions: <span id="headerRegionCount">—</span>
+                    <span class="cp-map-dot">•</span>
+                    Users online: <span id="statOnlineNow">—</span>
+                </div>
+            </div>
+            <div class="cp-map-actions">
+                <button type="button" class="cp-map-btn" id="cpMapResetBtn">Reset View</button>
+            </div>
+        </div>
 
-// MAP-ONLY body (no sidebar, no black theme)
-$mapBodyHtml = <<<HTML
-<div class="cp-map-page">
-  <div class="cp-map-toolbar">
-    <div class="cp-map-title">
-      <h1 class="cp-map-h1">World Map</h1>
-      <div class="cp-map-sub">
-        Regions: <span id="headerRegionCount">—</span>
-        <span class="cp-map-dot">•</span>
-        Users online: <span id="statOnlineNow">—</span>
-      </div>
-    </div>
+        <div class="cp-map-search">
+            <input id="searchInput" class="cp-map-input" type="text" placeholder="Search regions or coordinates (1000,1000)..." autocomplete="off">
+            <button id="searchBtn" class="cp-map-btn" type="button">Search</button>
+            <button id="clearSearch" class="cp-map-btn cp-map-btn-ghost d-none" type="button">Clear</button>
+        </div>
 
-    <div class="cp-map-actions">
-      <button type="button" class="cp-map-btn" id="cpMapResetBtn" title="Reset map view">
-        Reset View
-      </button>
-    </div>
-  </div>
+        <div id="searchResults" class="cp-map-results" hidden></div>
 
-  <div class="cp-map-search">
-    <input id="searchInput" class="cp-map-input" type="text" placeholder="Search regions..." autocomplete="off">
-    <button id="searchBtn" class="cp-map-btn" type="button">Search</button>
-    <button id="clearSearch" class="cp-map-btn cp-map-btn-ghost d-none" type="button">Clear</button>
-  </div>
-  <div id="searchResults" class="cp-map-results" style="display:none;"></div>
+        <div class="cp-map-canvas" id="cpMapCanvas">
+            <div id="map" data-api-url="%s" data-tile-url="%s"></div>
 
-  <div class="cp-map-canvas" id="cpMapCanvas">
-    <div id="map"></div>
+            <div id="loadingOverlay" class="cp-map-loading" role="status" aria-live="polite">
+                <div class="cp-map-spinner" aria-hidden="true"></div>
+                <div class="cp-map-loading-text">Loading map…</div>
+            </div>
 
-    <div id="loadingOverlay" class="cp-map-loading">
-      <div class="cp-map-spinner" aria-hidden="true"></div>
-      <div class="cp-map-loading-text">Loading map…</div>
-    </div>
-  </div>
-  <div class="cp-map-debug" id="cpMapDebug" style="display:none;"></div>
-</div>
-HTML;
+            <div id="mapStatus" class="cp-map-status" hidden></div>
+        </div>
 
-// Head inject
-$headInject =
-    "\n<!-- /maps v8 injected styles -->\n"
-  . '<link rel="stylesheet" href="' . htmlspecialchars($leafletCss, ENT_QUOTES) . "\">\n"
-  . '<link rel="stylesheet" href="' . htmlspecialchars($embedCss, ENT_QUOTES) . "\">\n";
+        <div class="cp-map-debug" id="cpMapDebug" hidden></div>
+    </main>',
+    htmlspecialchars($gridName, ENT_QUOTES, 'UTF-8'),
+    htmlspecialchars($apiUrl, ENT_QUOTES, 'UTF-8'),
+    htmlspecialchars($tileUrl, ENT_QUOTES, 'UTF-8')
+);
 
-// Script inject
-$scriptInject =
-    "\n<!-- /maps v8 injected scripts -->\n"
-  . '<script src="' . htmlspecialchars($leafletJs, ENT_QUOTES) . "\"></script>\n"
-  . '<script src="' . htmlspecialchars($mapJs, ENT_QUOTES) . "\"></script>\n"
-  . '<script src="' . htmlspecialchars($embedJs, ENT_QUOTES) . "\"></script>\n";
+$headAssets = "\n<!-- Casperia World Map v1.0.0 -->\n"
+    . '<link rel="stylesheet" href="' . htmlspecialchars($leafletCss, ENT_QUOTES, 'UTF-8') . '">' . "\n"
+    . '<link rel="stylesheet" href="' . htmlspecialchars($mapCss, ENT_QUOTES, 'UTF-8') . '">' . "\n";
 
-if ($headerFile) {
+$scriptAssets = "\n<!-- Casperia World Map v1.0.0 -->\n"
+    . '<script src="' . htmlspecialchars($leafletJs, ENT_QUOTES, 'UTF-8') . '"></script>' . "\n"
+    . '<script src="' . htmlspecialchars($mapJs, ENT_QUOTES, 'UTF-8') . '"></script>' . "\n";
+
+if (is_file($headerFile)) {
     ob_start();
     include $headerFile;
     $headerHtml = ob_get_clean() ?: '';
 
-    // Override CSP for THIS page after header.php had a chance to set headers.
-    if (!headers_sent()) {
-    }
+    echo cpInjectBefore($headerHtml, '</head>', $headAssets);
+    echo $mapBody;
 
-    $headerHtml = strip_meta_csp_and_base($headerHtml);
-    $headerHtml = inject_before($headerHtml, '</head>', $headInject);
-
-    echo $headerHtml;
-    echo $mapBodyHtml;
-
-    if ($footerFile) {
+    if (is_file($footerFile)) {
         ob_start();
         include $footerFile;
         $footerHtml = ob_get_clean() ?: '';
-        $footerHtml = inject_before($footerHtml, '</body>', $scriptInject);
-        echo $footerHtml;
+        echo cpInjectBefore($footerHtml, '</body>', $scriptAssets);
     } else {
-        echo $scriptInject;
+        echo $scriptAssets;
     }
+
     exit;
 }
 
-// --- Standalone fallback (if site header/footer not found) ---
 ?><!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?php echo htmlspecialchars($gridName); ?> - Map</title>
-  <?php echo $headInject; ?>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?php echo htmlspecialchars($gridName, ENT_QUOTES, 'UTF-8'); ?> - World Map</title>
+    <?php echo $headAssets; ?>
 </head>
 <body>
-<?php echo $mapBodyHtml; ?>
-<?php echo $scriptInject; ?>
+<?php echo $mapBody; ?>
+<?php echo $scriptAssets; ?>
 </body>
 </html>

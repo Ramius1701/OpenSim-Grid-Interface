@@ -142,6 +142,11 @@ $stmt->execute();
 $res = $stmt->get_result();
 ?>
 
+<section class="page-hero">
+    <h1><i class="bi bi-signpost-2-fill me-2"></i> Destinations</h1>
+    <p class="mb-0">Discover places worth visiting across the grid.</p>
+</section>
+
 <div class="container-fluid mt-4 mb-4">
     <div class="row">
         <!-- Sidebar: filters -->

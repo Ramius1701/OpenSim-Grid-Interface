@@ -39,6 +39,9 @@ if ($myUUID !== '') {
 $minLevel = defined('ADMIN_USERLEVEL_MIN') ? (int)ADMIN_USERLEVEL_MIN : 200;
 
 if ($myLevel < $minLevel) {
+    // Note: inline styles are required here (not Bootstrap classes) because this
+    // fires before header.php loads Bootstrap's CSS. These are Bootstrap's own
+    // standard danger-alert colors, kept for consistency with alerts elsewhere.
     die("<div style='font-family:sans-serif; padding:20px; text-align:center; color:#721c24; background-color:#f8d7da; border:1px solid #f5c6cb; margin:20px; border-radius:5px;'>
             <h2 style='margin-top:0;'>⚠️ Access Denied</h2>
             <p><strong>Database Check Failed</strong></p>
@@ -295,6 +298,10 @@ if ($con && $editUUID !== '') {
     }
 }
 ?>
+<section class="page-hero">
+    <h1><i class="bi bi-person-gear me-2"></i> Users Administration</h1>
+    <p class="mb-0">Manage avatars, permissions, and passwords.</p>
+</section>
 
 <div class="container-fluid mt-4 mb-4">
     <div class="row">
@@ -311,7 +318,7 @@ if ($con && $editUUID !== '') {
                         <li><strong>Users loaded:</strong> <?php echo isset($users) && is_array($users) ? count($users) : (isset($totalUsers) ? (int)$totalUsers : 0); ?></li>
                     </ul>
                     <div class="alert alert-info py-2 px-2 mb-3">
-                        <strong>Tip:</strong> Use the filters above to narrow results (name, UUID, online only).
+                        <strong>Tip:</strong> Use the filters below to narrow results (name, UUID, online only).
                     </div>
                     <details>
     <summary class="small">Admin shortcuts</summary>
@@ -320,31 +327,51 @@ if ($con && $editUUID !== '') {
         <a href="/admin/announcements_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-megaphone me-1"></i>Announcements</a>
         <a href="/admin/tickets_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-life-preserver me-1"></i>Tickets</a>
         <a href="/admin/users_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-people me-1"></i>Users</a>
-        <a href="/admin/sims_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-map me-1"></i>Regions</a>
+        <a href="/admin/regions_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-map me-1"></i>Regions</a>
         <a href="/admin/groups_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-collection me-1"></i>Groups</a></div>
 </details>
                 </div>
             </div>
+
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white fw-bold py-3"><i class="bi bi-funnel me-1"></i> Filters</div>
+                <div class="card-body">
+                    <form method="get">
+                        <div class="mb-3">
+                            <label class="form-label small text-body-secondary text-uppercase fw-bold">Search</label>
+                            <input type="text" name="q" class="form-control" value="<?php echo u_h($q); ?>" placeholder="Avatar Name or Email...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-body-secondary text-uppercase fw-bold">Level</label>
+                            <select name="level" class="form-select">
+                                <option value="">All Levels</option>
+                                <option value="0"  <?php if($levelFilter==='0') echo 'selected'; ?>>User (0)</option>
+                                <option value="200" <?php if($levelFilter==='200') echo 'selected'; ?>>Admin (200)</option>
+                            </select>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="online" value="1" id="onlineCheck" <?php echo $onlineOnly ? 'checked' : ''; ?>>
+                            <label class="form-check-label" for="onlineCheck">Online Only</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Apply Filter</button>
+                    </form>
+                </div>
+            </div>
         </div>
         <div class="col-md-9">
-            <div class="w-100">
-    
-    <div class="row g-4 mb-4">
-        <div class="col-md-8">
-            <h1 class="h3 fw-bold mb-2"><i class="bi bi-person-gear text-primary me-2"></i> Users Administration</h1>
-            <p class="text-body-secondary">Manage avatars, permissions, and passwords.</p>
-        </div>
-        <div class="col-md-4">
-            <?php if ($statusMessage): ?>
+
+    <?php if ($statusMessage): ?>
+    <div class="row mb-4">
+        <div class="col-12">
                 <div class="alert alert-<?php echo u_h($statusClass); ?> border-0 shadow-sm py-2 px-3 mb-0 d-flex align-items-center">
                     <?php if($statusClass=='success'): ?><i class="bi bi-check-circle-fill me-2"></i><?php endif; ?>
                     <?php if($statusClass=='danger'): ?><i class="bi bi-exclamation-triangle-fill me-2"></i><?php endif; ?>
                     <?php if($statusClass=='warning'): ?><i class="bi bi-exclamation-circle-fill me-2"></i><?php endif; ?>
                     <div><?php echo u_h($statusMessage); ?></div>
                 </div>
-            <?php endif; ?>
         </div>
     </div>
+    <?php endif; ?>
 
     <div class="row g-3 mb-4">
         <div class="col-md-4">
@@ -383,35 +410,8 @@ if ($con && $editUUID !== '') {
     </div>
 
     <div class="row">
-        <div class="col-lg-3 mb-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white fw-bold py-3"><i class="bi bi-funnel me-1"></i> Filters</div>
-                <div class="card-body">
-                    <form method="get">
-                        <div class="mb-3">
-                            <label class="form-label small text-body-secondary text-uppercase fw-bold">Search</label>
-                            <input type="text" name="q" class="form-control" value="<?php echo u_h($q); ?>" placeholder="Avatar Name or Email...">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small text-body-secondary text-uppercase fw-bold">Level</label>
-                            <select name="level" class="form-select">
-                                <option value="">All Levels</option>
-                                <option value="0"  <?php if($levelFilter==='0') echo 'selected'; ?>>User (0)</option>
-                                <option value="200" <?php if($levelFilter==='200') echo 'selected'; ?>>Admin (200)</option>
-                            </select>
-                        </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" name="online" value="1" id="onlineCheck" <?php echo $onlineOnly ? 'checked' : ''; ?>>
-                            <label class="form-check-label" for="onlineCheck">Online Only</label>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Apply Filter</button>
-                    </form>
-                </div>
-            </div>
-        </div>
+        <div class="col-12">
 
-        <div class="col-lg-9">
-            
             <?php if ($editUser): ?>
             <div class="card border-0 shadow mb-4 animate-fade-in">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -493,6 +493,7 @@ if ($con && $editUUID !== '') {
             <?php endif; ?>
 
             <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-bold py-3"><i class="bi bi-people me-1"></i> Users</div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
@@ -550,7 +551,5 @@ if ($con && $editUUID !== '') {
 
 </div>
         </div>
-    </div>
-</div>
 
 <?php include_once __DIR__ . '/../include/' . FOOTER_FILE; ?>

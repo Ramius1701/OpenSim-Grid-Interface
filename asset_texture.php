@@ -1,20 +1,26 @@
 <?php
-// asset_texture.php - OpenSim texture proxy with JPEG2000 -> PNG conversion using OpenJPEG.
+// asset_texture.php - OpenSim texture proxy.
 //
 // Flow:
 //   1. id=<uuid> comes in via GET
 //   2. If cached PNG exists in data/profile_images/<uuid>.png -> serve it
-//   3. Else fetch XML from GRID_ASSETS_SERVER . uuid
-//   4. Extract <Data>, base64_decode to J2K bytes -> save as <uuid>.j2k
-//   5. Call opj_decompress (OpenJPEG) to convert J2K -> PNG
-//   6. On success serve PNG, on failure redirect to ASSET_FEHLT or 404
+//   3. Else call the Robust-side TexturePngService (see
+//      opensim-enhanced/TexturePngService.ini.example), which decodes the
+//      JPEG2000 asset to PNG server-side and returns it directly
+//   4. Cache the result locally, serve it
+//   5. On any failure, fall back to ASSET_FEHLT
+//
+// Previously this shelled out to a separately-installed OpenJPEG binary
+// (opj_decompress.exe) via exec(). That's gone now - the decode happens on
+// Robust using the same managed .NET JPEG2000 decoder OpenSim's own
+// GetTexture capability and map tile renderer already use internally.
+// Nothing extra to install on the web server.
 //
 // Requirements:
-//   - GRID_ASSETS_SERVER and ASSET_FEHLT defined in include/config.php
-//   - OpenJPEG installed (opj_decompress.exe) and J2K_CONVERTER_PATH pointing to it
-//   - PHP exec() enabled
-//
-// This file is designed for your Windows/Bearsampp stack.
+//   - GRID_ASSETS_SERVER, TEXTURE_PNG_SERVICE_URL, and ASSET_FEHLT defined
+//     in include/config.php
+//   - TexturePngService enabled on Robust (see
+//     opensim-enhanced/TexturePngService.ini.example)
 
 // --- Load config.php ---
 $configLoaded = false;
@@ -40,6 +46,21 @@ if (!$configLoaded) {
 // --- Helper: fallback ---
 function asset_texture_fallback(): void {
     if (defined('ASSET_FEHLT') && ASSET_FEHLT) {
+        // ASSET_FEHLT may be a data: URI (e.g. an inline SVG) rather than a
+        // real URL - browsers block redirecting to data: URIs, so detect
+        // that case and output the image directly instead of redirecting.
+        if (str_starts_with(ASSET_FEHLT, 'data:')) {
+            $withoutScheme = substr(ASSET_FEHLT, 5); // strip "data:"
+            $commaPos = strpos($withoutScheme, ',');
+            if ($commaPos !== false) {
+                $meta    = substr($withoutScheme, 0, $commaPos);   // e.g. "image/svg+xml;utf8"
+                $payload = substr($withoutScheme, $commaPos + 1);
+                $mime    = strtok($meta, ';') ?: 'image/svg+xml';
+                header('Content-Type: ' . $mime);
+                echo urldecode($payload);
+                exit;
+            }
+        }
         header('Location: ' . ASSET_FEHLT);
     } else {
         http_response_code(404);
@@ -54,8 +75,9 @@ if ($uuid === '' || !preg_match('/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-
     asset_texture_fallback();
 }
 
-// --- Ensure GRID_ASSETS_SERVER defined ---
-if (!defined('GRID_ASSETS_SERVER') || !GRID_ASSETS_SERVER) {
+// --- Ensure the new decode service is configured ---
+if (!defined('TEXTURE_PNG_SERVICE_URL') || !TEXTURE_PNG_SERVICE_URL) {
+    error_log("[asset_texture] TEXTURE_PNG_SERVICE_URL not defined - check include/config.php and enable TexturePngService on Robust (see opensim-enhanced/TexturePngService.ini.example)");
     asset_texture_fallback();
 }
 
@@ -69,11 +91,9 @@ if (!is_dir($cacheDir)) {
     @mkdir($cacheDir, 0775, true);
 }
 
-// Paths for J2K and PNG cache
-$j2kPath = rtrim($cacheDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $uuid . '.j2k';
 $pngPath = rtrim($cacheDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $uuid . '.png';
 
-// --- If PNG already exists, just serve it ---
+// --- If PNG already cached, just serve it ---
 if (file_exists($pngPath)) {
     header('Content-Type: image/png');
     header('Cache-Control: public, max-age=86400');
@@ -81,70 +101,38 @@ if (file_exists($pngPath)) {
     exit;
 }
 
-// --- If J2K not cached yet, fetch from asset server ---
-if (!file_exists($j2kPath)) {
-    $upstreamUrl = GRID_ASSETS_SERVER . urlencode($uuid);
+// --- Ask Robust to decode this texture to PNG for us ---
+$requestUrl = TEXTURE_PNG_SERVICE_URL . '?id=' . urlencode($uuid);
 
-    $context = stream_context_create([
-        'http' => [
-            'timeout' => 10,
-            'follow_location' => 1,
-        ],
-        'ssl' => [
-            'verify_peer'      => false,
-            'verify_peer_name' => false,
-        ],
-    ]);
+$context = stream_context_create([
+    'http' => [
+        'timeout' => 10,
+        'follow_location' => 1,
+        'ignore_errors' => true, // so we can inspect non-200 responses below instead of file_get_contents just returning false
+    ],
+    'ssl' => [
+        'verify_peer'      => false,
+        'verify_peer_name' => false,
+    ],
+]);
 
-    $xml = @file_get_contents($upstreamUrl, false, $context);
-    if ($xml === false || trim($xml) === '') {
-        asset_texture_fallback();
-    }
+$pngBytes = @file_get_contents($requestUrl, false, $context);
 
-    $assetXml = @simplexml_load_string($xml);
-    if (!$assetXml || !isset($assetXml->Data)) {
-        asset_texture_fallback();
-    }
+$statusLine = isset($http_response_header[0]) ? $http_response_header[0] : '';
+$isOk = $pngBytes !== false && $pngBytes !== '' && strpos($statusLine, '200') !== false;
 
-    $j2kBase64 = (string)$assetXml->Data;
-    $j2kBytes   = base64_decode($j2kBase64, true);
-    if ($j2kBytes === false || $j2kBytes === '') {
-        asset_texture_fallback();
-    }
-
-    if (@file_put_contents($j2kPath, $j2kBytes) === false) {
-        asset_texture_fallback();
-    }
-}
-
-// --- Convert J2K -> PNG using OpenJPEG ---
-// You must have opj_decompress.exe installed. Configure its path in config.php as:
-// define('J2K_CONVERTER_PATH', 'S:/Tools/openjpeg/opj_decompress.exe');
-
-$converterPath = defined('J2K_CONVERTER_PATH') ? J2K_CONVERTER_PATH : 'S:/Tools/openjpeg/opj_decompress.exe';
-if (!file_exists($converterPath)) {
+if (!$isOk) {
+    error_log("[asset_texture] TexturePngService request failed for uuid={$uuid}: {$requestUrl} (status: {$statusLine})");
     asset_texture_fallback();
 }
 
-// Ensure any old PNG is removed before reconverting
-if (file_exists($pngPath)) {
-    @unlink($pngPath);
-}
-
-// Build command. Note: OpenJPEG picks output format from extension (.png here).
-$cmd = '"' . $converterPath . '" -i "' . $j2kPath . '" -o "' . $pngPath . '" 2>&1';
-
-$output = [];
-$returnVar = 0;
-@exec($cmd, $output, $returnVar);
-
-if ($returnVar !== 0 || !file_exists($pngPath)) {
-    // Conversion failed; we could log $output here if desired.
-    asset_texture_fallback();
+// --- Cache it locally so we don't have to ask Robust again next time ---
+if (@file_put_contents($pngPath, $pngBytes) === false) {
+    error_log("[asset_texture] Failed to write PNG cache file: {$pngPath} - check directory permissions (serving this one response anyway, just won't be cached)");
 }
 
 // --- Serve the PNG ---
 header('Content-Type: image/png');
 header('Cache-Control: public, max-age=86400');
-readfile($pngPath);
+echo $pngBytes;
 exit;

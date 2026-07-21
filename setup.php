@@ -224,8 +224,8 @@ chmod 755 cache</div>
                     <div class="code-block" style="font-size: 0.85rem;">
 Tip: Casperia Prime also includes compatibility shims for older filenames (maptile.php, searchservice.php, createavatar.php, etc.) if you still have old configs.
 
-MapTileURL = "${Const|BaseURL}:${Const|PublicPort}/oswebinterface/gridmap.php"
-SearchURL = "${Const|BaseURL}:${Const|PublicPort}/oswebinterface/ossearch.php"
+MapTileURL = "${Const|BaseURL}:${Const|PublicPort}/oswebinterface/maps/gridmap.php"
+SearchURL = "${Const|BaseURL}:${Const|PublicPort}/oswebinterface/gridsearch.php"
 DestinationGuide = "${Const|BaseURL}/oswebinterface/guide.php"
 AvatarPicker = "${Const|BaseURL}/oswebinterface/avatarpicker.php"
 welcome = ${Const|BaseURL}/oswebinterface/welcomesplashpage.php
