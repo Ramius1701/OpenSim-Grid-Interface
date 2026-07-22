@@ -1,5 +1,5 @@
 <?php
-$title = "Reset Password";
+$title = "Password Reset";
 include_once 'include/header.php';
 
 // SHARED DB CONNECTION

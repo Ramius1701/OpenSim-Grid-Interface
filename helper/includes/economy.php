@@ -481,7 +481,9 @@ function opensim_get_avatar_session( $agentID, &$deprecated = null ) {
 		return null;
 	}
 
-	$result = $OpenSimDB->query( "SELECT RegionID,SessionID,SecureSessionID FROM Presence WHERE UserID='$agentID'" );
+	$stmt = $OpenSimDB->prepare( "SELECT RegionID,SessionID,SecureSessionID FROM Presence WHERE UserID=?" );
+	$stmt->execute( array( $agentID ) );
+	$result = $stmt;
 	if ( $result ) {
 		list($RegionID, $SessionID, $SecureSessionID) = $result->fetch();
 	} else {
@@ -502,8 +504,8 @@ function opensim_set_current_region( $agentID, $regionid, &$deprecated = null ) 
 		return false;
 	}
 
-	$sql    = "UPDATE Presence SET RegionID='$regionid' WHERE UserID='$agentID'";
-	$result = $OpenSimDB->query( $sql );
+	$stmt   = $OpenSimDB->prepare( "UPDATE Presence SET RegionID=? WHERE UserID=?" );
+	$result = $stmt->execute( array( $regionid, $agentID ) );
 	if ( ! $result ) {
 		return false;
 	}
@@ -540,12 +542,15 @@ function opensim_check_secure_session( $agentID, $regionid, $secure, &$deprecate
 		return false;
 	}
 
-	$sql = "SELECT UserID FROM Presence WHERE UserID='$agentID' AND SecureSessionID='$secure'";
+	$sql    = "SELECT UserID FROM Presence WHERE UserID=? AND SecureSessionID=?";
+	$binds  = array( $agentID, $secure );
 	if ( opensim_isuuid( $regionid ) ) {
-		$sql = $sql . " AND RegionID='$regionid'";
+		$sql     = $sql . " AND RegionID=?";
+		$binds[] = $regionid;
 	}
 
-	$result = $OpenSimDB->query( $sql );
+	$stmt   = $OpenSimDB->prepare( $sql );
+	$result = $stmt->execute( $binds ) ? $stmt : false;
 	if ( ! $result ) {
 		return false;
 	}

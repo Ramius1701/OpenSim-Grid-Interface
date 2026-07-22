@@ -3,7 +3,7 @@
 // Users provide human bits + Region + Local X,Y,Z + Owner UUID.
 // submit.php will derive region base and (optionally) parcel UUID from DB.
 
-$SHARED_KEY    = 'CHANGEME';              // <-- MUST match submit.php
+$SHARED_KEY    = 'bbc56453119cd13d751a9d97213f84401882f8bc1210d6a13461c3fa65c1545c';              // <-- MUST match submit.php
 $FORM_VERSION  = 'Events ManualForm:1.0';
 ?>
 <!doctype html>

@@ -1,0 +1,19 @@
+# Casperia Prime addition: block public web access to log/diagnostic files.
+# These are actively written to for troubleshooting (submit_debug.log,
+# submit_fatal.log, .PDOErrors.txt) and genuinely useful to keep - they just
+# shouldn't be readable by anyone who requests the URL directly. This also
+# protects against the same category of issue we kept finding tonight
+# (old .log/.txt/.zip files sitting exposed) happening again automatically,
+# rather than relying on manually noticing and deleting each one.
+
+<FilesMatch "\.(log|txt|zip|bak)$">
+    Require all denied
+</FilesMatch>
+
+# Belt-and-suspenders for older Apache (mod_access_compat) setups:
+<IfModule !mod_authz_core.c>
+    <FilesMatch "\.(log|txt|zip|bak)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>

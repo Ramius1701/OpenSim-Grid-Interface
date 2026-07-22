@@ -28,11 +28,15 @@ if (($ownerHex === '' || $parcelUUID === '' || $region === '' || $regionCorner =
 
 $ownerUUID = uuid_from_hex32($ownerHex);
 
-// (Optional) quick debug: lengths so you can confirm everything arrived
-$debug = sprintf(
-    'uuidhex_len=%d, uuid_len=%d, parcel_len=%d, regionCorner_len=%d, localPos_len=%d',
-    strlen($ownerHex), strlen($ownerUUID), strlen($parcelUUID), strlen($regionCorner), strlen($localPos)
-);
+// Only compute/show debug info if something looks wrong - keeps the form
+// clean for normal use, still helpful if a kiosk link is misconfigured.
+$debug = '';
+if ($ownerUUID === '' || $region === '' || $localPos === '') {
+    $debug = sprintf(
+        'uuidhex_len=%d, uuid_len=%d, parcel_len=%d, regionCorner_len=%d, localPos_len=%d',
+        strlen($ownerHex), strlen($ownerUUID), strlen($parcelUUID), strlen($regionCorner), strlen($localPos)
+    );
+}
 ?>
 <!doctype html>
 <meta charset="utf-8">
@@ -49,9 +53,12 @@ $debug = sprintf(
 <h1>Create / Edit Event</h1>
 <p class="muted">
   Submitting as: <strong><?php echo htmlspecialchars($ownerUUID ?: 'Unknown'); ?></strong>
-  <small>(<?php echo htmlspecialchars($debug); ?>)</small><br>
+  <?php if ($debug !== ''): ?>
+  <small>(<?php echo htmlspecialchars($debug); ?>)</small>
+  <?php endif; ?><br>
   Region: <strong><?php echo htmlspecialchars($region ?: 'Unknown'); ?></strong>
 </p>
+
 
 <form method="post" action="submit.php">
   <label>Title
@@ -113,7 +120,7 @@ $debug = sprintf(
   <input type="hidden" name="evobjpos"      value="<?php echo htmlspecialchars($localPos); ?>">
   <input type="hidden" name="evhglink"      value="">
   <input type="hidden" name="evversion"     value="Events Form:0.31b">
-  <input type="hidden" name="me"            value="CHANGEME"><!-- must match PHP -->
+  <input type="hidden" name="me"            value="bbc56453119cd13d751a9d97213f84401882f8bc1210d6a13461c3fa65c1545c"><!-- must match PHP -->
 
   <button type="submit">Save Event</button>
 </form>

@@ -33,7 +33,7 @@ include $cfg;
 if (!isset($DB_HOST, $DB_USER, $DB_PASSWORD, $DB_NAME)) { echo "ERR_DBINFO"; __dbg("db vars not set"); exit; }
 
 // ----- shared key check -----
-$currkey = "CHANGEME"; // MUST match your forms' hidden input "me"
+$currkey = "bbc56453119cd13d751a9d97213f84401882f8bc1210d6a13461c3fa65c1545c"; // MUST match your forms' hidden input "me"
 $mk = $_POST['me'] ?? '';
 if (!hash_equals($currkey, (string)$mk)) { echo "ERR_KEY"; __dbg("bad key"); exit; }
 
