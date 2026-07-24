@@ -642,9 +642,11 @@ function gv_parse_pos(?string $raw): array {
             <?php if (($type == 'all' || $type == 'regions') && !empty($results['regions']) && mysqli_num_rows($results['regions']) > 0): ?>
             <div class="gv-section">
                 <h6>Regions</h6>
-                <?php while ($region = mysqli_fetch_assoc($results['regions'])):
+                <?php
+                $gridHost = str_replace(['http://', 'https://'], '', BASE_URL) . GRID_PORT;
+                while ($region = mysqli_fetch_assoc($results['regions'])):
                     $rname = $region['regionName'] ?? $region['name'] ?? 'Region';
-                    $tpUrl = 'secondlife://' . rawurlencode($rname) . '/128/128/25';
+                    $tpUrl = 'hop://' . $gridHost . '/' . rawurlencode($rname);
                     echo gv_row('🌍', $rname, 'Teleport', $tpUrl);
                 endwhile; ?>
             </div>
@@ -653,14 +655,16 @@ function gv_parse_pos(?string $raw): array {
             <?php if (($type == 'all' || $type == 'places') && !empty($results['places']) && mysqli_num_rows($results['places']) > 0): ?>
             <div class="gv-section">
                 <h6>Places</h6>
-                <?php while ($place = mysqli_fetch_assoc($results['places'])):
+                <?php
+                $gridHost = str_replace(['http://', 'https://'], '', BASE_URL) . GRID_PORT;
+                while ($place = mysqli_fetch_assoc($results['places'])):
                     $pname = $place['name'] ?? 'Place';
                     $psim  = $place['simname'] ?? '';
                     // posglobal is the standard OpenSim/SL userpicks column name for
                     // exact coordinates; falls back to a generic region position if
                     // this column doesn't exist or is empty on your schema.
                     [$px, $py, $pz] = gv_parse_pos($place['posglobal'] ?? null);
-                    $tpUrl = $psim !== '' ? 'secondlife://' . rawurlencode($psim) . "/$px/$py/$pz" : '#';
+                    $tpUrl = $psim !== '' ? 'hop://' . $gridHost . '/' . rawurlencode($psim) . "/$px/$py/$pz" : '#';
                     echo gv_row('📍', $pname, $psim, $tpUrl);
                 endwhile; ?>
             </div>

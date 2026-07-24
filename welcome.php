@@ -181,7 +181,7 @@ require_once __DIR__ . "/include/utils.php";
         }
         foreach ($images as $index => $image): ?>
             <img class="slide-image <?php echo $index === 0 ? 'active' : ''; ?>" 
-                 src="<?php echo $image; ?>" 
+                 src="<?php echo htmlspecialchars($image); ?>" 
                  alt="Slide <?php echo $index + 1; ?>">
         <?php endforeach; ?>
     </div>
@@ -206,6 +206,7 @@ require_once __DIR__ . "/include/utils.php";
 <div class="content-card">
     <h3 class="section-title"><i class="bi bi-bar-chart-fill"></i> Grid Statistics</h3>
     <?php
+    $con = null;
     try {
         $con = db();
         if (!$con) throw new Exception("DB Connection Failed");
@@ -240,8 +241,13 @@ require_once __DIR__ . "/include/utils.php";
         if($r=mysqli_query($con, "SELECT COUNT(*) FROM UserAccounts")) $stats['accounts'] = mysqli_fetch_row($r)[0];
         if($r=mysqli_query($con, "SELECT COUNT(*) FROM GridUser WHERE Login > (UNIX_TIMESTAMP() - (30*86400))")) $stats['active'] = mysqli_fetch_row($r)[0];
         
-        mysqli_close($con);
-    } catch (Exception $e) { $stats = array_fill_keys(['online','regions','accounts','active','var','single'], 'N/A'); }
+    } catch (Exception $e) { 
+        $stats = array_fill_keys(['online','regions','accounts','active','var','single'], 'N/A'); 
+    } finally {
+        if (!empty($con) && $con instanceof mysqli) {
+            mysqli_close($con);
+        }
+    }
     ?>
     <div class="stats-grid">
         <div class="stat-card">
@@ -336,21 +342,28 @@ require_once __DIR__ . "/include/utils.php";
     <h3 class="section-title"><i class="bi bi-geo-alt-fill"></i> Recent Regions</h3>
     <div class="regions-list">
         <?php
+        $con = null;
         try {
             $con = db();
             if ($con) {
-                $sql = "SELECT regionName, locX, locY FROM regions ORDER BY last_seen DESC LIMIT 10";
+                $sql = "SELECT regionName FROM regions ORDER BY last_seen DESC LIMIT 10";
                 $res = mysqli_query($con, $sql);
                 if ($res && mysqli_num_rows($res) > 0) {
                     while ($row = mysqli_fetch_assoc($res)) {
-                        $x = isset($row['locX']) ? $row['locX']/256 : 0;
-                        $y = isset($row['locY']) ? $row['locY']/256 : 0;
-                        $url = "secondlife://" . $row['regionName'] . "/128/128/25";
+                        // In-viewer splash page context: populates the "Start Location" box before login
+                        if (!empty($IS_VIEWER)) {
+                            $url = "secondlife://" . rawurlencode($row['regionName']) . "/110/128/22";
+                        } else {
+                            // External web browser context: uses hop:// URI scheme
+                            $cleanHost = rtrim(str_replace(['http://', 'https://'], '', BASE_URL), '/');
+                            $port = defined('GRID_PORT') ? ltrim(GRID_PORT, ':') : '';
+                            $gridHost = $cleanHost . ($port !== '' ? ':' . $port : '');
+                            $url = "hop://" . $gridHost . "/" . rawurlencode($row['regionName']);
+                        }
                         ?>
                         <div class="region-item">
                             <div>
                                 <div class="fw-bold fs-5"><?php echo htmlspecialchars($row['regionName']); ?></div>
-                                <div class="small text-muted">Loc: <?php echo $x . ', ' . $y; ?></div>
                             </div>
                             <a href="<?php echo $url; ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                 <i class="bi bi-box-arrow-in-right me-1"></i> Teleport
@@ -359,9 +372,14 @@ require_once __DIR__ . "/include/utils.php";
                         <?php
                     }
                 } else { echo '<div class="text-muted p-3">No active regions found.</div>'; }
+            }
+        } catch (Exception $e) {
+            // Silently swallow errors or add log if desired
+        } finally {
+            if (!empty($con) && $con instanceof mysqli) {
                 mysqli_close($con);
             }
-        } catch (Exception $e) {}
+        }
         ?>
     </div>
 </div>
@@ -376,7 +394,7 @@ require_once __DIR__ . "/include/utils.php";
                 slides[currentSlide].classList.remove('active');
                 currentSlide = (currentSlide + 1) % slides.length;
                 slides[currentSlide].classList.add('active');
-            }, <?php echo SLIDESHOW_DELAY; ?>);
+            }, <?php echo (int)(defined('SLIDESHOW_DELAY') ? SLIDESHOW_DELAY : 5000); ?>);
         }
         
         // Animations (IntersectionObserver is missing in some embedded viewers)
