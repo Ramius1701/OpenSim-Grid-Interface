@@ -3,27 +3,7 @@
 // register.php                                                             //
 //////////////////////////////////////////////////////////////////////////////
 
-include("databaseinfo.php");
-
-// --- Access control (Casperia Prime addition) ---
-// This endpoint previously had zero authentication: anyone on the internet
-// could inject arbitrary host/port entries into search_hostsregister (which
-// parser.php then dutifully tries to connect to - a potential SSRF vector if
-// an internal/private IP were registered), or silently delete a real
-// region's registration via service=offline just by knowing its host/port.
-// Restrict to known, trusted caller IPs - same pattern used for
-// MoneyServer's AddBankerMoney endpoint. Defaults to localhost-only; add
-// your actual region server IPs below if regions run on separate machines
-// from this web server.
-$allowedRegisterIPs = array('127.0.0.1', '::1');
-
-$callerIP = $_SERVER['REMOTE_ADDR'] ?? '';
-if (!in_array($callerIP, $allowedRegisterIPs, true)) {
-    error_log("[search/register] Rejected call from disallowed address {$callerIP} - add it to \$allowedRegisterIPs in register.php if this caller should be trusted");
-    http_response_code(403);
-    echo "Forbidden\n";
-    exit;
-}
+include(__DIR__ . "/includes/databaseinfo.php");
 
 $hostname = "casperia.ddns.net";
 $port = "8002";

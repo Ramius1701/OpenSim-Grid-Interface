@@ -69,6 +69,14 @@ if (!empty($IS_VIEWER)) {
                 open the same URL in an external browser.</li>
             <li><strong>Password problems:</strong> use the Account page to change your password, then
                 restart your viewer and log in with the new one.</li>
+            <li><strong>Firestorm's Search window "Web" tab shows Second Life results instead of ours:</strong>
+                recent Firestorm versions no longer pick this up automatically. In your viewer, go to
+                <strong>Preferences → OpenSim</strong>, select this grid under <strong>Manage Grids</strong>,
+                and set <strong>Override current search url</strong> to
+                <code>https://casperia.ddns.net/gridsearch_viewer.php</code> - a version of Search built
+                specifically to fit that small embedded panel. The other Search tabs (Places, Events,
+                Classifieds, People, Groups, Land sales) are not affected and work without any extra setup.</li>
+
         </ul>
     </section>
 

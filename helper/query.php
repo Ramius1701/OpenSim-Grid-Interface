@@ -11,7 +11,7 @@ require __DIR__ . '/vendor/autoload.php';
 //DirFindFlags enum which is defined in OpenMetaverse/DirectoryManager.cs
 //of the libopenmetaverse library.
 
-require_once("databaseinfo.php");
+require_once(__DIR__ . "/includes/databaseinfo.php");
 
 // Attempt to connect to the database
 try {

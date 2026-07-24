@@ -1,5 +1,5 @@
 <?php
-include("databaseinfo.php");
+include(__DIR__ . "/includes/databaseinfo.php");
 
 //Supress all Warnings/Errors
 //error_reporting(0);
@@ -33,12 +33,31 @@ function GetURL($host, $port, $url)
     $data = curl_exec($ch);
     if (curl_errno($ch) == 0)
     {
-        curl_close($ch);
         return $data;
     }
 
-    curl_close($ch);
     return "";
+}
+
+/**
+ * Safely read an element's text value by tag name. Returns $default instead
+ * of crashing if the element doesn't exist - PHP 8+ throws a fatal error on
+ * ->nodeValue against null, where older PHP just silently returned null.
+ */
+function xml_val($node, string $tag, string $default = ''): string {
+    if (!$node) return $default;
+    $list = $node->getElementsByTagName($tag);
+    if ($list->length === 0) return $default;
+    return $list->item(0)->nodeValue ?? $default;
+}
+
+/**
+ * Safely read an attribute's value by name. Same reasoning as xml_val().
+ */
+function xml_attr($node, string $attr, string $default = ''): string {
+    if (!$node) return $default;
+    $attrNode = $node->getAttributeNode($attr);
+    return $attrNode ? ($attrNode->nodeValue ?? $default) : $default;
 }
 
 function CheckHost($hostname, $port)
@@ -80,7 +99,7 @@ function parse($hostname, $port, $xml)
 
     $regiondata = $regiondata->item(0);
 
-    $expire = $regiondata->getElementsByTagName("expire")->item(0)->nodeValue;
+    $expire = (int)xml_val($regiondata, "expire", "600");
     $next = $now + $expire;
 
     $query = $db->prepare("UPDATE search_hostsregister SET nextcheck = ?" .
@@ -91,14 +110,17 @@ function parse($hostname, $port, $xml)
 
     foreach ($regionlist as $region)
     {
-        $regioncategory = $region->getAttributeNode("category")->nodeValue;
+        $regioncategory = xml_attr($region, "category");
 
         $info = $region->getElementsByTagName("info")->item(0);
+        if (!$info) continue; // no <info> block - skip this region rather than crash
 
-        $regionuuid = $info->getElementsByTagName("uuid")->item(0)->nodeValue;
-        $regionname = $info->getElementsByTagName("name")->item(0)->nodeValue;
-        $regionhandle = $info->getElementsByTagName("handle")->item(0)->nodeValue;
-        $url = $info->getElementsByTagName("url")->item(0)->nodeValue;
+        $regionuuid = xml_val($info, "uuid");
+        $regionname = xml_val($info, "name");
+        $regionhandle = xml_val($info, "handle");
+        $url = xml_val($info, "url");
+
+        if ($regionuuid === '') continue; // can't do anything useful without a UUID
 
         $check = $db->prepare("SELECT * FROM search_regions WHERE regionUUID = ?");
         $check->execute( array($regionuuid) );
@@ -118,11 +140,13 @@ function parse($hostname, $port, $xml)
         }
 
         $data = $region->getElementsByTagName("data")->item(0);
+        if (!$data) continue; // no <data> block - nothing more we can do for this region
+
         $estate = $data->getElementsByTagName("estate")->item(0);
 
-        $username = $estate->getElementsByTagName("name")->item(0)->nodeValue;
-        $useruuid = $estate->getElementsByTagName("uuid")->item(0)->nodeValue;
-        $estateid = $estate->getElementsByTagName("id")->item(0)->nodeValue;
+        $username = xml_val($estate, "name");
+        $useruuid = xml_val($estate, "uuid");
+        $estateid = xml_val($estate, "id");
 
         $query = $db->prepare("INSERT INTO search_regions VALUES(:r_name, :r_uuid, " .
                               ":r_handle, :url, :u_name, :u_uuid)");
@@ -134,15 +158,17 @@ function parse($hostname, $port, $xml)
 
         foreach ($parcel as $value)
         {
-            $parcelname = $value->getElementsByTagName("name")->item(0)->nodeValue;
-            $parceluuid = $value->getElementsByTagName("uuid")->item(0)->nodeValue;
-            $infouuid = $value->getElementsByTagName("infouuid")->item(0)->nodeValue;
-            $parcellanding = $value->getElementsByTagName("location")->item(0)->nodeValue;
-            $parceldescription = $value->getElementsByTagName("description")->item(0)->nodeValue;
-            $parcelarea = $value->getElementsByTagName("area")->item(0)->nodeValue;
-            $parcelcategory = $value->getAttributeNode("category")->nodeValue;
-            $parcelsaleprice = $value->getAttributeNode("salesprice")->nodeValue;
-            $dwell = $value->getElementsByTagName("dwell")->item(0)->nodeValue;
+            $parcelname = xml_val($value, "name");
+            $parceluuid = xml_val($value, "uuid");
+            $infouuid = xml_val($value, "infouuid");
+            $parcellanding = xml_val($value, "location");
+            $parceldescription = xml_val($value, "description");
+            $parcelarea = xml_val($value, "area");
+            $parcelcategory = xml_attr($value, "category");
+            $parcelsaleprice = xml_attr($value, "salesprice");
+            $dwell = xml_val($value, "dwell");
+
+            if ($parceluuid === '') continue; // can't do anything useful without a UUID
 
             $has_pic = 0;
             $image = "00000000-0000-0000-0000-000000000000";
@@ -150,25 +176,25 @@ function parse($hostname, $port, $xml)
 
             if ($image_node->length > 0)
             {
-                $image = $image_node->item(0)->nodeValue;
+                $image = $image_node->item(0)->nodeValue ?? $image;
                 if ($image != "00000000-0000-0000-0000-000000000000")
                     $has_pic = 1;
             }
 
             $owner = $value->getElementsByTagName("owner")->item(0);
-            $owneruuid = $owner->getElementsByTagName("uuid")->item(0)->nodeValue;
+            $owneruuid = xml_val($owner, "uuid");
             $group = $value->getElementsByTagName("group")->item(0);
 
-            if ($group != "")
-                $groupuuid = $group->getElementsByTagName("groupuuid")->item(0)->nodeValue;
+            if ($group)
+                $groupuuid = xml_val($group, "groupuuid", "00000000-0000-0000-0000-000000000000");
             else
                 $groupuuid = "00000000-0000-0000-0000-000000000000";
 
-            $parcelforsale = $value->getAttributeNode("forsale")->nodeValue;
-            $parceldirectory = $value->getAttributeNode("showinsearch")->nodeValue;
-            $parcelbuild = $value->getAttributeNode("build")->nodeValue;
-            $parcelscript = $value->getAttributeNode("scripts")->nodeValue;
-            $parcelpublic = $value->getAttributeNode("public")->nodeValue;
+            $parcelforsale = xml_attr($value, "forsale");
+            $parceldirectory = xml_attr($value, "showinsearch");
+            $parcelbuild = xml_attr($value, "build");
+            $parcelscript = xml_attr($value, "scripts");
+            $parcelpublic = xml_attr($value, "public");
 
             $query = $db->prepare("DELETE FROM search_popularplaces WHERE parcelUUID = ?");
             $query->execute( array($parceluuid) );
@@ -239,13 +265,15 @@ function parse($hostname, $port, $xml)
 
         foreach ($objects as $value)
         {
-            $uuid = $value->getElementsByTagName("uuid")->item(0)->nodeValue;
-            $regionuuid = $value->getElementsByTagName("regionuuid")->item(0)->nodeValue;
-            $parceluuid = $value->getElementsByTagName("parceluuid")->item(0)->nodeValue;
-            $location = $value->getElementsByTagName("location")->item(0)->nodeValue;
-            $title = $value->getElementsByTagName("title")->item(0)->nodeValue;
-            $description = $value->getElementsByTagName("description")->item(0)->nodeValue;
-            $flags = $value->getElementsByTagName("flags")->item(0)->nodeValue;
+            $uuid = xml_val($value, "uuid");
+            $regionuuid = xml_val($value, "regionuuid");
+            $parceluuid = xml_val($value, "parceluuid");
+            $location = xml_val($value, "location");
+            $title = xml_val($value, "title");
+            $description = xml_val($value, "description");
+            $flags = xml_val($value, "flags");
+
+            if ($uuid === '') continue; // can't do anything useful without a UUID
 
             $query = $db->prepare("INSERT INTO search_objects VALUES(" .
                                    ":uuid, :p_uuid, :location, " .

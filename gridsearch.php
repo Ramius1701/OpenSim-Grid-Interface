@@ -7,6 +7,26 @@ if (file_exists(__DIR__ . "/include/viewer_context.php")) {
     include_once __DIR__ . "/include/viewer_context.php";
 }
 
+// TEMPORARY DEBUG - remove once the compact-view detection issue is solved.
+// Visit gridsearch.php?debugview=1 (works from a normal browser too) to see
+// exactly what Firestorm is actually sending for this request.
+if (isset($_GET['debugview'])) {
+    header('Content-Type: text/plain');
+    echo "IS_VIEWER detected as: " . var_export($IS_VIEWER ?? null, true) . "\n\n";
+    echo "GET params:\n";
+    print_r($_GET);
+    echo "\nRelevant headers:\n";
+    foreach ($_SERVER as $k => $v) {
+        if (str_starts_with($k, 'HTTP_') || $k === 'REQUEST_URI') {
+            echo "$k = $v\n";
+        }
+    }
+    echo "\nCookies:\n";
+    print_r($_COOKIE);
+    exit;
+}
+
+
 // Database connection
 $con = db();
 if (!$con) {
@@ -367,6 +387,7 @@ if ($suggestions && $query !== '') {
 }
 
 // Normal page render from here on
+
 include_once "include/" . HEADER_FILE;
 
 // If embedded in a viewer, minimize chrome/padding.

@@ -27,7 +27,7 @@ if (isset($_GET['ping'])) { echo "pong"; exit; }
 __dbg("URI=" . ($_SERVER['REQUEST_URI'] ?? '') . " METHOD=" . ($_SERVER['REQUEST_METHOD'] ?? ''));
 
 // ----- load DB config (same folder) -----
-$cfg = __DIR__ . '/databaseinfo.php';
+$cfg = __DIR__ . '/includes/databaseinfo.php';
 if (!is_file($cfg)) { echo "ERR_DBINFO"; __dbg("missing databaseinfo.php"); exit; }
 include $cfg;
 if (!isset($DB_HOST, $DB_USER, $DB_PASSWORD, $DB_NAME)) { echo "ERR_DBINFO"; __dbg("db vars not set"); exit; }

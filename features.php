@@ -30,7 +30,7 @@ if (!function_exists('text_or_dash')) {
 
 /* ---------- config values ---------- */
 $osNameMain = cval('OS_NAME_MAIN', 'OpenSimulator');
-$osVerMain  = cval('OS_VERSION_MAIN', '0.9.3.1 (Build 821)');
+$osVerMain  = cval('OS_VERSION_MAIN', '0.9.3.1 (Build 372, g4f35b8553f)');
 $betaEnabled = (bool)cval('BETA_ENABLED', true);
 $betaLabel   = (string)cval('BETA_LABEL', 'Beta (NGC)');
 $osNameBeta  = cval('OS_NAME_BETA', 'OpenSim NGC (Tranquillity)');
@@ -54,7 +54,7 @@ $ecoLoc   = (bool)cval('ECONOMY_LOCAL',true);
 $lName    = (string)cval('LOCAL_MONEY_NAME','MoneyServer');
 $lCap     = (string)cval('LOCAL_WALLET_CAP','20,000');
 $freeOffers = array_filter(array_map('trim', explode(',', (string)cval('FREE_OFFERS','Free groups, Free classifieds advertising, Free mesh uploads, Free texture uploads, Free events listings, Free apartments & homes with land (350 prims), Free land lots (435 prims), Free shops for creators (250 prims)'))));
-$otherPerks = array_filter(array_map('trim', explode(',', (string)cval('OTHER_PERKS','No region setup fees, Region referral program, Partnerships, Hypergrid traveling, Offline messaging, Offline IM, Offline group notices, Members area, Weekly OAR/Database backups, NPCs enabled, Mesh enabled, Second Inventory (Stored Inventory) enabled, Monthly grid meetings, Forums area, Mentors program, Support ticket system (Members area)'))));
+$otherPerks = array_filter(array_map('trim', explode(',', (string)cval('OTHER_PERKS','No region setup fees, Region referral program, Partnerships, Hypergrid traveling, Offline messaging, Offline IM, Offline group notices, Members area, Weekly OAR/Database backups, NPCs enabled, Mesh enabled, Second Inventory (Stored Inventory) enabled, Monthly grid meetings, Forums area, Mentors program, Support ticket system (Members area), Optimized region performance (idle physics objects automatically sleep when a region is empty, keeping regions running smoothly)'))));
 $registerUrl = cval('URL_REGISTER', 'register.php');
 $helpUrl     = cval('URL_HELP',     'help.php');
 ?>
@@ -62,21 +62,6 @@ $helpUrl     = cval('URL_HELP',     'help.php');
 <style>
 /* --- COMFORT SPACING & LAYOUT --- */
 
-/* 1. Hero Section */
-.features-hero {
-    background: linear-gradient(135deg, 
-        color-mix(in srgb, var(--header-color), black 30%), 
-        color-mix(in srgb, var(--header-color), black 60%)
-    );
-    border-radius: 15px;
-    padding: 4rem 2rem; /* Taller hero */
-    margin-bottom: 1.5rem; /* More space below hero */
-    text-align: center;
-    color: white;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-}
-.features-hero h1 { font-size: 1.5rem; font-weight: 800; margin-bottom: 1rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-.features-hero p.muted { color: rgba(255,255,255,0.9) !important; max-width: 800px; margin: 0 auto; font-size: 1.25rem; line-height: 1.6; }
 
 /* 2. Main Content Cards */
 .content-card {
@@ -233,7 +218,7 @@ $helpUrl     = cval('URL_HELP',     'help.php');
 
 </style>
 
-<section class="features-hero">
+<section class="page-hero">
   <h1><i class="bi bi-stars me-2"></i> Grid Features</h1>
   <p class="muted">
     Experience a modern OpenSimulator grid built for creators. 
@@ -374,6 +359,22 @@ $helpUrl     = cval('URL_HELP',     'help.php');
           <tr><td>Script Engine</td><td class="text-end fw-bold"><?= htmlspecialchars($script) ?></td></tr>
           <tr><td>Physics Engine</td><td class="text-end fw-bold"><?= htmlspecialchars($physics) ?></td></tr>
           <tr><td>LSL / OSSL</td><td class="text-end"><span class="badge bg-success rounded-pill px-3">Supported</span></td></tr>
+          <tr><td colspan="2" class="text-muted small pt-2">Includes GLTF/PBR materials, combat scripting, environment (EEP) scripting, pathfinding, and Experience-Lite.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="inner-feature-card">
+      <h4><i class="bi bi-stars me-2"></i> Grid Enhancements</h4>
+      <table class="table table-sm">
+        <tbody>
+          <tr><td>Dynamic Weather</td><td class="text-end"><?= yes_no_pill((bool)cval('FEATURE_WEATHER', true)) ?></td></tr>
+          <tr><td>Per-Region Home Pages</td><td class="text-end"><?= yes_no_pill((bool)cval('FEATURE_REGIONWEB', true)) ?></td></tr>
+          <tr><td>Auto Group Invites</td><td class="text-end"><?= yes_no_pill((bool)cval('FEATURE_GROUP_AUTOINVITE', true)) ?></td></tr>
+          <tr><td>In-Viewer Abuse Reports</td><td class="text-end"><?= yes_no_pill((bool)cval('FEATURE_ABUSE_REPORTS', true)) ?></td></tr>
+          <tr><td>In-World Marketplace</td><td class="text-end"><?= yes_no_pill((bool)cval('FEATURE_MARKETPLACE', true)) ?></td></tr>
+          <tr><td>Web Wallet Management</td><td class="text-end"><?= yes_no_pill((bool)cval('FEATURE_WEB_WALLET', true)) ?></td></tr>
+          <tr><td>Optimized Region Performance</td><td class="text-end"><?= yes_no_pill((bool)cval('FEATURE_PHYSICS_OPT', true)) ?></td></tr>
         </tbody>
       </table>
     </div>
