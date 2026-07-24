@@ -3,27 +3,10 @@
 //
 // A dedicated, ALWAYS-compact version of gridsearch.php, built specifically
 // for Firestorm's (and other SL-compatible viewers') Search window "Web" tab.
-// That panel is small (roughly 785x600px), and gridsearch.php's normal
-// full-site layout (header, nav, hero, sidebar) doesn't fit it well.
-//
-// Rather than relying on detecting whether a request came from inside a
-// viewer (unreliable - Firestorm's Web tab doesn't always send recognizable
-// headers or a distinctive User-Agent), this page is simply ALWAYS compact.
-// Set this as your "Override current search url" in Firestorm's OpenSim
-// preferences tab, under Manage Grids for this grid:
-//
-//   https://casperia.ddns.net/gridsearch_viewer.php
-//
-// Uses the exact same search functions as gridsearch.php (see
-// include/gridsearch_functions.php) - no duplicated search logic, so a fix
-// or improvement to search behaves identically on both pages.
 
 $title = "Grid Search";
 include_once "include/config.php";
 
-// Search functions - a self-contained copy of the same logic gridsearch.php
-// uses, kept separate on purpose so this page has zero dependency on the
-// full site page - if gridsearch.php ever changes, this page keeps working.
 $con = db();
 if (!$con) {
     die("Database connection failed: " . mysqli_connect_error());
@@ -31,7 +14,6 @@ if (!$con) {
 
 /**
  * Run a prepared statement safely and return a mysqli_result or false.
- * NOTE: mysqli_stmt_bind_param requires pass-by-reference; we build refs.
  */
 function safe_stmt_query(mysqli $con, string $sql, string $types = '', array $params = []) {
     $stmt = mysqli_prepare($con, $sql);
@@ -60,9 +42,6 @@ function safe_stmt_query(mysqli $con, string $sql, string $types = '', array $pa
     return $result;
 }
 
-/**
- * Find the first existing column in $table from list of candidates.
- */
 function first_existing_column(mysqli $con, string $table, array $candidates) : ?string {
     $sql = "SELECT COLUMN_NAME 
             FROM information_schema.columns 
@@ -87,7 +66,6 @@ function maturity_max_for(string $filter) : int {
     }
 }
 
-// Search functions
 function searchAll(mysqli $con, string $query, string $type = 'all', string $maturity = 'any') {
     $results = [
         'users'       => false,
@@ -95,7 +73,6 @@ function searchAll(mysqli $con, string $query, string $type = 'all', string $mat
         'places'      => false,
         'classifieds' => false,
         'groups'      => false,
-        'events'      => false, // reserved for future use
     ];
 
     $like = '%' . $query . '%';
@@ -146,9 +123,7 @@ function searchAll(mysqli $con, string $query, string $type = 'all', string $mat
             $params[] = maturity_max_for($maturity);
         }
 
-        $sql .= " ORDER BY p.toppick DESC, p.name
-                  LIMIT 10";
-
+        $sql .= " ORDER BY p.toppick DESC, p.name LIMIT 10";
         $results['places'] = safe_stmt_query($con, $sql, $types, $params);
     }
 
@@ -173,9 +148,7 @@ function searchAll(mysqli $con, string $query, string $type = 'all', string $mat
             $params[] = maturity_max_for($maturity);
         }
 
-        $sql .= " ORDER BY c.creationdate DESC
-                  LIMIT 10";
-
+        $sql .= " ORDER BY c.creationdate DESC LIMIT 10";
         $results['classifieds'] = safe_stmt_query($con, $sql, $types, $params);
     }
 
@@ -198,157 +171,23 @@ function searchAll(mysqli $con, string $query, string $type = 'all', string $mat
 }
 
 /**
- * Format region location for display.
- * OpenSim often stores locX/locY in meters (multiples of 256). SL-style display uses region grid coords.
+ * Curated Popular Searches List (Clean, hand-picked topics)
  */
-function format_region_location($x, $y) : string {
-    if ($x === null || $y === null) return '';
-    $xi = (int)$x;
-    $yi = (int)$y;
-
-    // If values look like meter-based coordinates (e.g., 256000), convert to region grid coords.
-    if (($xi >= 8192 || $yi >= 8192) && ($xi % 256 === 0) && ($yi % 256 === 0)) {
-        $xi = intdiv($xi, 256);
-        $yi = intdiv($yi, 256);
-    }
-    return $xi . ', ' . $yi;
-}
-
-function ensure_search_log_table(mysqli $con) : void {
-    // Create table if missing (modern schema)
-    $create = "CREATE TABLE IF NOT EXISTS ws_search_log (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                term VARCHAR(255) NOT NULL,
-                area VARCHAR(32) NOT NULL DEFAULT 'all',
-                hits INT NOT NULL DEFAULT 1,
-                last_search TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                UNIQUE KEY term_area (term, area)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-    try { mysqli_query($con, $create); } catch (mysqli_sql_exception $e) { /* ignore */ }
-
-    // If table existed already, migrate older schemas safely.
-    $cols = [];
-    $res = safe_stmt_query($con,
-        "SELECT COLUMN_NAME FROM information_schema.columns WHERE table_schema = ? AND table_name = 'ws_search_log'",
-        "s",
-        [DB_NAME]
-    );
-    if ($res) {
-        while ($r = mysqli_fetch_assoc($res)) { $cols[] = $r['COLUMN_NAME']; }
-    }
-
-    // Add missing columns one-by-one
-    if (!in_array('area', $cols, true)) {
-        try { mysqli_query($con, "ALTER TABLE ws_search_log ADD COLUMN area VARCHAR(32) NOT NULL DEFAULT 'all' AFTER term"); }
-        catch (mysqli_sql_exception $e) {}
-    }
-    if (!in_array('hits', $cols, true)) {
-        try { mysqli_query($con, "ALTER TABLE ws_search_log ADD COLUMN hits INT NOT NULL DEFAULT 1 AFTER area"); }
-        catch (mysqli_sql_exception $e) {}
-        // Legacy support: if old column 'count' exists, copy it
-        if (in_array('count', $cols, true)) {
-            try { mysqli_query($con, "UPDATE ws_search_log SET hits = `count`"); }
-            catch (mysqli_sql_exception $e) {}
-        }
-    }
-    if (!in_array('last_search', $cols, true)) {
-        try { mysqli_query($con, "ALTER TABLE ws_search_log ADD COLUMN last_search TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER hits"); }
-        catch (mysqli_sql_exception $e) {}
-    }
-
-    // Ensure unique key term_area exists (avoid duplicate key fatal)
-    $idxRes = safe_stmt_query($con,
-        "SELECT INDEX_NAME FROM information_schema.statistics
-         WHERE table_schema = ? AND table_name = 'ws_search_log' AND index_name = 'term_area' LIMIT 1",
-        "s",
-        [DB_NAME]
-    );
-    $hasIdx = ($idxRes && mysqli_num_rows($idxRes) > 0);
-    if (!$hasIdx) {
-        try { mysqli_query($con, "ALTER TABLE ws_search_log ADD UNIQUE KEY term_area (term, area)"); }
-        catch (mysqli_sql_exception $e) {}
-    }
-}
-
-function log_search_term(mysqli $con, string $term, string $area = 'all') : void {
-    $term = trim(mb_strtolower($term, 'UTF-8'));
-    $area = trim($area) ?: 'all';
-    if ($term === '') return;
-
-    ensure_search_log_table($con);
-
-    $sql = "INSERT INTO ws_search_log (term, area, hits)
-            VALUES (?, ?, 1)
-            ON DUPLICATE KEY UPDATE hits = hits + 1, last_search = CURRENT_TIMESTAMP";
-
-    try {
-        safe_stmt_query($con, $sql, 'ss', [$term, $area]);
-    } catch (mysqli_sql_exception $e) {
-        // Very old schema fallback (no area)
-        try {
-            safe_stmt_query($con,
-                "INSERT INTO ws_search_log (term, hits) VALUES (?, 1)
-                 ON DUPLICATE KEY UPDATE hits = hits + 1, last_search = CURRENT_TIMESTAMP",
-                "s",
-                [$term]
-            );
-        } catch (mysqli_sql_exception $e2) {}
-    }
-}
-
-function getPopularSearches(mysqli $con, int $limit = 12) : array {
-    ensure_search_log_table($con);
-
-    $popular = [];
-    $sql = "SELECT term, SUM(hits) AS total_hits
-            FROM ws_search_log
-            GROUP BY term
-            ORDER BY total_hits DESC, last_search DESC
-            LIMIT ?";
-    $res = safe_stmt_query($con, $sql, 'i', [$limit]);
-    if ($res) {
-        while ($row = mysqli_fetch_assoc($res)) {
-            $popular[$row['term']] = (int)$row['total_hits'];
-        }
-    }
-    return $popular; // no fake defaults
-}
-
-function getSearchSuggestions(mysqli $con, string $query) {
-    $suggestions = [];
-    $likeStart = $query . '%';
-
-    // Region suggestions
-    $sql = "SELECT DISTINCT regionName
-            FROM regions
-            WHERE regionName LIKE ?
-            LIMIT 5";
-    $result = safe_stmt_query($con, $sql, 's', [$likeStart]);
-    if ($result) {
-        while ($row = mysqli_fetch_assoc($result)) {
-            $suggestions[] = $row['regionName'];
-        }
-    }
-
-    // User suggestions
-    $sql = "SELECT CONCAT(FirstName, ' ', LastName) as fullName
-            FROM UserAccounts
-            WHERE (FirstName LIKE ? OR LastName LIKE ?)
-            LIMIT 5";
-    $result = safe_stmt_query($con, $sql, 'ss', [$likeStart, $likeStart]);
-    if ($result) {
-        while ($row = mysqli_fetch_assoc($result)) {
-            $suggestions[] = $row['fullName'];
-        }
-    }
-
-    return array_values(array_unique($suggestions));
+function getPopularSearches() : array {
+    return [
+        'Welcome Center',
+        'Freebies',
+        'Sandbox',
+        'Shopping',
+        'Clubs',
+        'Roleplay',
+        'Parks'
+    ];
 }
 
 // Process parameters
 $query = isset($_GET['q']) ? trim($_GET['q']) : '';
 
-// Support viewer-style parameter name (?tab=places etc.)
 if (!isset($_GET['type']) && isset($_GET['tab'])) {
     $_GET['type'] = $_GET['tab'];
 }
@@ -356,9 +195,7 @@ if (!isset($_GET['type']) && isset($_GET['tab'])) {
 $type            = isset($_GET['type']) ? $_GET['type'] : 'all';
 $MATURITY_FILTER = isset($_GET['maturity']) ? $_GET['maturity'] : 'any';
 $browse          = (isset($_GET['browse']) && $_GET['browse'] == '1');
-$suggestions     = isset($_GET['suggestions']);
 
-// Normalize some viewer tab names to our internal types
 switch ($type) {
     case 'people':       $type = 'users'; break;
     case 'regions':      $type = 'regions'; break;
@@ -367,29 +204,16 @@ switch ($type) {
     case 'groups':       $type = 'groups'; break;
     case 'all':
     default:
-        // If viewer passes unsupported tabs (destinations, land, events), fall back to all.
         if (!in_array($type, ['all','users','regions','places','classifieds','groups'], true)) {
             $type = 'all';
         }
         break;
 }
 
-// AJAX request for suggestions (must happen BEFORE any HTML output)
-if ($suggestions && $query !== '') {
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(getSearchSuggestions($con, $query));
-    mysqli_close($con);
-    exit;
-}
-
-// Normal page render from here on
-$gridAssetsBase = defined('GRID_ASSETS_SERVER') ? GRID_ASSETS_SERVER : (defined('ASSETS_SERVER') ? ASSETS_SERVER : '');
-
 $results = [];
 $totalResults = 0;
 
 if ($query !== '') {
-    log_search_term($con, $query, $type);
     $results = searchAll($con, $query, $type, $MATURITY_FILTER);
 } elseif ($browse && $type !== 'all') {
     $results = searchAll($con, '', $type, $MATURITY_FILTER);
@@ -410,12 +234,7 @@ function gv_row(string $icon, string $title, string $subtitle, string $href): st
          . '<span class="gv-subtitle">' . htmlspecialchars($subtitle) . '</span></span>'
          . '</a>';
 }
-/**
- * Parse a standard OpenSim/SL "posglobal" style string, e.g. "<128.5, 130.2, 25.0>"
- * or "128.5, 130.2, 25.0", into [x, y, z]. Returns a safe default center-of-region
- * position if parsing fails or the field isn't present - a working (if generic)
- * teleport link beats a broken one.
- */
+
 function gv_parse_pos(?string $raw): array {
     if ($raw && preg_match('/(-?\d+\.?\d*)\D+(-?\d+\.?\d*)\D+(-?\d+\.?\d*)/', $raw, $m)) {
         return [(int)round((float)$m[1]), (int)round((float)$m[2]), (int)round((float)$m[3])];
@@ -440,13 +259,7 @@ function gv_parse_pos(?string $raw): array {
         display: flex;
         flex-direction: column;
     }
-    .gv-layout {
-        display: flex;
-        flex: 1 1 auto;
-        min-height: 0;
-    }
-    /* Left sidebar: categories + maturity, same idea as the native Search
-       window's own "Search Filter" panel and the classic SL search layout. */
+    .gv-layout { display: flex; flex: 1 1 auto; min-height: 0; }
     .gv-sidebar {
         flex: 0 0 140px;
         background: #14161b;
@@ -475,89 +288,34 @@ function gv_parse_pos(?string $raw): array {
     }
     .gv-cat-list li a:hover { background: #22262e; }
     .gv-cat-list li.active a { background: #3a6ea5; color: #fff; }
-    .gv-maturity label {
-        display: block;
-        font-size: 12px;
-        padding: 3px 2px;
-        color: #cdd2d8;
-        cursor: pointer;
-    }
+    .gv-maturity label { display: block; font-size: 12px; padding: 3px 2px; color: #cdd2d8; cursor: pointer; }
     .gv-maturity input { margin-right: 6px; }
-    /* Right side: search box + results, main scrollable area. */
-    .gv-main {
-        flex: 1 1 auto;
-        display: flex;
-        flex-direction: column;
-        min-width: 0;
-    }
-    .gv-header {
-        padding: 10px 12px;
-        background: #22262e;
-        border-bottom: 1px solid #333;
-        flex: 0 0 auto;
-    }
+    .gv-main { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
+    .gv-header { padding: 10px 12px; background: #22262e; border-bottom: 1px solid #333; flex: 0 0 auto; }
     .gv-form { display: flex; gap: 6px; }
     .gv-form input[type=text] {
-        flex: 1 1 auto;
-        min-width: 0;
-        padding: 6px 8px;
-        background: #12141a;
-        border: 1px solid #444;
-        border-radius: 4px;
-        color: #fff;
+        flex: 1 1 auto; min-width: 0; padding: 6px 8px; background: #12141a; border: 1px solid #444; border-radius: 4px; color: #fff;
     }
     .gv-form button {
-        padding: 6px 12px;
-        background: #3a6ea5;
-        border: none;
-        border-radius: 4px;
-        color: #fff;
-        cursor: pointer;
-        flex: 0 0 auto;
+        padding: 6px 12px; background: #3a6ea5; border: none; border-radius: 4px; color: #fff; cursor: pointer; flex: 0 0 auto;
     }
     .gv-form button:hover { background: #4a7eb5; }
     .gv-reset {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        flex: 0 0 auto;
-        background: #2a2e37;
-        border-radius: 4px;
-        color: #cdd2d8;
-        text-decoration: none;
+        display: flex; align-items: center; justify-content: center; width: 32px; flex: 0 0 auto; background: #2a2e37; border-radius: 4px; color: #cdd2d8; text-decoration: none;
     }
     .gv-reset:hover { background: #3a4048; color: #fff; }
     .gv-results { flex: 1 1 auto; overflow-y: auto; }
     .gv-section { padding: 8px 12px; }
-    .gv-section h6 {
-        margin: 10px 0 4px;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: .04em;
-        color: #8a8f98;
-    }
-    .gv-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 4px;
-        text-decoration: none;
-        color: #e8e8e8;
-        border-radius: 4px;
-    }
+    .gv-section h6 { margin: 10px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #8a8f98; }
+    .gv-row { display: flex; align-items: center; gap: 8px; padding: 6px 4px; text-decoration: none; color: #e8e8e8; border-radius: 4px; }
     .gv-row:hover { background: #2a2e37; }
     .gv-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
     .gv-text { display: flex; flex-direction: column; min-width: 0; }
     .gv-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .gv-subtitle { font-size: 12px; color: #9aa0a8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .gv-empty { padding: 20px 12px; text-align: center; color: #8a8f98; }
-    .gv-count { font-size: 12px; color: #8a8f98; padding: 8px 12px 6px; }
     .gv-popular { padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 6px; }
-    .gv-popular a {
-        font-size: 12px; padding: 3px 8px; background: #2a2e37; border-radius: 12px;
-        color: #bcd; text-decoration: none;
-    }
+    .gv-popular a { font-size: 12px; padding: 3px 8px; background: #2a2e37; border-radius: 12px; color: #bcd; text-decoration: none; }
     .gv-popular a:hover { background: #3a4048; }
 </style>
 </head>
@@ -618,11 +376,11 @@ function gv_parse_pos(?string $raw): array {
         <div class="gv-results">
         <?php if ($query === '' && !$browse): ?>
             <div class="gv-popular">
-                <?php foreach (getPopularSearches($con) as $term => $count): ?>
-                <a href="gridsearch_viewer.php?q=<?php echo urlencode($term); ?>"><?php echo htmlspecialchars($term); ?> (<?php echo $count; ?>)</a>
+                <?php foreach (getPopularSearches() as $term): ?>
+                <a href="gridsearch_viewer.php?q=<?php echo urlencode($term); ?>"><?php echo htmlspecialchars($term); ?></a>
                 <?php endforeach; ?>
             </div>
-            <div class="gv-empty">Type a search term above, or tap a popular search.</div>
+            <div class="gv-empty">Type a search term above, or tap a popular topic.</div>
         <?php elseif ($totalResults === 0): ?>
             <div class="gv-empty">No results for "<?php echo htmlspecialchars($query); ?>".</div>
         <?php else: ?>
@@ -643,11 +401,10 @@ function gv_parse_pos(?string $raw): array {
             <div class="gv-section">
                 <h6>Regions</h6>
                 <?php
-                $gridHost = str_replace(['http://', 'https://'], '', BASE_URL) . GRID_PORT;
                 while ($region = mysqli_fetch_assoc($results['regions'])):
                     $rname = $region['regionName'] ?? $region['name'] ?? 'Region';
-                    $tpUrl = 'hop://' . $gridHost . '/' . rawurlencode($rname);
-                    echo gv_row('🌍', $rname, 'Teleport', $tpUrl);
+                    $tpUrl = 'secondlife:///app/teleport/' . rawurlencode($rname);
+                    echo gv_row('🗺️', $rname, 'Teleport', $tpUrl);
                 endwhile; ?>
             </div>
             <?php endif; ?>
@@ -656,15 +413,11 @@ function gv_parse_pos(?string $raw): array {
             <div class="gv-section">
                 <h6>Places</h6>
                 <?php
-                $gridHost = str_replace(['http://', 'https://'], '', BASE_URL) . GRID_PORT;
                 while ($place = mysqli_fetch_assoc($results['places'])):
                     $pname = $place['name'] ?? 'Place';
                     $psim  = $place['simname'] ?? '';
-                    // posglobal is the standard OpenSim/SL userpicks column name for
-                    // exact coordinates; falls back to a generic region position if
-                    // this column doesn't exist or is empty on your schema.
                     [$px, $py, $pz] = gv_parse_pos($place['posglobal'] ?? null);
-                    $tpUrl = $psim !== '' ? 'hop://' . $gridHost . '/' . rawurlencode($psim) . "/$px/$py/$pz" : '#';
+                    $tpUrl = $psim !== '' ? 'secondlife:///app/teleport/' . rawurlencode($psim) . "/$px/$py/$pz" : '#';
                     echo gv_row('📍', $pname, $psim, $tpUrl);
                 endwhile; ?>
             </div>
@@ -675,10 +428,9 @@ function gv_parse_pos(?string $raw): array {
                 <h6>Classifieds</h6>
                 <?php while ($ad = mysqli_fetch_assoc($results['classifieds'])): ?>
                     <?php
-                    // Classifieds link to the website, unlike the others - the exact
-                    // secondlife:///app/classified/.../about SLURL format wasn't
-                    // confirmed reliably enough to use without testing first.
-                    echo gv_row('📢', $ad['name'] ?? 'Classified', $ad['simname'] ?? '', 'classifieds.php?action=view&id=' . ($ad['classifieduuid'] ?? ''));
+                    // Native viewer inspector format for classifieds
+                    $classUrl = 'secondlife:///app/classified/' . ($ad['classifieduuid'] ?? '') . '/about';
+                    echo gv_row('📢', $ad['name'] ?? 'Classified', $ad['simname'] ?? '', $classUrl);
                     ?>
                 <?php endwhile; ?>
             </div>
