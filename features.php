@@ -57,24 +57,27 @@ $freeOffers = array_filter(array_map('trim', explode(',', (string)cval('FREE_OFF
 $otherPerks = array_filter(array_map('trim', explode(',', (string)cval('OTHER_PERKS','No region setup fees, Region referral program, Partnerships, Hypergrid traveling, Offline messaging, Offline IM, Offline group notices, Members area, Weekly OAR/Database backups, NPCs enabled, Mesh enabled, Second Inventory (Stored Inventory) enabled, Monthly grid meetings, Forums area, Mentors program, Support ticket system (Members area), Optimized region performance (idle physics objects automatically sleep when a region is empty, keeping regions running smoothly)'))));
 $registerUrl = cval('URL_REGISTER', 'register.php');
 $helpUrl     = cval('URL_HELP',     'help.php');
+
+/* Custom Source Repositories */
+$repoCoreMaster = cval('REPO_CORE_MASTER', 'https://github.com/Ramius1701/opensim');
+$repoEnhanced   = cval('REPO_ENHANCED',    'https://github.com/Ramius1701/opensim-enhanced');
+$repoInterface  = cval('REPO_INTERFACE',   'https://github.com/Ramius1701/OpenSim-Grid-Interface');
 ?>
 
 <style>
 /* --- COMFORT SPACING & LAYOUT --- */
 
-
 /* 2. Main Content Cards */
 .content-card {
-    /* Increased padding from 2rem to 1.5rem for "Airy" feel */
     padding: 1.5rem !important; 
-    margin-bottom: 1.5rem !important; /* Space between sections */
+    margin-bottom: 1.5rem !important;
     border-radius: 16px !important;
 }
 
 /* 3. Section Titles */
 .section-title {
     font-size: 1.75rem;
-    margin-bottom: 2rem; /* More space below title */
+    margin-bottom: 2rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid color-mix(in srgb, var(--primary-color), transparent 90%);
 }
@@ -82,9 +85,8 @@ $helpUrl     = cval('URL_HELP',     'help.php');
 /* 4. Grids */
 .features-grid-3 {
     display: grid;
-    /* Min width 300px prevents squashing on small screens */
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem; /* Wider gap between grid items */
+    gap: 2rem;
 }
 
 .features-grid-2 {
@@ -98,28 +100,28 @@ $helpUrl     = cval('URL_HELP',     'help.php');
     background: color-mix(in srgb, var(--card-bg), var(--primary-color) 3%);
     border: 1px solid color-mix(in srgb, var(--primary-color), transparent 90%);
     border-radius: 12px;
-    padding: 2rem; /* More internal breathing room */
-    height: 100%; /* Ensure equal height in grids */
+    padding: 2rem;
+    height: 100%;
 }
 .inner-feature-card h4 {
     color: var(--accent-color);
     font-weight: 700;
     margin-bottom: 1.5rem;
-    font-size: 1.1.5rem;
+    font-size: 1.15rem;
 }
 
 /* 6. Region Cards */
 .region-cards {
     display: flex;
     flex-direction: column;
-    gap: 2rem; /* Space between region types */
+    gap: 2rem;
 }
 
 .region-card {
     background-color: color-mix(in srgb, var(--card-bg), var(--primary-color) 3%);
     border: 1px solid color-mix(in srgb, var(--primary-color), transparent 90%);
     border-radius: 12px;
-    padding: 2.5rem; /* Spacious padding */
+    padding: 2.5rem;
     transition: transform 0.2s;
 }
 .region-card:hover {
@@ -142,7 +144,7 @@ $helpUrl     = cval('URL_HELP',     'help.php');
     margin-bottom: 0;
 }
 .table td, .table th {
-    padding: 1rem 0.5rem; /* Taller rows so text doesn't feel squashed */
+    padding: 1rem 0.5rem;
     vertical-align: middle;
     border-color: color-mix(in srgb, var(--primary-color), transparent 90%);
 }
@@ -151,7 +153,7 @@ $helpUrl     = cval('URL_HELP',     'help.php');
 /* 8. Lists */
 .features-list { list-style: none; padding-left: 0; margin-bottom: 0; }
 .features-list li {
-    margin-bottom: 0.75rem; /* Space between list items */
+    margin-bottom: 0.75rem;
     font-size: 1.05rem;
     display: flex;
     align-items: flex-start;
@@ -159,7 +161,7 @@ $helpUrl     = cval('URL_HELP',     'help.php');
     flex-wrap: wrap;
 }
 .features-list li::before {
-    content: "\F26A"; /* Check circle icon */
+    content: "\F26A";
     font-family: 'bootstrap-icons';
     color: var(--accent-color);
     margin-right: 0.75rem;
@@ -169,7 +171,6 @@ $helpUrl     = cval('URL_HELP',     'help.php');
 
 /* 9. Badges/Pills */
 .badge { font-weight: 600; letter-spacing: 0.5px; }
-
 
 /* 10. Powered By (grouped tiles) */
 .powered-by-grid{
@@ -216,6 +217,24 @@ $helpUrl     = cval('URL_HELP',     'help.php');
     color: color-mix(in srgb, var(--primary-color), transparent 35%);
 }
 
+/* Repo Links Styling */
+.repo-card {
+    background: color-mix(in srgb, var(--card-bg), var(--primary-color) 4%);
+    border: 1px solid color-mix(in srgb, var(--accent-color), transparent 75%);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+.repo-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--accent-color);
+}
+.repo-link:hover {
+    text-decoration: underline;
+}
 </style>
 
 <section class="page-hero">
@@ -241,7 +260,45 @@ $helpUrl     = cval('URL_HELP',     'help.php');
         </tbody>
       </table>
   </div>
+</div>
 
+<div class="content-card">
+  <h3 class="section-title"><i class="bi bi-github"></i> Open Source & Source Code Repositories</h3>
+  <div class="repo-card mb-4">
+    <p class="mb-3">
+      We actively maintain, refactor, and develop custom modules and standalone web services for OpenSimulator. 
+      You can access our source builds and standalone development projects directly on GitHub:
+    </p>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="p-3 border rounded bg-body-tertiary h-100">
+          <div class="fw-bold mb-1"><i class="bi bi-git me-1"></i> Core Fork</div>
+          <p class="small text-muted mb-2">Synced personal fork of standard OpenSim core.</p>
+          <a href="<?= htmlspecialchars($repoCoreMaster) ?>" target="_blank" rel="noopener" class="repo-link">
+            <i class="bi bi-github"></i> Ramius1701/opensim
+          </a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="p-3 border rounded bg-body-tertiary h-100">
+          <div class="fw-bold mb-1"><i class="bi bi-cpu me-1"></i> Enhanced Build</div>
+          <p class="small text-muted mb-2">Customized engine integration with custom grid modules.</p>
+          <a href="<?= htmlspecialchars($repoEnhanced) ?>" target="_blank" rel="noopener" class="repo-link">
+            <i class="bi bi-github"></i> Ramius1701/opensim-enhanced
+          </a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="p-3 border rounded bg-body-tertiary h-100">
+          <div class="fw-bold mb-1"><i class="bi bi-layout-text-window-reverse me-1"></i> Grid Web Interface</div>
+          <p class="small text-muted mb-2">In-viewer and web search interface tools.</p>
+          <a href="<?= htmlspecialchars($repoInterface) ?>" target="_blank" rel="noopener" class="repo-link">
+            <i class="bi bi-github"></i> Ramius1701/OpenSim-Grid-Interface
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="content-card">
@@ -319,7 +376,6 @@ $helpUrl     = cval('URL_HELP',     'help.php');
       <div class="powered-sub">Certify The Web</div>
     </div>
   </div>
-
 </div>
 
 <div class="content-card">
