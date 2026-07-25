@@ -1,37 +1,77 @@
 <?php
-// Include configuration
-include_once "include/config.php";
+// include/image.php - OpenSim Texture JP2 to JPG Proxy Converter
+include_once __DIR__ . "/config.php";
 
-// Check whether the 'image_url' parameter was provided
-$image_url = isset($_GET['image_url']) ? $_GET['image_url'] : '';
+$image_url = isset($_GET['image_url']) ? trim($_GET['image_url']) : '';
 
-// Make sure an image URL is provided
 if (empty($image_url)) {
+    http_response_code(400);
     die('No image URL provided!');
 }
 
-// Fetch the image from the URL
-$image_data = file_get_contents($image_url);
+function fetch_image_data(string $url) {
+    // Attempt 1: file_get_contents
+    if (ini_get('allow_url_fopen')) {
+        $opts = [
+            'http' => [
+                'method' => 'GET',
+                'timeout' => 5,
+                'user_agent' => 'OpenSimWebHelper/1.0'
+            ]
+        ];
+        $context = stream_context_create($opts);
+        $data = @file_get_contents($url, false, $context);
+        if ($data !== false && strlen($data) > 0) {
+            return $data;
+        }
+    }
 
-// If the image could not be loaded
+    // Attempt 2: cURL Fallback
+    if (function_exists('curl_init')) {
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_USERAGENT => 'OpenSimWebHelper/1.0',
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+        ]);
+        $data = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode === 200 && $data !== false && strlen($data) > 0) {
+            return $data;
+        }
+    }
+
+    return false;
+}
+
+$image_data = fetch_image_data($image_url);
+
 if ($image_data === false) {
+    http_response_code(404);
     die('Error loading image!');
 }
 
-// Use Imagick to convert the image to the desired format
 try {
     $imagick = new Imagick();
     $imagick->readImageBlob($image_data);
 
-    // If this is a JP2 image, convert it to JPG
-    if ($imagick->getImageFormat() == 'JPEG2000') {
-        $imagick->setImageFormat('jpg'); // Convert to JPG
+    if (in_array(strtoupper($imagick->getImageFormat()), ['JPEG2000', 'JP2', 'J2K'])) {
+        $imagick->setImageFormat('jpg');
     }
 
-    // Output the image to the browser
-    header('Content-Type: image/jpeg'); // JPG MIME type for JPG images
+    header('Content-Type: image/jpeg');
+    header('Cache-Control: public, max-age=86400');
     echo $imagick->getImageBlob();
+    $imagick->clear();
+    $imagick->destroy();
 } catch (Exception $e) {
+    http_response_code(500);
     die('Error converting image: ' . $e->getMessage());
 }
 ?>
