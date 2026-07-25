@@ -3,8 +3,7 @@
  * OpenSim Grid Search Viewer Interface (GitHub-ready)
  * 
  * Modern, feature-packed in-viewer search panel for Firestorm & OpenSim viewers.
- * Pulls dynamic descriptions for Regions, Places, Classifieds, Groups, and User profiles.
- * Sanitized to prevent internal sim coordinates or location details from displaying to users.
+ * Layout optimized for narrow viewer browser windows.
  */
 
 $title = "Grid Search";
@@ -109,14 +108,19 @@ function searchAll(mysqli $con, string $query, string $type = 'all', string $mat
     }
 
     if ($type === 'all' || $type === 'regions') {
-        $dwellCol     = first_existing_column($con, 'land', ['Dwell', 'dwell', 'traffic', 'Traffic']);
-        $regionKeyCol = first_existing_column($con, 'land', ['RegionUUID', 'regionUUID', 'region_uuid', 'RegionHandle']);
-        $descCol      = first_existing_column($con, 'regions', ['description', 'regionDescription', 'Description', 'region_desc', 'comments']);
+        $dwellCol      = first_existing_column($con, 'land', ['Dwell', 'dwell', 'traffic', 'Traffic']);
+        $regionKeyCol  = first_existing_column($con, 'land', ['RegionUUID', 'regionUUID', 'region_uuid', 'RegionHandle']);
+        $landDescCol   = first_existing_column($con, 'land', ['description', 'Description', 'landName', 'LandName']);
+        $regionDescCol = first_existing_column($con, 'regions', ['description', 'regionDescription', 'Description', 'comments']);
 
-        $descSelect = $descCol ? "r.`$descCol` AS region_desc" : "'' AS region_desc";
+        $landDescSelect   = $landDescCol ? "COALESCE(MAX(l.`$landDescCol`), '')" : "''";
+        $regionDescSelect = $regionDescCol ? "COALESCE(MAX(r.`$regionDescCol`), '')" : "''";
 
-        if ($dwellCol && $regionKeyCol) {
-            $sql = "SELECT r.*, $descSelect, COALESCE(SUM(l.`$dwellCol`), 0) AS traffic_score,
+        if ($regionKeyCol) {
+            $trafficSql = $dwellCol ? "COALESCE(SUM(l.`$dwellCol`), 0)" : "0";
+            $sql = "SELECT r.*, 
+                           $trafficSql AS traffic_score,
+                           COALESCE(NULLIF($landDescSelect, ''), $regionDescSelect) AS region_desc,
                            ua.FirstName as OwnerFirstName, ua.LastName as OwnerLastName
                     FROM regions r
                     LEFT JOIN land l ON r.uuid = l.`$regionKeyCol`
@@ -126,7 +130,7 @@ function searchAll(mysqli $con, string $query, string $type = 'all', string $mat
                     ORDER BY traffic_score DESC, r.regionName ASC
                     LIMIT ?";
         } else {
-            $sql = "SELECT r.*, $descSelect, 0 AS traffic_score,
+            $sql = "SELECT r.*, 0 AS traffic_score, $regionDescSelect AS region_desc,
                            ua.FirstName as OwnerFirstName, ua.LastName as OwnerLastName
                     FROM regions r
                     LEFT JOIN UserAccounts ua ON r.owner_uuid = ua.PrincipalID
@@ -193,14 +197,15 @@ function searchAll(mysqli $con, string $query, string $type = 'all', string $mat
     }
 
     if ($type === 'all' || $type === 'groups') {
-        $sql = "SELECT og.*, ua.FirstName as OwnerFirstName, ua.LastName as OwnerLastName,
+        $sql = "SELECT og.GroupID, og.Name, og.Charter, og.FounderID, og.ShowInList,
+                       ua.FirstName as OwnerFirstName, ua.LastName as OwnerLastName,
                        COUNT(ogm.PrincipalID) as MemberCount
                 FROM os_groups_groups og
                 LEFT JOIN UserAccounts ua ON og.FounderID = ua.PrincipalID
                 LEFT JOIN os_groups_membership ogm ON og.GroupID = ogm.GroupID
                 WHERE (og.Name LIKE ? OR og.Charter LIKE ?)
                   AND og.ShowInList = 1
-                GROUP BY og.GroupID
+                GROUP BY og.GroupID, og.Name, og.Charter, og.FounderID, og.ShowInList
                 ORDER BY MemberCount DESC
                 LIMIT ?";
         $results['groups'] = safe_stmt_query($con, $sql, 'ssi', [$like, $like, $limit]);
@@ -223,30 +228,30 @@ if (!function_exists('getPopularSearches')) {
     }
 }
 
-/**
- * Dynamically calculates popular sims using region descriptions only
- */
 if (!function_exists('getPopularSims')) {
     function getPopularSims(mysqli $con, int $limit = 6) : array {
-        $dwellCol     = first_existing_column($con, 'land', ['Dwell', 'dwell', 'traffic', 'Traffic']);
-        $regionKeyCol = first_existing_column($con, 'land', ['RegionUUID', 'regionUUID', 'region_uuid', 'RegionHandle']);
-        $descCol      = first_existing_column($con, 'regions', ['description', 'regionDescription', 'Description', 'region_desc', 'comments']);
+        $dwellCol      = first_existing_column($con, 'land', ['Dwell', 'dwell', 'traffic', 'Traffic']);
+        $regionKeyCol  = first_existing_column($con, 'land', ['RegionUUID', 'regionUUID', 'region_uuid', 'RegionHandle']);
+        $landDescCol   = first_existing_column($con, 'land', ['description', 'Description', 'landName', 'LandName']);
+        $regionDescCol = first_existing_column($con, 'regions', ['description', 'regionDescription', 'Description', 'comments']);
 
-        if ($dwellCol && $regionKeyCol) {
-            $descSelect = $descCol ? "MAX(r.`$descCol`)" : "''";
+        $landDescSelect   = $landDescCol ? "COALESCE(MAX(l.`$landDescCol`), '')" : "''";
+        $regionDescSelect = $regionDescCol ? "COALESCE(MAX(r.`$regionDescCol`), '')" : "''";
+
+        if ($regionKeyCol) {
+            $trafficSql = $dwellCol ? "COALESCE(SUM(l.`$dwellCol`), 0)" : "0";
             $sql = "SELECT r.regionName, 
-                           COALESCE(SUM(l.`$dwellCol`), 0) AS traffic_score, 
-                           $descSelect AS region_desc 
+                           $trafficSql AS traffic_score, 
+                           COALESCE(NULLIF($landDescSelect, ''), $regionDescSelect) AS region_desc 
                     FROM regions r 
                     LEFT JOIN land l ON r.uuid = l.`$regionKeyCol` 
                     GROUP BY r.uuid, r.regionName 
                     ORDER BY traffic_score DESC, r.regionName ASC 
                     LIMIT ?";
         } else {
-            $descSelect = $descCol ? "r.`$descCol`" : "''";
             $sql = "SELECT r.regionName, 
                            0 AS traffic_score, 
-                           $descSelect AS region_desc 
+                           $regionDescSelect AS region_desc 
                     FROM regions r 
                     ORDER BY r.regionName ASC 
                     LIMIT ?";
@@ -264,7 +269,7 @@ if (!function_exists('getPopularSims')) {
                     'name'        => $row['regionName'],
                     'badge'       => 'SIM',
                     'color'       => 'badge-regions',
-                    'icon'        => 'MAP',
+                    'icon'        => '🗺️',
                     'traffic'     => $traffic,
                     'description' => $desc,
                     'url'         => 'secondlife:///app/teleport/' . rawurlencode($row['regionName'])
@@ -380,24 +385,25 @@ if (!function_exists('gv_parse_pos')) {
         display: flex;
         flex-direction: column;
         line-height: 1.4;
+        overflow: hidden;
     }
     
     .gv-layout { display: flex; flex: 1 1 auto; min-height: 0; }
 
     /* Sidebar Navigation */
     .gv-sidebar {
-        flex: 0 0 155px;
+        flex: 0 0 145px;
         background: #14161b;
         border-right: 1px solid #2d3139;
-        padding: 14px 10px;
+        padding: 12px 8px;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        gap: 16px;
     }
     .gv-sidebar h6 {
-        margin: 0 0 8px 0;
-        font-size: 11px;
+        margin: 0 0 6px 0;
+        font-size: 10px;
         text-transform: uppercase;
         letter-spacing: .06em;
         color: #6c7380;
@@ -406,12 +412,12 @@ if (!function_exists('gv_parse_pos')) {
     .gv-cat-list li a {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 7px 10px;
-        border-radius: 6px;
+        gap: 6px;
+        padding: 6px 8px;
+        border-radius: 5px;
         color: #abb2bf;
         text-decoration: none;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 500;
         white-space: nowrap;
         overflow: hidden;
@@ -432,13 +438,13 @@ if (!function_exists('gv_parse_pos')) {
         border: 1px solid #2d3139;
         color: #abb2bf;
         text-decoration: none;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 500;
     }
     .gv-mat-pill:hover { background: #2c313a; color: #fff; }
     .gv-mat-pill.active { border-color: #3b71ca; background: rgba(59, 113, 202, 0.2); color: #fff; font-weight: 600; }
 
-    .mat-tag { font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 3px; }
+    .mat-tag { font-size: 9px; font-weight: 800; padding: 1px 4px; border-radius: 3px; }
     .mat-any { background: #4b5263; color: #fff; }
     .mat-gen { background: rgba(152, 195, 121, 0.2); color: #98c379; }
     .mat-mod { background: rgba(229, 192, 123, 0.2); color: #e5c07b; }
@@ -448,67 +454,67 @@ if (!function_exists('gv_parse_pos')) {
     .gv-main { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
 
     .gv-header {
-        padding: 10px 14px;
+        padding: 8px 12px;
         background: #21252b;
         border-bottom: 1px solid #2d3139;
         flex-shrink: 0;
     }
-    .gv-form { display: flex; gap: 8px; }
+    .gv-form { display: flex; gap: 6px; }
     .gv-form input[type=text] {
         flex: 1;
-        padding: 9px 12px;
+        padding: 7px 10px;
         background: #121417;
         border: 1px solid #3b404a;
-        border-radius: 6px;
+        border-radius: 5px;
         color: #fff;
-        font-size: 14px;
+        font-size: 13px;
         outline: none;
         transition: border-color 0.2s;
     }
     .gv-form input[type=text]:focus { border-color: #4d82cb; }
     .gv-form button {
-        padding: 9px 18px;
+        padding: 7px 14px;
         background: #3b71ca;
         border: none;
-        border-radius: 6px;
+        border-radius: 5px;
         color: #fff;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 600;
         cursor: pointer;
     }
     .gv-form button:hover { background: #4b82da; }
     .gv-reset {
         display: flex; align-items: center; justify-content: center;
-        width: 36px; background: #2c313a; border-radius: 6px;
-        color: #abb2bf; text-decoration: none; font-weight: bold; font-size: 14px;
+        width: 32px; background: #2c313a; border-radius: 5px;
+        color: #abb2bf; text-decoration: none; font-weight: bold; font-size: 13px;
     }
     .gv-reset:hover { background: #3e4451; color: #fff; }
 
-    .gv-content { flex: 1; overflow-y: auto; padding: 16px; }
+    .gv-content { flex: 1; overflow-y: auto; padding: 12px; }
 
     /* Landing / Hero Banner */
     .gv-hero {
         background: linear-gradient(135deg, #252b33 0%, #1a1d24 100%);
         border: 1px solid #313742;
-        border-radius: 8px;
-        padding: 18px;
-        margin-bottom: 18px;
+        border-radius: 6px;
+        padding: 14px;
+        margin-bottom: 14px;
     }
-    .gv-hero h2 { margin: 0 0 6px 0; font-size: 17px; color: #fff; font-weight: 600; }
-    .gv-hero p { margin: 0; font-size: 13px; color: #9da5b4; }
+    .gv-hero h2 { margin: 0 0 4px 0; font-size: 15px; color: #fff; font-weight: 600; }
+    .gv-hero p { margin: 0; font-size: 12px; color: #9da5b4; }
 
     /* Popular Pills Header */
-    .gv-popular { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .gv-popular { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
     .gv-pill {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        font-size: 13px;
+        gap: 5px;
+        font-size: 12px;
         font-weight: 500;
-        padding: 7px 14px;
+        padding: 5px 10px;
         background: #21252b;
         border: 1px solid #3b404a;
-        border-radius: 20px;
+        border-radius: 16px;
         color: #61afef;
         text-decoration: none;
         transition: all 0.15s ease;
@@ -517,21 +523,21 @@ if (!function_exists('gv_parse_pos')) {
         background: #3b71ca;
         border-color: #4d82cb;
         color: #fff;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(59, 113, 202, 0.3);
     }
 
     /* Card Grid */
     .gv-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 12px;
-        margin-bottom: 18px;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+        width: 100%;
     }
 
     .gv-card-wrap {
         position: relative;
         display: flex;
+        min-width: 0;
     }
 
     .gv-card {
@@ -539,16 +545,17 @@ if (!function_exists('gv_parse_pos')) {
         background: #21252b;
         border: 1px solid #2d3139;
         border-radius: 6px;
-        padding: 12px 14px;
+        padding: 10px 12px;
         text-decoration: none;
         color: #e1e4e8;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         transition: transform 0.15s ease, border-color 0.15s ease;
+        min-width: 0;
+        min-height: 110px;
     }
     .gv-card:hover {
-        transform: translateY(-2px);
         border-color: #4b5263;
         background: #252931;
     }
@@ -556,60 +563,87 @@ if (!function_exists('gv_parse_pos')) {
     /* Copy SLURL Button */
     .gv-copy-btn {
         position: absolute;
-        top: 8px;
-        right: 8px;
+        top: 6px;
+        right: 6px;
         z-index: 10;
-        background: rgba(20, 22, 27, 0.9);
+        background: rgba(20, 22, 27, 0.95);
         border: 1px solid #3b404a;
         border-radius: 4px;
         color: #abb2bf;
-        font-size: 10px;
+        font-size: 9px;
         font-weight: 600;
-        padding: 3px 6px;
+        padding: 2px 5px;
         cursor: pointer;
         opacity: 0;
-        transition: opacity 0.15s ease, background 0.15s ease;
+        transition: opacity 0.15s ease;
     }
     .gv-card-wrap:hover .gv-copy-btn { opacity: 1; }
     .gv-copy-btn:hover { background: #3b71ca; color: #fff; border-color: #4d82cb; }
 
-    .gv-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .gv-card-badges { display: flex; align-items: center; gap: 6px; }
-    .gv-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; }
+    .gv-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .gv-card-badges { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+    .gv-badge { font-size: 9px; font-weight: 700; text-transform: uppercase; padding: 2px 5px; border-radius: 3px; display: inline-flex; align-items: center; gap: 3px; }
     .badge-users { background: rgba(152, 195, 121, 0.15); color: #98c379; }
     .badge-regions { background: rgba(97, 175, 239, 0.15); color: #61afef; }
     .badge-places { background: rgba(229, 192, 123, 0.15); color: #e5c07b; }
     .badge-classifieds { background: rgba(224, 108, 117, 0.15); color: #e06c75; }
     .badge-groups { background: rgba(198, 120, 221, 0.15); color: #c678dd; }
 
-    .gv-traffic-tag { font-size: 10px; font-weight: 700; background: rgba(229, 192, 123, 0.15); color: #e5c07b; padding: 3px 6px; border-radius: 4px; }
+    .gv-traffic-tag { font-size: 9px; font-weight: 700; background: rgba(229, 192, 123, 0.15); color: #e5c07b; padding: 2px 5px; border-radius: 3px; }
+
+    .gv-card-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .gv-title { 
+        font-size: 13px; 
+        font-weight: 600; 
+        margin-bottom: 2px; 
+        white-space: nowrap; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+        color: #fff; 
+        display: flex; 
+        align-items: center; 
+        gap: 5px; 
+    }
+    .gv-subtitle { 
+        font-size: 11px; 
+        color: #828997; 
+        white-space: nowrap; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+        min-height: 16px;
+        max-width: 100%;
+    }
 
     /* Card Action Button */
     .gv-card-footer {
-        margin-top: 12px;
+        margin-top: 8px;
         display: flex;
         justify-content: flex-end;
     }
     .gv-action-btn {
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 700;
         color: #ffffff;
         background: #3b71ca;
-        padding: 5px 12px;
-        border-radius: 4px;
+        padding: 4px 10px;
+        border-radius: 3px;
         text-transform: uppercase;
         letter-spacing: 0.03em;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        transition: background 0.15s ease, transform 0.1s ease;
+        gap: 3px;
     }
     .gv-card:hover .gv-action-btn {
         background: #4b82da;
     }
-
-    .gv-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; display: flex; align-items: center; gap: 6px; }
-    .gv-subtitle { font-size: 12px; color: #828997; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 17px; }
 
     mark.gv-highlight {
         background: rgba(97, 175, 239, 0.25);
@@ -618,26 +652,26 @@ if (!function_exists('gv_parse_pos')) {
         padding: 0 2px;
     }
 
-    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .dot-online { background-color: #98c379; box-shadow: 0 0 6px #98c379; }
+    .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .dot-online { background-color: #98c379; box-shadow: 0 0 5px #98c379; }
     .dot-offline { background-color: #5c6370; }
 
     .gv-section-title {
-        font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
-        color: #6c7380; margin: 16px 0 10px 0; font-weight: 700;
+        font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+        color: #6c7380; margin: 12px 0 8px 0; font-weight: 700;
     }
-    .gv-empty { text-align: center; padding: 30px; color: #5c6370; font-size: 14px; }
+    .gv-empty { text-align: center; padding: 24px; color: #5c6370; font-size: 13px; }
     .gv-btn-reset-filter {
-        display: inline-block; margin-top: 10px; padding: 6px 12px;
-        background: #2c313a; color: #abb2bf; border-radius: 4px; text-decoration: none; font-size: 12px;
+        display: inline-block; margin-top: 8px; padding: 5px 10px;
+        background: #2c313a; color: #abb2bf; border-radius: 4px; text-decoration: none; font-size: 11px;
     }
     .gv-btn-reset-filter:hover { background: #3e4451; color: #fff; }
-    .gv-count { font-size: 12px; color: #5c6370; margin-bottom: 12px; }
+    .gv-count { font-size: 11px; color: #5c6370; margin-bottom: 10px; }
 
     #gv-toast {
-        position: fixed; bottom: 20px; right: 20px;
-        background: #3b71ca; color: #fff; padding: 8px 14px;
-        border-radius: 6px; font-size: 12px; font-weight: 600;
+        position: fixed; bottom: 16px; right: 16px;
+        background: #3b71ca; color: #fff; padding: 6px 12px;
+        border-radius: 5px; font-size: 11px; font-weight: 600;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 1000;
     }
@@ -771,7 +805,7 @@ if (!function_exists('gv_parse_pos')) {
                         $rname   = $region['regionName'] ?? $region['name'] ?? 'Region';
                         $tpUrl   = 'secondlife:///app/teleport/' . rawurlencode($rname);
                         $owner   = trim(($region['OwnerFirstName'] ?? '') . ' ' . ($region['OwnerLastName'] ?? ''));
-                        $desc    = trim($region['region_desc'] ?? $region['description'] ?? '');
+                        $desc    = trim($region['region_desc'] ?? '');
                         
                         if ($desc !== '') {
                             $subtitle = $desc;
