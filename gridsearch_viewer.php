@@ -3,7 +3,7 @@
  * OpenSim Grid Search Viewer Interface (GitHub-ready)
  * 
  * Modern, feature-packed in-viewer search panel for Firestorm & OpenSim viewers.
- * Layout optimized for narrow viewer browser windows.
+ * Clean, compact card layout without description text for maximum readability.
  */
 
 $title = "Grid Search";
@@ -96,8 +96,7 @@ function searchAll(mysqli $con, string $query, string $type = 'all', string $mat
     $like = '%' . $query . '%';
 
     if ($type === 'all' || $type === 'users') {
-        $sql = "SELECT ua.PrincipalID, ua.FirstName, ua.LastName,
-                       up.profileAboutText, gu.Login, gu.Logout
+        $sql = "SELECT ua.PrincipalID, ua.FirstName, ua.LastName, gu.Login, gu.Logout
                 FROM UserAccounts ua
                 LEFT JOIN userprofile up ON ua.PrincipalID = up.useruuid
                 LEFT JOIN GridUser gu ON ua.PrincipalID = gu.UserID
@@ -108,32 +107,21 @@ function searchAll(mysqli $con, string $query, string $type = 'all', string $mat
     }
 
     if ($type === 'all' || $type === 'regions') {
-        $dwellCol      = first_existing_column($con, 'land', ['Dwell', 'dwell', 'traffic', 'Traffic']);
-        $regionKeyCol  = first_existing_column($con, 'land', ['RegionUUID', 'regionUUID', 'region_uuid', 'RegionHandle']);
-        $landDescCol   = first_existing_column($con, 'land', ['description', 'Description', 'landName', 'LandName']);
-        $regionDescCol = first_existing_column($con, 'regions', ['description', 'regionDescription', 'Description', 'comments']);
-
-        $landDescSelect   = $landDescCol ? "COALESCE(MAX(l.`$landDescCol`), '')" : "''";
-        $regionDescSelect = $regionDescCol ? "COALESCE(MAX(r.`$regionDescCol`), '')" : "''";
+        $dwellCol     = first_existing_column($con, 'land', ['Dwell', 'dwell', 'traffic', 'Traffic']);
+        $regionKeyCol = first_existing_column($con, 'land', ['RegionUUID', 'regionUUID', 'region_uuid', 'RegionHandle']);
 
         if ($regionKeyCol) {
             $trafficSql = $dwellCol ? "COALESCE(SUM(l.`$dwellCol`), 0)" : "0";
-            $sql = "SELECT r.*, 
-                           $trafficSql AS traffic_score,
-                           COALESCE(NULLIF($landDescSelect, ''), $regionDescSelect) AS region_desc,
-                           ua.FirstName as OwnerFirstName, ua.LastName as OwnerLastName
+            $sql = "SELECT r.*, $trafficSql AS traffic_score
                     FROM regions r
                     LEFT JOIN land l ON r.uuid = l.`$regionKeyCol`
-                    LEFT JOIN UserAccounts ua ON r.owner_uuid = ua.PrincipalID
                     WHERE (r.regionName LIKE ? OR r.serverURI LIKE ?)
                     GROUP BY r.uuid, r.regionName
                     ORDER BY traffic_score DESC, r.regionName ASC
                     LIMIT ?";
         } else {
-            $sql = "SELECT r.*, 0 AS traffic_score, $regionDescSelect AS region_desc,
-                           ua.FirstName as OwnerFirstName, ua.LastName as OwnerLastName
+            $sql = "SELECT r.*, 0 AS traffic_score
                     FROM regions r
-                    LEFT JOIN UserAccounts ua ON r.owner_uuid = ua.PrincipalID
                     WHERE (r.regionName LIKE ? OR r.serverURI LIKE ?)
                     ORDER BY r.regionName ASC
                     LIMIT ?";
@@ -150,9 +138,8 @@ function searchAll(mysqli $con, string $query, string $type = 'all', string $mat
             $mcol = first_existing_column($con, 'userpicks', ['maturity','Maturity','maturity_level','maturityLevel']);
         }
 
-        $sql = "SELECT p.*, ua.FirstName, ua.LastName
+        $sql = "SELECT p.*
                 FROM userpicks p
-                LEFT JOIN UserAccounts ua ON p.creatoruuid = ua.PrincipalID
                 WHERE (p.name LIKE ? OR p.description LIKE ? OR p.simname LIKE ?)
                   AND p.enabled = 1";
 
@@ -178,9 +165,8 @@ function searchAll(mysqli $con, string $query, string $type = 'all', string $mat
             $mcol = first_existing_column($con, 'classifieds', ['maturity','Maturity','maturity_level','maturityLevel']);
         }
 
-        $sql = "SELECT c.*, ua.FirstName, ua.LastName
+        $sql = "SELECT c.*
                 FROM classifieds c
-                LEFT JOIN UserAccounts ua ON c.creatoruuid = ua.PrincipalID
                 WHERE (c.name LIKE ? OR c.description LIKE ?)";
 
         if ($mcol) {
@@ -197,16 +183,11 @@ function searchAll(mysqli $con, string $query, string $type = 'all', string $mat
     }
 
     if ($type === 'all' || $type === 'groups') {
-        $sql = "SELECT og.GroupID, og.Name, og.Charter, og.FounderID, og.ShowInList,
-                       ua.FirstName as OwnerFirstName, ua.LastName as OwnerLastName,
-                       COUNT(ogm.PrincipalID) as MemberCount
+        $sql = "SELECT og.GroupID, og.Name, og.ShowInList
                 FROM os_groups_groups og
-                LEFT JOIN UserAccounts ua ON og.FounderID = ua.PrincipalID
-                LEFT JOIN os_groups_membership ogm ON og.GroupID = ogm.GroupID
                 WHERE (og.Name LIKE ? OR og.Charter LIKE ?)
                   AND og.ShowInList = 1
-                GROUP BY og.GroupID, og.Name, og.Charter, og.FounderID, og.ShowInList
-                ORDER BY MemberCount DESC
+                ORDER BY og.Name ASC
                 LIMIT ?";
         $results['groups'] = safe_stmt_query($con, $sql, 'ssi', [$like, $like, $limit]);
     }
@@ -230,28 +211,19 @@ if (!function_exists('getPopularSearches')) {
 
 if (!function_exists('getPopularSims')) {
     function getPopularSims(mysqli $con, int $limit = 6) : array {
-        $dwellCol      = first_existing_column($con, 'land', ['Dwell', 'dwell', 'traffic', 'Traffic']);
-        $regionKeyCol  = first_existing_column($con, 'land', ['RegionUUID', 'regionUUID', 'region_uuid', 'RegionHandle']);
-        $landDescCol   = first_existing_column($con, 'land', ['description', 'Description', 'landName', 'LandName']);
-        $regionDescCol = first_existing_column($con, 'regions', ['description', 'regionDescription', 'Description', 'comments']);
-
-        $landDescSelect   = $landDescCol ? "COALESCE(MAX(l.`$landDescCol`), '')" : "''";
-        $regionDescSelect = $regionDescCol ? "COALESCE(MAX(r.`$regionDescCol`), '')" : "''";
+        $dwellCol     = first_existing_column($con, 'land', ['Dwell', 'dwell', 'traffic', 'Traffic']);
+        $regionKeyCol = first_existing_column($con, 'land', ['RegionUUID', 'regionUUID', 'region_uuid', 'RegionHandle']);
 
         if ($regionKeyCol) {
             $trafficSql = $dwellCol ? "COALESCE(SUM(l.`$dwellCol`), 0)" : "0";
-            $sql = "SELECT r.regionName, 
-                           $trafficSql AS traffic_score, 
-                           COALESCE(NULLIF($landDescSelect, ''), $regionDescSelect) AS region_desc 
+            $sql = "SELECT r.regionName, $trafficSql AS traffic_score 
                     FROM regions r 
                     LEFT JOIN land l ON r.uuid = l.`$regionKeyCol` 
                     GROUP BY r.uuid, r.regionName 
                     ORDER BY traffic_score DESC, r.regionName ASC 
                     LIMIT ?";
         } else {
-            $sql = "SELECT r.regionName, 
-                           0 AS traffic_score, 
-                           $regionDescSelect AS region_desc 
+            $sql = "SELECT r.regionName, 0 AS traffic_score 
                     FROM regions r 
                     ORDER BY r.regionName ASC 
                     LIMIT ?";
@@ -263,16 +235,14 @@ if (!function_exists('getPopularSims')) {
         if ($res) {
             while ($row = mysqli_fetch_assoc($res)) {
                 $traffic = (int)($row['traffic_score'] ?? 0);
-                $desc    = trim($row['region_desc'] ?? '');
 
                 $sims[] = [
-                    'name'        => $row['regionName'],
-                    'badge'       => 'SIM',
-                    'color'       => 'badge-regions',
-                    'icon'        => '🗺️',
-                    'traffic'     => $traffic,
-                    'description' => $desc,
-                    'url'         => 'secondlife:///app/teleport/' . rawurlencode($row['regionName'])
+                    'name'    => $row['regionName'],
+                    'badge'   => 'SIM',
+                    'color'   => 'badge-regions',
+                    'icon'    => '🗺️',
+                    'traffic' => $traffic,
+                    'url'     => 'secondlife:///app/teleport/' . rawurlencode($row['regionName'])
                 ];
             }
         }
@@ -321,7 +291,7 @@ if (!empty($results)) {
 }
 
 if (!function_exists('gv_card')) {
-    function gv_card(string $badgeText, string $badgeColor, string $title, string $subtitle, string $href, string $actionText = "Teleport", bool $isOnline = false, string $icon = "📍", ?string $copyUrl = null, ?int $traffic = null): string {
+    function gv_card(string $badgeText, string $badgeColor, string $title, string $href, string $actionText = "Teleport", bool $isOnline = false, string $icon = "📍", ?string $copyUrl = null, ?int $traffic = null): string {
         $statusDot = '';
         if ($badgeText === 'User') {
             $dotClass = $isOnline ? 'dot-online' : 'dot-offline';
@@ -348,7 +318,6 @@ if (!function_exists('gv_card')) {
              . '  </div>'
              . '  <div class="gv-card-body">'
              . '    <div class="gv-title">' . $statusDot . $title . '</div>'
-             . '    <div class="gv-subtitle" title="' . htmlspecialchars(strip_tags($subtitle)) . '">' . $subtitle . '</div>'
              . '  </div>'
              . '  <div class="gv-card-footer">'
              . '    <span class="gv-action-btn">' . $actionText . '</span>'
@@ -392,18 +361,18 @@ if (!function_exists('gv_parse_pos')) {
 
     /* Sidebar Navigation */
     .gv-sidebar {
-        flex: 0 0 145px;
+        flex: 0 0 150px;
         background: #14161b;
         border-right: 1px solid #2d3139;
-        padding: 12px 8px;
+        padding: 12px 10px;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
         gap: 16px;
     }
     .gv-sidebar h6 {
-        margin: 0 0 6px 0;
-        font-size: 10px;
+        margin: 0 0 8px 0;
+        font-size: 11px;
         text-transform: uppercase;
         letter-spacing: .06em;
         color: #6c7380;
@@ -412,12 +381,12 @@ if (!function_exists('gv_parse_pos')) {
     .gv-cat-list li a {
         display: flex;
         align-items: center;
-        gap: 6px;
-        padding: 6px 8px;
-        border-radius: 5px;
+        gap: 8px;
+        padding: 7px 10px;
+        border-radius: 6px;
         color: #abb2bf;
         text-decoration: none;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 500;
         white-space: nowrap;
         overflow: hidden;
@@ -432,19 +401,19 @@ if (!function_exists('gv_parse_pos')) {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 5px 8px;
+        padding: 6px 8px;
         border-radius: 5px;
         background: #21252b;
         border: 1px solid #2d3139;
         color: #abb2bf;
         text-decoration: none;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 500;
     }
     .gv-mat-pill:hover { background: #2c313a; color: #fff; }
     .gv-mat-pill.active { border-color: #3b71ca; background: rgba(59, 113, 202, 0.2); color: #fff; font-weight: 600; }
 
-    .mat-tag { font-size: 9px; font-weight: 800; padding: 1px 4px; border-radius: 3px; }
+    .mat-tag { font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 3px; }
     .mat-any { background: #4b5263; color: #fff; }
     .mat-gen { background: rgba(152, 195, 121, 0.2); color: #98c379; }
     .mat-mod { background: rgba(229, 192, 123, 0.2); color: #e5c07b; }
@@ -454,67 +423,67 @@ if (!function_exists('gv_parse_pos')) {
     .gv-main { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
 
     .gv-header {
-        padding: 8px 12px;
+        padding: 10px 12px;
         background: #21252b;
         border-bottom: 1px solid #2d3139;
         flex-shrink: 0;
     }
-    .gv-form { display: flex; gap: 6px; }
+    .gv-form { display: flex; gap: 8px; }
     .gv-form input[type=text] {
         flex: 1;
-        padding: 7px 10px;
+        padding: 8px 12px;
         background: #121417;
         border: 1px solid #3b404a;
-        border-radius: 5px;
+        border-radius: 6px;
         color: #fff;
-        font-size: 13px;
+        font-size: 14px;
         outline: none;
         transition: border-color 0.2s;
     }
     .gv-form input[type=text]:focus { border-color: #4d82cb; }
     .gv-form button {
-        padding: 7px 14px;
+        padding: 8px 16px;
         background: #3b71ca;
         border: none;
-        border-radius: 5px;
+        border-radius: 6px;
         color: #fff;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 600;
         cursor: pointer;
     }
     .gv-form button:hover { background: #4b82da; }
     .gv-reset {
         display: flex; align-items: center; justify-content: center;
-        width: 32px; background: #2c313a; border-radius: 5px;
-        color: #abb2bf; text-decoration: none; font-weight: bold; font-size: 13px;
+        width: 34px; background: #2c313a; border-radius: 6px;
+        color: #abb2bf; text-decoration: none; font-weight: bold; font-size: 14px;
     }
     .gv-reset:hover { background: #3e4451; color: #fff; }
 
-    .gv-content { flex: 1; overflow-y: auto; padding: 12px; }
+    .gv-content { flex: 1; overflow-y: auto; padding: 14px; }
 
     /* Landing / Hero Banner */
     .gv-hero {
         background: linear-gradient(135deg, #252b33 0%, #1a1d24 100%);
         border: 1px solid #313742;
-        border-radius: 6px;
-        padding: 14px;
-        margin-bottom: 14px;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
     }
-    .gv-hero h2 { margin: 0 0 4px 0; font-size: 15px; color: #fff; font-weight: 600; }
-    .gv-hero p { margin: 0; font-size: 12px; color: #9da5b4; }
+    .gv-hero h2 { margin: 0 0 6px 0; font-size: 16px; color: #fff; font-weight: 600; }
+    .gv-hero p { margin: 0; font-size: 13px; color: #9da5b4; }
 
     /* Popular Pills Header */
-    .gv-popular { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .gv-popular { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
     .gv-pill {
         display: inline-flex;
         align-items: center;
-        gap: 5px;
-        font-size: 12px;
+        gap: 6px;
+        font-size: 13px;
         font-weight: 500;
-        padding: 5px 10px;
+        padding: 6px 12px;
         background: #21252b;
         border: 1px solid #3b404a;
-        border-radius: 16px;
+        border-radius: 18px;
         color: #61afef;
         text-decoration: none;
         transition: all 0.15s ease;
@@ -528,9 +497,9 @@ if (!function_exists('gv_parse_pos')) {
     /* Card Grid */
     .gv-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 10px;
-        margin-bottom: 14px;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
         width: 100%;
     }
 
@@ -545,15 +514,14 @@ if (!function_exists('gv_parse_pos')) {
         background: #21252b;
         border: 1px solid #2d3139;
         border-radius: 6px;
-        padding: 10px 12px;
+        padding: 12px 14px;
         text-decoration: none;
         color: #e1e4e8;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        transition: transform 0.15s ease, border-color 0.15s ease;
+        transition: border-color 0.15s ease, background 0.15s ease;
         min-width: 0;
-        min-height: 110px;
     }
     .gv-card:hover {
         border-color: #4b5263;
@@ -563,16 +531,16 @@ if (!function_exists('gv_parse_pos')) {
     /* Copy SLURL Button */
     .gv-copy-btn {
         position: absolute;
-        top: 6px;
-        right: 6px;
+        top: 8px;
+        right: 8px;
         z-index: 10;
         background: rgba(20, 22, 27, 0.95);
         border: 1px solid #3b404a;
         border-radius: 4px;
         color: #abb2bf;
-        font-size: 9px;
+        font-size: 10px;
         font-weight: 600;
-        padding: 2px 5px;
+        padding: 3px 6px;
         cursor: pointer;
         opacity: 0;
         transition: opacity 0.15s ease;
@@ -580,66 +548,56 @@ if (!function_exists('gv_parse_pos')) {
     .gv-card-wrap:hover .gv-copy-btn { opacity: 1; }
     .gv-copy-btn:hover { background: #3b71ca; color: #fff; border-color: #4d82cb; }
 
-    .gv-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .gv-card-badges { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-    .gv-badge { font-size: 9px; font-weight: 700; text-transform: uppercase; padding: 2px 5px; border-radius: 3px; display: inline-flex; align-items: center; gap: 3px; }
+    .gv-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .gv-card-badges { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-right: 20px; }
+    .gv-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; }
     .badge-users { background: rgba(152, 195, 121, 0.15); color: #98c379; }
     .badge-regions { background: rgba(97, 175, 239, 0.15); color: #61afef; }
     .badge-places { background: rgba(229, 192, 123, 0.15); color: #e5c07b; }
     .badge-classifieds { background: rgba(224, 108, 117, 0.15); color: #e06c75; }
     .badge-groups { background: rgba(198, 120, 221, 0.15); color: #c678dd; }
 
-    .gv-traffic-tag { font-size: 9px; font-weight: 700; background: rgba(229, 192, 123, 0.15); color: #e5c07b; padding: 2px 5px; border-radius: 3px; }
+    .gv-traffic-tag { font-size: 10px; font-weight: 700; background: rgba(229, 192, 123, 0.15); color: #e5c07b; padding: 3px 6px; border-radius: 4px; }
 
     .gv-card-body {
         flex: 1;
         display: flex;
         flex-direction: column;
-        justify-content: flex-start;
+        justify-content: center;
         min-width: 0;
         overflow: hidden;
+        margin: 4px 0 8px 0;
     }
 
     .gv-title { 
-        font-size: 13px; 
+        font-size: 14px; 
         font-weight: 600; 
-        margin-bottom: 2px; 
         white-space: nowrap; 
         overflow: hidden; 
         text-overflow: ellipsis; 
         color: #fff; 
         display: flex; 
         align-items: center; 
-        gap: 5px; 
-    }
-    .gv-subtitle { 
-        font-size: 11px; 
-        color: #828997; 
-        white-space: nowrap; 
-        overflow: hidden; 
-        text-overflow: ellipsis; 
-        min-height: 16px;
-        max-width: 100%;
+        gap: 6px; 
     }
 
     /* Card Action Button */
     .gv-card-footer {
-        margin-top: 8px;
         display: flex;
         justify-content: flex-end;
     }
     .gv-action-btn {
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 700;
         color: #ffffff;
         background: #3b71ca;
-        padding: 4px 10px;
-        border-radius: 3px;
+        padding: 5px 12px;
+        border-radius: 4px;
         text-transform: uppercase;
         letter-spacing: 0.03em;
         display: inline-flex;
         align-items: center;
-        gap: 3px;
+        gap: 4px;
     }
     .gv-card:hover .gv-action-btn {
         background: #4b82da;
@@ -652,26 +610,26 @@ if (!function_exists('gv_parse_pos')) {
         padding: 0 2px;
     }
 
-    .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-    .dot-online { background-color: #98c379; box-shadow: 0 0 5px #98c379; }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-online { background-color: #98c379; box-shadow: 0 0 6px #98c379; }
     .dot-offline { background-color: #5c6370; }
 
     .gv-section-title {
-        font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
-        color: #6c7380; margin: 12px 0 8px 0; font-weight: 700;
+        font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+        color: #6c7380; margin: 14px 0 10px 0; font-weight: 700;
     }
-    .gv-empty { text-align: center; padding: 24px; color: #5c6370; font-size: 13px; }
+    .gv-empty { text-align: center; padding: 28px; color: #5c6370; font-size: 14px; }
     .gv-btn-reset-filter {
-        display: inline-block; margin-top: 8px; padding: 5px 10px;
-        background: #2c313a; color: #abb2bf; border-radius: 4px; text-decoration: none; font-size: 11px;
+        display: inline-block; margin-top: 10px; padding: 6px 12px;
+        background: #2c313a; color: #abb2bf; border-radius: 4px; text-decoration: none; font-size: 12px;
     }
     .gv-btn-reset-filter:hover { background: #3e4451; color: #fff; }
-    .gv-count { font-size: 11px; color: #5c6370; margin-bottom: 10px; }
+    .gv-count { font-size: 12px; color: #5c6370; margin-bottom: 12px; }
 
     #gv-toast {
-        position: fixed; bottom: 16px; right: 16px;
-        background: #3b71ca; color: #fff; padding: 6px 12px;
-        border-radius: 5px; font-size: 11px; font-weight: 600;
+        position: fixed; bottom: 20px; right: 20px;
+        background: #3b71ca; color: #fff; padding: 8px 14px;
+        border-radius: 6px; font-size: 12px; font-weight: 600;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 1000;
     }
@@ -766,7 +724,7 @@ if (!function_exists('gv_parse_pos')) {
                     <?php 
                     $popularSims = getPopularSims($con, 6);
                     foreach ($popularSims as $sim):
-                        echo gv_card($sim['badge'], $sim['color'], htmlspecialchars($sim['name']), htmlspecialchars($sim['description']), $sim['url'], 'Teleport', false, $sim['icon'], $sim['url'], $sim['traffic']);
+                        echo gv_card($sim['badge'], $sim['color'], htmlspecialchars($sim['name']), $sim['url'], 'Teleport', false, $sim['icon'], $sim['url'], $sim['traffic']);
                     endforeach; 
                     ?>
                 </div>
@@ -788,12 +746,9 @@ if (!function_exists('gv_parse_pos')) {
                     <?php while ($user = mysqli_fetch_assoc($results['users'])):
                         $name = trim($user['FirstName'] . ' ' . $user['LastName']);
                         $isOnline = ($user['Login'] && $user['Login'] > $user['Logout'] && $user['Login'] > (time() - 300));
-                        $aboutText = trim($user['profileAboutText'] ?? '');
-                        $subtitle = $aboutText !== '' ? $aboutText : ($isOnline ? 'Online now' : 'Resident');
                         $hlTitle = highlight_text($name, $query);
-                        $hlSub   = highlight_text($subtitle, $query);
                         $profileUrl = 'secondlife:///app/agent/' . $user['PrincipalID'] . '/about';
-                        echo gv_card('User', 'badge-users', $hlTitle, $hlSub, $profileUrl, 'Profile', $isOnline, '👤');
+                        echo gv_card('User', 'badge-users', $hlTitle, $profileUrl, 'Profile', $isOnline, '👤');
                     endwhile; ?>
                     </div>
                 <?php endif; ?>
@@ -804,21 +759,9 @@ if (!function_exists('gv_parse_pos')) {
                     <?php while ($region = mysqli_fetch_assoc($results['regions'])):
                         $rname   = $region['regionName'] ?? $region['name'] ?? 'Region';
                         $tpUrl   = 'secondlife:///app/teleport/' . rawurlencode($rname);
-                        $owner   = trim(($region['OwnerFirstName'] ?? '') . ' ' . ($region['OwnerLastName'] ?? ''));
-                        $desc    = trim($region['region_desc'] ?? '');
-                        
-                        if ($desc !== '') {
-                            $subtitle = $desc;
-                        } elseif ($owner !== '') {
-                            $subtitle = 'Owner: ' . $owner;
-                        } else {
-                            $subtitle = '';
-                        }
-
-                        $traffic  = isset($region['traffic_score']) ? (int)$region['traffic_score'] : null;
-                        $hlTitle  = highlight_text($rname, $query);
-                        $hlSub    = highlight_text($subtitle, $query);
-                        echo gv_card('Region', 'badge-regions', $hlTitle, $hlSub, $tpUrl, 'Teleport', false, '🗺️', $tpUrl, $traffic);
+                        $traffic = isset($region['traffic_score']) ? (int)$region['traffic_score'] : null;
+                        $hlTitle = highlight_text($rname, $query);
+                        echo gv_card('Region', 'badge-regions', $hlTitle, $tpUrl, 'Teleport', false, '🗺️', $tpUrl, $traffic);
                     endwhile; ?>
                     </div>
                 <?php endif; ?>
@@ -829,14 +772,10 @@ if (!function_exists('gv_parse_pos')) {
                     <?php while ($place = mysqli_fetch_assoc($results['places'])):
                         $pname = $place['name'] ?? 'Place';
                         $psim  = $place['simname'] ?? '';
-                        $pdesc = trim($place['description'] ?? '');
-                        $subtitle = $pdesc !== '' ? $pdesc : '';
-                        
                         [$px, $py, $pz] = gv_parse_pos($place['posglobal'] ?? null);
                         $tpUrl = $psim !== '' ? 'secondlife:///app/teleport/' . rawurlencode($psim) . "/$px/$py/$pz" : '#';
                         $hlTitle = highlight_text($pname, $query);
-                        $hlSub   = highlight_text($subtitle, $query);
-                        echo gv_card('Place', 'badge-places', $hlTitle, $hlSub, $tpUrl, 'Teleport', false, '📍', $tpUrl);
+                        echo gv_card('Place', 'badge-places', $hlTitle, $tpUrl, 'Teleport', false, '📍', $tpUrl);
                     endwhile; ?>
                     </div>
                 <?php endif; ?>
@@ -846,11 +785,8 @@ if (!function_exists('gv_parse_pos')) {
                     <div class="gv-grid">
                     <?php while ($ad = mysqli_fetch_assoc($results['classifieds'])):
                         $classUrl = 'secondlife:///app/classified/' . ($ad['classifieduuid'] ?? '') . '/about';
-                        $cdesc    = trim($ad['description'] ?? '');
-                        $subtitle = $cdesc !== '' ? $cdesc : '';
                         $hlTitle  = highlight_text($ad['name'] ?? 'Classified', $query);
-                        $hlSub    = highlight_text($subtitle, $query);
-                        echo gv_card('Classified', 'badge-classifieds', $hlTitle, $hlSub, $classUrl, 'Inspect', false, '📢');
+                        echo gv_card('Classified', 'badge-classifieds', $hlTitle, $classUrl, 'Inspect', false, '📢');
                     endwhile; ?>
                     </div>
                 <?php endif; ?>
@@ -860,12 +796,8 @@ if (!function_exists('gv_parse_pos')) {
                     <div class="gv-grid">
                     <?php while ($group = mysqli_fetch_assoc($results['groups'])):
                         $groupUrl = 'secondlife:///app/group/' . ($group['GroupID'] ?? '') . '/about';
-                        $charter  = trim($group['Charter'] ?? '');
-                        $members  = isset($group['MemberCount']) ? $group['MemberCount'] . ' members' : '';
-                        $subtitle = $charter !== '' ? $charter : $members;
                         $hlTitle  = highlight_text($group['Name'] ?? 'Group', $query);
-                        $hlSub    = highlight_text($subtitle, $query);
-                        echo gv_card('Group', 'badge-groups', $hlTitle, $hlSub, $groupUrl, 'Group', false, '👥');
+                        echo gv_card('Group', 'badge-groups', $hlTitle, $groupUrl, 'Group', false, '👥');
                     endwhile; ?>
                     </div>
                 <?php endif; ?>
