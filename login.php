@@ -3,20 +3,38 @@
 // Put this as the FIRST bytes of login.php (before any HTML).
 
 require_once __DIR__ . '/include/config.php';
+require_once __DIR__ . '/include/security.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
 // Turn on temporarily if you need verbose reasons in $login_error
 const DEBUG_LOGIN = false;
 
-// CSRF seed (enforced only if form sends csrf_token)
+// CSRF seed (always required - see the check below)
 if (empty($_SESSION['csrf'])) { $_SESSION['csrf'] = bin2hex(random_bytes(16)); }
 
 function safe_next($val) {
   $val = trim((string)$val);
+  if ($val === '') return 'account/';
+
+  // Browsers silently strip tab/newline/CR characters before parsing a URL,
+  // so remove them here too - otherwise "//evil.com" can be hidden as
+  // "/\t/evil.com" and slip past the checks below.
+  $val = str_replace(["\t", "\n", "\r"], '', $val);
   if ($val === '' || stripos(basename($val), 'login.php') !== false) return 'account/';
+
+  // Reject backslashes: some browsers normalize "\" to "/" while parsing a
+  // URL, so "/\evil.com" can become the protocol-relative "//evil.com".
+  if (strpos($val, '\\') !== false) return 'account/';
+
+  // Reject protocol-relative ("//host") and absolute ("http(s)://host") URLs.
   if (preg_match('~^(?:https?:)?//~i', $val)) return 'account/';
-  if (strpos($val, "\n") !== false || strpos($val, "\r") !== false) return 'account/';
+
+  // Reject any URI scheme (e.g. "https:evil.com", "javascript:..."). Browsers
+  // parse "scheme:host" as an absolute URL for special schemes even without
+  // "//", so checking for "://" / "//" alone isn't enough to catch it.
+  if (preg_match('/^[a-zA-Z][a-zA-Z0-9+.\-]*:/', $val)) return 'account/';
+
   return $val;
 }
 
@@ -108,11 +126,11 @@ $login_error = '';
 $reasons = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  // CSRF (only if your form includes it)
-  if (isset($_POST['csrf_token'])) {
-    if (!isset($_SESSION['csrf']) || !hash_equals($_SESSION['csrf'], (string)$_POST['csrf_token'])) {
-      $login_error = 'Session expired. Please reload and try again.';
-    }
+  // CSRF: always required. A forged cross-site POST that simply omits the
+  // field must fail here too, not skip validation.
+  $csrf_token = (string)($_POST['csrf_token'] ?? '');
+  if (empty($_SESSION['csrf']) || $csrf_token === '' || !hash_equals($_SESSION['csrf'], $csrf_token)) {
+    $login_error = 'Session expired. Please reload and try again.';
   }
 
   if ($login_error === '') {
@@ -121,7 +139,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pass = (string)($_POST['password'] ?? $_POST['pass'] ?? '');
     $next = safe_next($_POST['next'] ?? $_GET['next'] ?? 'account/');
 
-    if ($user === '' || $pass === '') {
+    // Rate limit by IP (broad anti-automation) and by the submitted
+    // identifier (so an attacker can't dodge the account-level limit by
+    // spreading attempts across many IPs). Either one tripping blocks the
+    // request.
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    // Both calls must run (not short-circuit) so each dimension's attempt
+    // count is recorded regardless of the other's result.
+    $ipRateOk   = OSWebSecurity::checkRateLimit('login_ip:' . $ip, 15, 900);
+    $userRateOk = OSWebSecurity::checkRateLimit('login_user:' . strtolower($user), 8, 900);
+
+    if (!$ipRateOk || !$userRateOk) {
+      $login_error = 'Too many login attempts. Please wait a few minutes and try again.';
+    } elseif ($user === '' || $pass === '') {
       $login_error = 'Please enter both username/email and password.';
     } else {
       $conn = db();
