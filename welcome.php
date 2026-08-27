@@ -180,9 +180,10 @@ require_once __DIR__ . "/include/utils.php";
             }
         }
         foreach ($images as $index => $image): ?>
-            <img class="slide-image <?php echo $index === 0 ? 'active' : ''; ?>" 
-                 src="<?php echo htmlspecialchars($image); ?>" 
-                 alt="Slide <?php echo $index + 1; ?>">
+            <img class="slide-image <?php echo $index === 0 ? 'active' : ''; ?>"
+                 src="<?php echo htmlspecialchars($image); ?>"
+                 alt="" role="presentation"
+                 <?php echo $index === 0 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'; ?>>
         <?php endforeach; ?>
     </div>
     
