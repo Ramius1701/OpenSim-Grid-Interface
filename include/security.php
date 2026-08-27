@@ -134,30 +134,74 @@ class OSWebSecurity {
     }
     
     /**
-     * Rate limiting
+     * Rate limiting.
+     *
+     * Backed by the database rather than the session: a session-based counter
+     * is trivially bypassed by simply not sending the session cookie, which
+     * gives every request a fresh counter. $key should identify what's being
+     * throttled (e.g. "login_ip:1.2.3.4" or "login_user:someone@example.com")
+     * so callers can rate-limit by IP and by target account independently.
+     *
+     * Returns true (and records this attempt) if the caller is still under
+     * the limit, false if the limit has already been reached for $key within
+     * the last $time_window seconds. Fails open (returns true) if the
+     * database is unavailable - rate limiting is defense in depth here, not
+     * the primary control, and every caller of this function also requires
+     * a working DB connection to do anything meaningful anyway.
      */
-    public static function checkRateLimit($identifier, $max_attempts = 5, $time_window = 300) {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+    public static function checkRateLimit(string $key, int $max_attempts = 8, int $time_window = 900): bool {
+        if (!function_exists('db')) {
+            return true;
         }
-        
-        $key = 'rate_limit_' . md5($identifier);
-        $now = time();
-        
-        if (!isset($_SESSION[$key])) {
-            $_SESSION[$key] = [];
+        $conn = db();
+        if (!$conn) {
+            return true;
         }
-        
-        // Clean old attempts
-        $_SESSION[$key] = array_filter($_SESSION[$key], function($timestamp) use ($now, $time_window) {
-            return ($now - $timestamp) < $time_window;
-        });
-        
-        if (count($_SESSION[$key]) >= $max_attempts) {
+
+        static $tableReady = false;
+        if (!$tableReady) {
+            mysqli_query($conn, "CREATE TABLE IF NOT EXISTS ws_rate_limits (
+                id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                rl_key VARCHAR(191) NOT NULL,
+                attempted_at INT UNSIGNED NOT NULL,
+                KEY idx_key_time (rl_key, attempted_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            $tableReady = true;
+        }
+
+        $now         = time();
+        $windowStart = $now - $time_window;
+
+        // Opportunistic cleanup of this key's expired rows, so the table
+        // doesn't grow without bound.
+        if ($stmt = mysqli_prepare($conn, "DELETE FROM ws_rate_limits WHERE rl_key = ? AND attempted_at < ?")) {
+            mysqli_stmt_bind_param($stmt, 'si', $key, $windowStart);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
+        }
+
+        $count = 0;
+        if ($stmt = mysqli_prepare($conn, "SELECT COUNT(*) FROM ws_rate_limits WHERE rl_key = ? AND attempted_at >= ?")) {
+            mysqli_stmt_bind_param($stmt, 'si', $key, $windowStart);
+            if (mysqli_stmt_execute($stmt)) {
+                mysqli_stmt_bind_result($stmt, $count);
+                mysqli_stmt_fetch($stmt);
+            }
+            mysqli_stmt_close($stmt);
+        }
+
+        if ($count >= $max_attempts) {
+            mysqli_close($conn);
             return false;
         }
-        
-        $_SESSION[$key][] = $now;
+
+        if ($stmt = mysqli_prepare($conn, "INSERT INTO ws_rate_limits (rl_key, attempted_at) VALUES (?, ?)")) {
+            mysqli_stmt_bind_param($stmt, 'si', $key, $now);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
+        }
+
+        mysqli_close($conn);
         return true;
     }
     
