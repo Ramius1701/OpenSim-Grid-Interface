@@ -12,6 +12,9 @@ declare(strict_types=1);
  *   /maps/map-tile.php?debug=1&x=1000&y=1000&z=1
  */
 
+// Deliberately not sourced from config.php (see file header: this proxy
+// intentionally avoids config includes). It's a loopback address to the
+// local ROBUST instance, not the grid's public GRID_PORT/BASE_URL.
 const MAP_TILE_SOURCE = 'http://127.0.0.1:8002';
 
 $x = filter_input(INPUT_GET, 'x', FILTER_VALIDATE_INT);

@@ -530,7 +530,8 @@ if (!defined('ADMIN_USERLEVEL_MIN')) {
     define('ADMIN_USERLEVEL_MIN', 200);
 }
 
-// OpenJPEG converter path
+// OpenJPEG converter path - *** CHANGE THIS *** for your install; this is a
+// machine-specific filesystem path, not a portable default.
 define('J2K_CONVERTER_PATH', 'S:/Tools/openjpeg/opj_decompress.exe');
 
 // OPTIONAL: custom cache directory (otherwise default is /data/profile_images)
