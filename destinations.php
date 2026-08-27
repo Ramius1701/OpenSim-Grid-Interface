@@ -237,7 +237,11 @@ $res = $stmt->get_result();
             $desc  = $row['description'] ?? 'Explore this region.';
             $dwell = isset($row['dwell']) ? number_format($row['dwell']) : null;
             $catID = $row['searchcategory'] ?? 0;
-            $cat   = $CATEGORY_MAP[$catID] ?? ($tab === 'discover' ? 'Online' : 'General');
+            // Named distinctly from the outer $cat (the active category
+            // *filter* from the query string) - reusing $cat here used to
+            // silently overwrite the filter with the last row's label,
+            // corrupting the Previous/Next pagination links below.
+            $catLabel = $CATEGORY_MAP[$catID] ?? ($tab === 'discover' ? 'Online' : 'General');
 
             $localImg = get_region_image($rName);
             $dbImg    = isset($row['pictureUUID']) ? get_db_img_url($row['pictureUUID']) : false;
@@ -287,7 +291,7 @@ $res = $stmt->get_result();
                     </h6>
 
                     <div class="d-flex align-items-center gap-2 mb-3 small">
-                        <span class="badge bg-secondary"><?= htmlspecialchars($cat) ?></span>
+                        <span class="badge bg-secondary"><?= htmlspecialchars($catLabel) ?></span>
                         <?php if ($tab === 'popular' && $dwell): ?>
                             <span class="text-body-secondary border-start ps-2" title="Traffic Score">
                                 <i class="bi bi-people-fill text-primary"></i> Traffic: <?= $dwell ?>
