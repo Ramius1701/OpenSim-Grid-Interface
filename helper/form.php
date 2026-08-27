@@ -1,6 +1,14 @@
 <?php
 // form.php
 
+// Anti-forgery token: see helper/event.php for why this is a per-session
+// random value rather than the hardcoded key this used to be.
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+if (empty($_SESSION['ev_form_token'])) {
+    $_SESSION['ev_form_token'] = bin2hex(random_bytes(32));
+}
+$SHARED_KEY = $_SESSION['ev_form_token'];
+
 function uuid_from_hex32($hex) {
     $hex = strtolower(preg_replace('/[^0-9a-f]/i','', $hex));
     if (strlen($hex) !== 32) return '';
@@ -120,7 +128,7 @@ if ($ownerUUID === '' || $region === '' || $localPos === '') {
   <input type="hidden" name="evobjpos"      value="<?php echo htmlspecialchars($localPos); ?>">
   <input type="hidden" name="evhglink"      value="">
   <input type="hidden" name="evversion"     value="Events Form:0.31b">
-  <input type="hidden" name="me"            value="bbc56453119cd13d751a9d97213f84401882f8bc1210d6a13461c3fa65c1545c"><!-- must match PHP -->
+  <input type="hidden" name="me"            value="<?php echo htmlspecialchars($SHARED_KEY); ?>">
 
   <button type="submit">Save Event</button>
 </form>

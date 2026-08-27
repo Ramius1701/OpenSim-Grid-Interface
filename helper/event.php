@@ -3,7 +3,15 @@
 // Users provide human bits + Region + Local X,Y,Z + Owner UUID.
 // submit.php will derive region base and (optionally) parcel UUID from DB.
 
-$SHARED_KEY    = 'bbc56453119cd13d751a9d97213f84401882f8bc1210d6a13461c3fa65c1545c';              // <-- MUST match submit.php
+// Anti-forgery token: a fresh, per-session random value, not a hardcoded
+// secret. A static key embedded in the page is visible to anyone via
+// view-source and protects nothing; a session-bound token means reading it
+// off your own page load only lets you submit as your own session.
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+if (empty($_SESSION['ev_form_token'])) {
+    $_SESSION['ev_form_token'] = bin2hex(random_bytes(32));
+}
+$SHARED_KEY    = $_SESSION['ev_form_token'];
 $FORM_VERSION  = 'Events ManualForm:1.0';
 ?>
 <!doctype html>

@@ -32,10 +32,15 @@ if (!is_file($cfg)) { echo "ERR_DBINFO"; __dbg("missing databaseinfo.php"); exit
 include $cfg;
 if (!isset($DB_HOST, $DB_USER, $DB_PASSWORD, $DB_NAME)) { echo "ERR_DBINFO"; __dbg("db vars not set"); exit; }
 
-// ----- shared key check -----
-$currkey = "bbc56453119cd13d751a9d97213f84401882f8bc1210d6a13461c3fa65c1545c"; // MUST match your forms' hidden input "me"
+// ----- anti-forgery token check -----
+// Verifies against the per-session random token event.php/form.php generate
+// and embed in their hidden "me" field - not a hardcoded shared secret,
+// which would be visible to anyone via view-source and would protect
+// nothing. See helper/event.php / helper/form.php for where this is issued.
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+$currkey = (string)($_SESSION['ev_form_token'] ?? '');
 $mk = $_POST['me'] ?? '';
-if (!hash_equals($currkey, (string)$mk)) { echo "ERR_KEY"; __dbg("bad key"); exit; }
+if ($currkey === '' || !hash_equals($currkey, (string)$mk)) { echo "ERR_KEY"; __dbg("bad key"); exit; }
 
 // ----- connect DB -----
 $db = @mysqli_connect($DB_HOST, $DB_USER, $DB_PASSWORD, $DB_NAME);
