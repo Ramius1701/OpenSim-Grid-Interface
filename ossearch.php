@@ -14,6 +14,12 @@ if (file_exists(__DIR__ . "/include/viewer_context.php")) {
 $con = db();
 if (!$con) { die("CORE SYSTEM OFFLINE."); }
 
+// The hub's own content (destinations/events/land/jobs) and teleport log
+// live in this site's own SQLite database, not the shared OpenSim MySQL
+// database - see include/ws_db.php.
+$wsdb = ws_db();
+if (!$wsdb) { die("CORE SYSTEM OFFLINE."); }
+
 /* -------------------------------------------------------
    Core Helpers
 ------------------------------------------------------- */
@@ -62,6 +68,34 @@ function stmt_exec(mysqli $con, string $sql, string $types = "", array $params =
         $ok = mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
         return (bool)$ok;
+    } catch (Throwable $e) { return false; }
+}
+
+// PDO equivalents of db_scalar()/stmt_rows()/stmt_exec() above, scoped to
+// this site's own SQLite database (ws_db()) - used only for the hub's own
+// content tables (ws_hub_*) and the teleport log, never for core OpenSim
+// tables, which stay on $con/mysqli via the functions above.
+function ws_db_scalar(PDO $pdo, string $sql, array $params = [], $default = 0) {
+    try {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $val = $stmt->fetchColumn();
+        return ($val !== false) ? $val : $default;
+    } catch (Throwable $e) { return $default; }
+}
+
+function ws_stmt_rows(PDO $pdo, string $sql, array $params = []): array {
+    try {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    } catch (Throwable $e) { return []; }
+}
+
+function ws_stmt_exec(PDO $pdo, string $sql, array $params = []): bool {
+    try {
+        $stmt = $pdo->prepare($sql);
+        return $stmt->execute($params);
     } catch (Throwable $e) { return false; }
 }
 
@@ -305,114 +339,14 @@ function get_online_count(mysqli $con, string &$meta = ''): int {
     return 0;
 }
 
-/* -------------------------------------------------------
-   ViewerOS tables (content + telemetry)
-------------------------------------------------------- */
-function ensure_vo_schema(mysqli $con): void {
-    mysqli_query($con, "
-        CREATE TABLE IF NOT EXISTS ws_hub_destinations (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            category VARCHAR(32) NOT NULL,
-            title VARCHAR(80) NOT NULL,
-            region VARCHAR(128) NOT NULL,
-            x SMALLINT NOT NULL DEFAULT 128,
-            y SMALLINT NOT NULL DEFAULT 128,
-            z SMALLINT NOT NULL DEFAULT 25,
-            description TEXT NULL,
-            tags VARCHAR(255) NULL,
-            image_url VARCHAR(255) NULL,
-            maturity VARCHAR(16) NOT NULL DEFAULT 'general',
-            active TINYINT(1) NOT NULL DEFAULT 1,
-            sort_order INT NOT NULL DEFAULT 0,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME NULL,
-            INDEX idx_cat_active (category, active),
-            INDEX idx_region (region)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    ");
-
-    mysqli_query($con, "
-        CREATE TABLE IF NOT EXISTS ws_hub_events (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            title VARCHAR(120) NOT NULL,
-            start_time DATETIME NOT NULL,
-            end_time DATETIME NULL,
-            region VARCHAR(128) NOT NULL,
-            x SMALLINT NOT NULL DEFAULT 128,
-            y SMALLINT NOT NULL DEFAULT 128,
-            z SMALLINT NOT NULL DEFAULT 25,
-            host VARCHAR(80) NULL,
-            category VARCHAR(32) NULL,
-            description TEXT NULL,
-            maturity VARCHAR(16) NOT NULL DEFAULT 'general',
-            active TINYINT(1) NOT NULL DEFAULT 1,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_start_active (start_time, active),
-            INDEX idx_region (region)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    ");
-
-    mysqli_query($con, "
-        CREATE TABLE IF NOT EXISTS ws_hub_land (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            title VARCHAR(120) NOT NULL,
-            region VARCHAR(128) NOT NULL,
-            x SMALLINT NOT NULL DEFAULT 128,
-            y SMALLINT NOT NULL DEFAULT 128,
-            z SMALLINT NOT NULL DEFAULT 25,
-            price INT NULL,
-            prims INT NULL,
-            size_m2 INT NULL,
-            rental_period VARCHAR(32) NULL,
-            contact VARCHAR(80) NULL,
-            description TEXT NULL,
-            active TINYINT(1) NOT NULL DEFAULT 1,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_active_created (active, created_at),
-            INDEX idx_region (region)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    ");
-
-    mysqli_query($con, "
-        CREATE TABLE IF NOT EXISTS ws_hub_jobs (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            title VARCHAR(120) NOT NULL,
-            pay VARCHAR(64) NULL,
-            region VARCHAR(128) NULL,
-            x SMALLINT NOT NULL DEFAULT 128,
-            y SMALLINT NOT NULL DEFAULT 128,
-            z SMALLINT NOT NULL DEFAULT 25,
-            contact VARCHAR(80) NULL,
-            description TEXT NULL,
-            active TINYINT(1) NOT NULL DEFAULT 1,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_active_created (active, created_at)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    ");
-
-    mysqli_query($con, "
-        CREATE TABLE IF NOT EXISTS ws_hub_teleport_log (
-            id BIGINT AUTO_INCREMENT PRIMARY KEY,
-            region VARCHAR(128) NOT NULL,
-            x SMALLINT NOT NULL,
-            y SMALLINT NOT NULL,
-            z SMALLINT NOT NULL,
-            case_name VARCHAR(32) NULL,
-            label VARCHAR(120) NULL,
-            user_agent VARCHAR(255) NULL,
-            ip VARCHAR(64) NULL,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_created (created_at),
-            INDEX idx_region_created (region, created_at)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    ");
-}
-ensure_vo_schema($con);
+// ViewerOS tables (content + telemetry): ws_hub_destinations/events/land/jobs
+// and ws_hub_teleport_log now live in this site's own SQLite database
+// (ws_db()) and are bootstrapped there - see include/ws_db.php.
 
 /* -------------------------------------------------------
    FIX #2: Places search (auto-detect regions table + name column)
 ------------------------------------------------------- */
-function collect_place_names(mysqli $con, string $like, string &$meta = ''): array {
+function collect_place_names(mysqli $con, PDO $wsdb, string $like, string &$meta = ''): array {
     $names = [];
 
     $lower = function($s) {
@@ -450,27 +384,17 @@ function collect_place_names(mysqli $con, string $like, string &$meta = ''): arr
         $meta = "Regions: NOT FOUND in this DB";
     }
 
-    // ViewerOS content tables as secondary sources
-    $sources = [
-        ['ws_hub_destinations', 'region'],
-        ['ws_hub_events',       'region'],
-        ['ws_hub_land',         'region'],
-        ['ws_hub_jobs',         'region'],
-    ];
+    // ViewerOS content tables as secondary sources (this site's own SQLite
+    // database - always exist, so no table/column existence check needed)
+    $sources = ['ws_hub_destinations', 'ws_hub_events', 'ws_hub_land', 'ws_hub_jobs'];
 
-    foreach ($sources as [$t, $c]) {
-        if (!table_exists($con, $t) || !column_exists_ci($con, $t, $c)) continue;
-        $tSafe = safe_ident($t);
-        $cSafe = safe_ident($c);
-        if (!$tSafe || !$cSafe) continue;
-
-        $rows = stmt_rows(
-            $con,
-            "SELECT DISTINCT `$cSafe` AS regionName
-             FROM `$tSafe`
-             WHERE active=1 AND `$cSafe` LIKE ?
+    foreach ($sources as $t) {
+        $rows = ws_stmt_rows(
+            $wsdb,
+            "SELECT DISTINCT region AS regionName
+             FROM \"$t\"
+             WHERE active=1 AND region LIKE ?
              LIMIT 150",
-            "s",
             [$like]
         );
         foreach ($rows as $r) $add($r['regionName'] ?? '');
@@ -582,11 +506,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin && csrf_ok()) {
         $mat  = strtolower(trim((string)($_POST['maturity'] ?? 'general')));
 
         if ($title2 !== '' && $region2 !== '') {
-            stmt_exec($con,
+            ws_stmt_exec($wsdb,
                 "INSERT INTO ws_hub_destinations (category, title, region, x, y, z, description, tags, image_url, maturity, active, sort_order, created_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, NOW())",
-                "sssiiissss",
-                [$cat, $title2, $region2, $x, $y, $z, $desc, $tags, $img, $mat]
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, ?)",
+                [$cat, $title2, $region2, $x, $y, $z, $desc, $tags, $img, $mat, ws_now()]
             );
             $flash = "Destination added.";
         } else $flash = "Missing title or region.";
@@ -607,11 +530,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin && csrf_ok()) {
         $endVal = ($end !== '') ? $end : null;
 
         if ($title2 !== '' && $start !== '' && $region2 !== '') {
-            stmt_exec($con,
+            ws_stmt_exec($wsdb,
                 "INSERT INTO ws_hub_events (title, start_time, end_time, region, x, y, z, host, category, description, maturity, active, created_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())",
-                "ssssiiissss",
-                [$title2, $start, $endVal, $region2, $x, $y, $z, $host, $cat, $desc, $mat]
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)",
+                [$title2, $start, $endVal, $region2, $x, $y, $z, $host, $cat, $desc, $mat, ws_now()]
             );
             $flash = "Event added.";
         } else $flash = "Missing title, start time, or region.";
@@ -633,11 +555,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin && csrf_ok()) {
         $desc = trim((string)($_POST['description'] ?? ''));
 
         if ($title2 !== '' && $region2 !== '') {
-            stmt_exec($con,
+            ws_stmt_exec($wsdb,
                 "INSERT INTO ws_hub_land (title, region, x, y, z, price, prims, size_m2, rental_period, contact, description, active, created_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())",
-                "ssiiiiiisss",
-                [$title2, $region2, $x, $y, $z, $price, $prims, $size, $period, $contact, $desc]
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)",
+                [$title2, $region2, $x, $y, $z, $price, $prims, $size, $period, $contact, $desc, ws_now()]
             );
             $flash = "Land listing added.";
         } else $flash = "Missing title or region.";
@@ -654,11 +575,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin && csrf_ok()) {
         $desc = trim((string)($_POST['description'] ?? ''));
 
         if ($title2 !== '') {
-            stmt_exec($con,
+            ws_stmt_exec($wsdb,
                 "INSERT INTO ws_hub_jobs (title, pay, region, x, y, z, contact, description, active, created_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())",
-                "sssiiiss",
-                [$title2, $pay, $region2, $x, $y, $z, $contact, $desc]
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)",
+                [$title2, $pay, $region2, $x, $y, $z, $contact, $desc, ws_now()]
             );
             $flash = "Job added.";
         } else $flash = "Missing job title.";
@@ -670,7 +590,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_admin && csrf_ok()) {
 
         $allowedTbl = ['ws_hub_destinations','ws_hub_events','ws_hub_land','ws_hub_jobs'];
         if (in_array($tbl, $allowedTbl, true) && $id > 0) {
-            stmt_exec($con, "DELETE FROM `$tbl` WHERE id = ?", "i", [$id]);
+            ws_stmt_exec($wsdb, "DELETE FROM \"$tbl\" WHERE id = ?", [$id]);
             $flash = "Deleted.";
         }
     }
@@ -699,7 +619,7 @@ if ($query !== "") {
     }
 
     if ($type === 'all' || $type === 'places') {
-        $places = collect_place_names($con, $like, $places_meta);
+        $places = collect_place_names($con, $wsdb, $like, $places_meta);
     }
 
     // Groups: keep your existing table name, but only if it exists
@@ -729,7 +649,7 @@ $jobs = [];
 $hotSites = [];
 
 if ($case === 'hub') {
-    $destinations = stmt_rows($con,
+    $destinations = ws_stmt_rows($wsdb,
         "SELECT * FROM ws_hub_destinations
          WHERE category='featured' AND active=1
          ORDER BY sort_order DESC, created_at DESC
@@ -754,28 +674,28 @@ if ($case === 'hub') {
 
 if (in_array($case, ['shops','clubs','adult'], true)) {
     if ($case !== 'adult' || $adult_ok) {
-        $destinations = stmt_rows($con,
+        $destinations = ws_stmt_rows($wsdb,
             "SELECT * FROM ws_hub_destinations
              WHERE category=? AND active=1
              ORDER BY sort_order DESC, created_at DESC
              LIMIT 60",
-            "s",
             [$case]
         );
     }
 }
 
 if ($case === 'events') {
-    $events = stmt_rows($con,
+    $events = ws_stmt_rows($wsdb,
         "SELECT * FROM ws_hub_events
-         WHERE active=1 AND start_time >= (NOW() - INTERVAL 2 HOUR)
+         WHERE active=1 AND start_time >= ?
          ORDER BY start_time ASC
-         LIMIT 80"
+         LIMIT 80",
+        [ws_now_offset(-2 * 3600)]
     );
 }
 
 if ($case === 'land') {
-    $land = stmt_rows($con,
+    $land = ws_stmt_rows($wsdb,
         "SELECT * FROM ws_hub_land
          WHERE active=1
          ORDER BY created_at DESC
@@ -784,7 +704,7 @@ if ($case === 'land') {
 }
 
 if ($case === 'jobs') {
-    $jobs = stmt_rows($con,
+    $jobs = ws_stmt_rows($wsdb,
         "SELECT * FROM ws_hub_jobs
          WHERE active=1
          ORDER BY created_at DESC
@@ -793,13 +713,14 @@ if ($case === 'jobs') {
 }
 
 if ($case === 'dwell') {
-    $hotSites = stmt_rows($con,
+    $hotSites = ws_stmt_rows($wsdb,
         "SELECT region, COUNT(*) AS hits
          FROM ws_hub_teleport_log
-         WHERE created_at >= (NOW() - INTERVAL 7 DAY)
+         WHERE created_at >= ?
          GROUP BY region
          ORDER BY hits DESC
-         LIMIT 25"
+         LIMIT 25",
+        [ws_now_offset(-7 * 86400)]
     );
 
     if (empty($hotSites)) {

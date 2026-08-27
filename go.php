@@ -5,8 +5,6 @@ if (file_exists(__DIR__ . "/include/viewer_context.php")) {
     include_once __DIR__ . "/include/viewer_context.php";
 }
 
-$con = db(); // optional
-
 function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 function clamp_int($v, int $min, int $max, int $fallback): int {
     if (!is_numeric($v)) return $fallback;
@@ -73,31 +71,20 @@ if ($region === '') {
 
 $sl = "secondlife://" . rawurlencode($region) . "/$x/$y/$z";
 
-/* Optional click logging */
-if ($con) {
+/* Optional click logging - ws_hub_teleport_log lives in this site's own
+   SQLite database (ws_db()), owned/bootstrapped by ossearch.php's schema -
+   see include/ws_db.php. */
+if ($wsdb = ws_db()) {
     try {
-        $exists = mysqli_query(
-            $con,
-            "SELECT 1 FROM information_schema.tables
-             WHERE table_schema = DATABASE() AND table_name='ws_hub_teleport_log' LIMIT 1"
-        );
-        if ($exists && mysqli_num_rows($exists) > 0) {
-            $ua = substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255);
-            $ip = substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 64);
+        $ua = substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255);
+        $ip = substr((string)($_SERVER['REMOTE_ADDR'] ?? ''), 0, 64);
 
-            $stmt = mysqli_prepare(
-                $con,
-                "INSERT INTO ws_hub_teleport_log (region, x, y, z, case_name, label, user_agent, ip, created_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())"
-            );
-            if ($stmt) {
-                mysqli_stmt_bind_param($stmt, "siiissss", $region, $x, $y, $z, $case, $label, $ua, $ip);
-                mysqli_stmt_execute($stmt);
-                mysqli_stmt_close($stmt);
-            }
-        }
+        $stmt = $wsdb->prepare(
+            "INSERT INTO ws_hub_teleport_log (region, x, y, z, case_name, label, user_agent, ip, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+        $stmt->execute([$region, $x, $y, $z, $case, $label, $ua, $ip, ws_now()]);
     } catch (Throwable $e) {}
-    mysqli_close($con);
 }
 ?>
 <!doctype html>
