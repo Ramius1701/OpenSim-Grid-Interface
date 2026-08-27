@@ -934,15 +934,28 @@ function showSuggestions(suggestions) {
     if (!suggestionsDiv) return;
     if (suggestions.length === 0) { hideSuggestions(); return; }
 
-    let html = '';
+    // Build DOM nodes directly instead of an HTML string: suggestions come
+    // from region/user names in the database, so both the visible text and
+    // the click handler must never be built by concatenating them into
+    // innerHTML or an inline attribute string.
+    suggestionsDiv.innerHTML = '';
     suggestions.forEach(suggestion => {
-        const safe = suggestion.replace(/'/g, "\\'");
-        html += `<a class="dropdown-item" href="#" onclick="selectSuggestion('${safe}'); return false;">
-                    <i class="bi bi-search me-2"></i>${suggestion}
-                 </a>`;
+        const a = document.createElement('a');
+        a.className = 'dropdown-item';
+        a.href = '#';
+        a.addEventListener('click', function (e) {
+            e.preventDefault();
+            selectSuggestion(suggestion);
+        });
+
+        const icon = document.createElement('i');
+        icon.className = 'bi bi-search me-2';
+        a.appendChild(icon);
+        a.appendChild(document.createTextNode(suggestion));
+
+        suggestionsDiv.appendChild(a);
     });
 
-    suggestionsDiv.innerHTML = html;
     suggestionsDiv.style.display = 'block';
 }
 
@@ -969,13 +982,14 @@ document.addEventListener('click', function(e) {
 if (searchInput) searchInput.focus();
 
 // Highlight search terms in results (avoid breaking links/buttons)
-const searchTerm = "<?php echo addslashes($query); ?>";
+const searchTerm = <?php echo json_encode((string)$query, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
 if (searchTerm) {
     highlightSearchTerms(searchTerm);
 }
 
 function highlightSearchTerms(term) {
-    const regex = new RegExp(`(${term})`, 'gi');
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escaped})`, 'gi');
     const textNodes = document.evaluate(
         "//text()[not(ancestor::script or ancestor::style or ancestor::a or ancestor::button)]",
         document,
@@ -986,11 +1000,30 @@ function highlightSearchTerms(term) {
 
     for (let i = 0; i < textNodes.snapshotLength; i++) {
         const node = textNodes.snapshotItem(i);
-        if (node.textContent.toLowerCase().includes(term.toLowerCase())) {
-            const parent = node.parentNode;
-            const newContent = node.textContent.replace(regex, '<mark>$1</mark>');
-            parent.innerHTML = parent.innerHTML.replace(node.textContent, newContent);
-        }
+        const text = node.textContent;
+        if (!text.toLowerCase().includes(term.toLowerCase())) continue;
+
+        // Split on the (capturing) regex and rebuild with real DOM nodes -
+        // never reassign innerHTML from text that came out of textContent,
+        // or any HTML-like characters already present in that text (e.g. a
+        // region name containing "<script>" as literal text) get re-parsed
+        // as markup instead of staying inert text.
+        const parts = text.split(regex);
+        if (parts.length <= 1) continue;
+
+        const frag = document.createDocumentFragment();
+        parts.forEach((part, idx) => {
+            if (part === '') return;
+            if (idx % 2 === 1) {
+                const mark = document.createElement('mark');
+                mark.textContent = part;
+                frag.appendChild(mark);
+            } else {
+                frag.appendChild(document.createTextNode(part));
+            }
+        });
+
+        node.parentNode.replaceChild(frag, node);
     }
 }
 </script>
