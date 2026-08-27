@@ -35,7 +35,7 @@ if (!file_exists($feedcache_path) or filemtime($feedcache_path) < (time() - $fee
     }
 
     echo $output;
-    //file_put_contents($feedcache_path, $output);
+    file_put_contents($feedcache_path, $output);
 } else {
     echo file_get_contents($feedcache_path);
 }
