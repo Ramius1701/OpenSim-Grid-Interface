@@ -448,6 +448,10 @@ if ($con) {
         $whereSql = 'WHERE ' . implode(' AND ', $whereParts);
     }
 
+    // Member/role counts are joined in as pre-aggregated subqueries rather
+    // than queried per row below - avoids an N+1 (up to 600 extra queries
+    // for 300 groups) that ga_count_members()/ga_count_roles() used to run
+    // once per row in the render loop.
     $sql = "
         SELECT
             g.GroupID,
@@ -460,10 +464,22 @@ if ($con) {
             g.FounderID,
             g.InsigniaID,
             u.FirstName,
-            u.LastName
+            u.LastName,
+            COALESCE(mc.member_count, 0) AS MemberCount,
+            COALESCE(rc.role_count, 0) AS RoleCount
         FROM os_groups_groups g
         LEFT JOIN UserAccounts u
             ON u.PrincipalID = g.FounderID
+        LEFT JOIN (
+            SELECT GroupID, COUNT(*) AS member_count
+            FROM os_groups_membership
+            GROUP BY GroupID
+        ) mc ON mc.GroupID = g.GroupID
+        LEFT JOIN (
+            SELECT GroupID, COUNT(*) AS role_count
+            FROM os_groups_roles
+            GROUP BY GroupID
+        ) rc ON rc.GroupID = g.GroupID
         $whereSql
         ORDER BY g.Name ASC
         LIMIT 300
@@ -894,8 +910,8 @@ if ($con && $editGroupId !== '') {
 
                                 $isHypergridFounder = ($ownerId === '00000000-0000-0000-0000-000000000000');
 
-                                $members   = ga_count_members($con, $gid);
-                                $roles     = ga_count_roles($con, $gid);
+                                $members   = (int)$g['MemberCount'];
+                                $roles     = (int)$g['RoleCount'];
 
                                 $showInList    = (int)$g['ShowInList'] === 1;
                                 $openEnroll    = (int)$g['OpenEnrollment'] === 1;
