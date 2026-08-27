@@ -1,0 +1,519 @@
+/* Static theme CSS shared by every page (include/header.php).
+ * Per-theme colors live in the small inline <style> block in header.php
+ * (CSS custom properties on :root) - everything here only ever
+ * references those via var(), so it's identical for every color scheme
+ * and safe to cache as a normal external stylesheet. */
+
+        /* CASPERIA_LAYOUT_BASE: 2025-12-23 */
+/* Keep width control on main-container; DO NOT globally override Bootstrap .container */
+.main-container{
+            max-width: 1200px;
+            margin: 0 auto;
+            /* Align with Bootstrap gutter math (12px when --bs-gutter-x is 1.5rem) */
+            padding-left: calc(var(--bs-gutter-x) * .5);
+            padding-right: calc(var(--bs-gutter-x) * .5);
+        }
+        /* Optional layout modes (apply by adding class to main-container) */
+        .main-container.wide{ max-width: 1320px; }
+        .main-container.fluid{ max-width: none; width: 100%; }
+
+        /* Prevent "double padding" when pages also wrap content in Bootstrap containers */
+        .main-container > .container,
+        .main-container > .container-fluid{
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            max-width: none !important;
+        }
+
+        /* --- COMPONENT SKINNING --- */
+        
+        .content-card, .card, .list-group-item, .modal-content, .well, .stat-card {
+            background-color: var(--card-bg) !important; 
+            color: var(--primary-color) !important;
+            border: 1px solid color-mix(in srgb, var(--primary-color), transparent 85%);
+            border-radius: var(--theme-radius);
+            box-shadow: var(--theme-shadow);
+            backdrop-filter: blur(10px);
+        }
+        
+        .card-header, .modal-header {
+            background-color: var(--header-color) !important;
+            background-image: none !important;
+            color: var(--header-text-color) !important;
+            border-top-left-radius: var(--theme-radius);
+            border-top-right-radius: var(--theme-radius);
+            border-bottom: 1px solid var(--card-border-color) !important;
+            padding: 1rem;
+        }
+        .section-title i { color: var(--accent-color) !important; }
+
+        
+        /* --- Alerts: keep readable in Bootstrap dark/light modes --- */
+        .alert {
+            background-color: var(--card-bg) !important;
+            color: var(--primary-color) !important;
+            border: 1px solid var(--card-border-color) !important;
+            border-left: 4px solid var(--accent-color) !important;
+        }
+        .alert a { color: var(--accent-color) !important; text-decoration: none; }
+        .alert a:hover { text-decoration: underline; }
+        .alert-info { border-left-color: var(--accent-color) !important; }
+        .alert-warning { border-left-color: #ffc107 !important; }
+        .alert-danger { border-left-color: #dc3545 !important; }
+        .alert-success { border-left-color: #198754 !important; }
+
+        /* --- Viewers page: Login URI label matches card header bar --- */
+        .login-uri-label {
+            background-color: var(--header-color) !important;
+            color: var(--header-text-color) !important;
+            border-color: var(--card-border-color) !important;
+            font-weight: 600;
+        }
+        .login-uri-label + .form-control { border-left-color: var(--card-border-color) !important; }
+
+        
+        /* --- Fallback when color-mix isn't supported (common in embedded viewers) --- */
+        @supports not (color: color-mix(in srgb, black, white)) {
+            .content-card, .card, .list-group-item, .modal-content, .well, .stat-card {
+                border-color: var(--card-border-color) !important;
+            }
+            .form-control, .form-select {
+                background-color: var(--card-bg) !important;
+                border-color: var(--card-border-color) !important;
+                color: var(--primary-color) !important;
+            }
+        }
+
+        /* --- NAVIGATION (Slimmed Down) --- */
+        .navbar-modern {
+            background: var(--header-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            
+            /* Reduced padding for a sleeker look */
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+        }
+        
+        .navbar-brand { 
+            font-weight: 700; 
+            font-size: 1.25rem; /* Standard brand size */
+            color: white !important; 
+            margin-right: 2rem; 
+        }
+        
+        .nav-link { 
+            color: rgba(255,255,255,0.95) !important; 
+            font-weight: 500; 
+            font-size: 1rem; /* Standard readable text */
+            border-radius: 6px; 
+            transition: all 0.2s; 
+            padding: 0.5rem 0.8rem !important; /* Slightly tighter click targets */
+        }
+        
+        .nav-item {
+            margin: 0 1px;
+        }
+        
+        .navbar .nav-link:hover, .navbar .nav-link.active { 
+            background-color: rgba(255,255,255,0.15); 
+            color: #fff !important; 
+        }
+
+        /* Universal nav-pills styling (in-page tab pills, e.g. profile.php's
+           About me/Picks/Classifieds/Groups tabs) - the complete pattern (base,
+           hover, active) lives here so any page using Bootstrap nav-pills gets
+           consistent, correctly-themed tabs without needing its own local CSS. */
+        .nav-pills .nav-link {
+            color: var(--bs-body-color);
+            background-color: transparent;
+            border: 1px solid rgba(var(--bs-body-color-rgb), 0.4);
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-pills .nav-link:hover {
+            border-color: var(--bs-body-color);
+            background-color: rgba(var(--bs-body-color-rgb), 0.05);
+        }
+        .nav-pills .nav-link.active, .nav-pills .nav-link.active:hover {
+            background-color: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+            color: #fff !important;
+        }
+
+        /* Universal nav-tabs styling (e.g. groups.php's Info/Members/Roles/Notices/
+           Invitations tabs). Base state inherits its parent's text color (works
+           against a dark card-header); active state MUST set an explicit, readable
+           text color to go with its light background - this was missing before,
+           which made the active tab's text invisible (white text on white bg). */
+        .nav-tabs .nav-link {
+            border: 1px solid transparent;
+        }
+        .nav-tabs .nav-link.active {
+            background-color: var(--bs-body-bg);
+            border-color: var(--bs-border-color) var(--bs-border-color) var(--bs-body-bg);
+            color: var(--primary-color) !important;
+        }
+
+        /* Universal card hover feel - was duplicated (some fully, some partially)
+           across picks.php, admin/analytics.php, classifieds.php, groups.php,
+           and friends.php. Consolidated once; groups.php/friends.php previously
+           only had the shadow half, they now get the image-scale effect too. */
+        .card {
+            transition: box-shadow 0.2s;
+        }
+        .card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .card-img-top {
+            transition: transform 0.2s;
+        }
+        .card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+        .card-img-top {
+            background-color: black; /* Placeholder bg for transparent snapshot/texture images */
+        }
+        
+        .dropdown-menu {
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: var(--theme-radius);
+            background-color: var(--card-bg); 
+            padding: 0.5rem;
+        }
+        .dropdown-item { 
+            color: var(--primary-color) !important; 
+            border-radius: 6px; 
+            margin: 2px 0;
+            padding: 0.5rem 1rem;
+        }
+        .dropdown-item:hover { background-color: var(--accent-color); color: #fff !important; }
+
+        /* Buttons & Inputs */
+        .btn-primary, .bg-primary, .badge.bg-primary, .hero-btn {
+            background-color: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+            color: #fff !important;
+            border-radius: var(--theme-radius);
+        }
+ 
+        /* Badges: ensure readable text on solid background badges across all themes */
+        .badge.bg-primary,
+        .badge.bg-success,
+        .badge.bg-secondary,
+        .badge.bg-danger,
+        .badge.bg-info,
+        .badge.bg-dark {
+            color: #fff !important;
+        }
+        .badge.bg-warning,
+        .badge.bg-light {
+            color: #000 !important;
+        }
+
+       .btn-outline-primary {
+            color: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+            border-radius: var(--theme-radius);
+        }
+        .btn-outline-primary:hover {
+            background-color: var(--accent-color) !important;
+            color: #fff !important;
+        }
+        
+        .form-control, .form-select {
+            background-color: color-mix(in srgb, var(--secondary-color), var(--primary-color) 5%);
+            color: var(--primary-color) !important;
+            border-color: color-mix(in srgb, var(--primary-color), transparent 80%);
+            border-radius: var(--theme-radius);
+        }
+        .form-control:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color), transparent 80%);
+        }
+
+        /* Footer */
+        .footer-modern {
+            background: var(--footer-color) !important;
+            color: #ffffff !important;
+            padding: 1rem 0;
+            position: fixed; bottom: 0; width: 100%; z-index: 1000;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .footer-modern a, .footer-modern .text-muted, .footer-modern i { color: #ffffff !important; }
+        .footer-modern, .footer-modern a { font-weight: 600 !important; }
+        .footer-modern a { text-decoration: none !important; }
+        .footer-modern a:hover { color: #fff !important; opacity: .85; }
+
+        
+        /* Theme Selector */
+        .color-theme-selector {
+            position: fixed; top: 50%; right: 10px; transform: translateY(-50%);
+            z-index: 1050; background: var(--card-bg); padding: 10px;
+            border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: none;
+            border: 1px solid var(--primary-color);
+        }
+        .color-theme-selector.open { display: flex !important; flex-direction: column; gap: 6px; align-items: center; }
+        .color-button { width: 30px; height: 30px; border: 2px solid white; border-radius: 50%; cursor: pointer; transition: transform 0.2s; }
+        .color-button:hover { transform: scale(1.1); }
+        
+        @media (max-width: 768px) {
+            body { padding-top: 70px; }
+            .content-card { padding: 1rem; margin-bottom: 1rem; }
+        }
+    
+        /* --- UNIFICATION OVERRIDES (Surgical) --- */
+
+        /* 0) Reading pages that use <main class="content-card"> need the same container feel */
+        main.content-card {
+            max-width: 1200px;
+            margin: 1.5rem auto;
+            padding: 1.25rem;
+        }
+
+        /* 1) Pill buttons (standalone) */
+        .btn, .btn-sm, .btn-lg {
+            border-radius: 9999px !important;
+        }
+
+        /* Keep segmented controls looking segmented */
+        .btn-group > .btn:not(:first-child),
+        .input-group > .btn:not(:first-child),
+        .input-group > .form-control:not(:first-child),
+        .input-group > .form-select:not(:first-child) {
+            border-top-left-radius: 0 !important;
+            border-bottom-left-radius: 0 !important;
+        }
+        .btn-group > .btn:not(:last-child),
+        .input-group > .btn:not(:last-child),
+        .input-group > .form-control:not(:last-child),
+        .input-group > .form-select:not(:last-child) {
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+        }
+        .btn-group > .btn:first-child,
+        .input-group > .btn:first-child,
+        .input-group > .form-control:first-child,
+        .input-group > .form-select:first-child {
+            border-top-left-radius: 9999px !important;
+            border-bottom-left-radius: 9999px !important;
+        }
+        .btn-group > .btn:last-child,
+        .input-group > .btn:last-child,
+        .input-group > .form-control:last-child,
+        .input-group > .form-select:last-child {
+            border-top-right-radius: 9999px !important;
+            border-bottom-right-radius: 9999px !important;
+        }
+
+        /* 2) Theme-safe "light" utility classes used in a few pages (e.g. classifieds back button, badges) */
+        .bg-light, .bg-white, .bg-body, .bg-body-tertiary, .bg-body-secondary {
+            background-color: color-mix(in srgb, var(--card-bg), var(--primary-color) 5%) !important;
+            color: var(--primary-color) !important;
+        }
+
+        .btn-light, .btn.btn-light {
+            background-color: color-mix(in srgb, var(--card-bg), var(--primary-color) 6%) !important;
+            color: var(--primary-color) !important;
+            border-color: color-mix(in srgb, var(--primary-color), transparent 75%) !important;
+        }
+        .btn-light:hover, .btn.btn-light:hover {
+            background-color: color-mix(in srgb, var(--card-bg), var(--primary-color) 10%) !important;
+            color: var(--primary-color) !important;
+        }
+
+        /* 3) Form controls: ensure readable text + placeholders in dark schemes */
+        input.form-control, textarea.form-control, .form-select {
+            background-color: var(--card-bg) !important;
+            color: var(--primary-color) !important;
+            border-color: color-mix(in srgb, var(--primary-color), transparent 75%) !important;
+        }
+        input.form-control::placeholder, textarea.form-control::placeholder {
+            color: color-mix(in srgb, var(--primary-color), transparent 45%) !important;
+        }
+        
+
+        /* 3b) Text utilities: keep Bootstrap muted/secondary text readable on all color schemes */
+        .text-muted, .text-secondary, .text-body-secondary {
+            color: color-mix(in srgb, var(--primary-color), transparent 40%) !important;
+        }
+        .text-body-tertiary {
+            color: color-mix(in srgb, var(--primary-color), transparent 55%) !important;
+        }
+
+        /* 3c) Link color inside content surfaces (avoid overriding buttons/nav) */
+        .content-card a:not(.btn):not(.nav-link):not(.dropdown-item),
+        .card a:not(.btn):not(.nav-link):not(.dropdown-item),
+        .list-group-item a:not(.btn):not(.nav-link):not(.dropdown-item) {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        .content-card a:not(.btn):not(.nav-link):not(.dropdown-item):hover,
+        .card a:not(.btn):not(.nav-link):not(.dropdown-item):hover,
+        .list-group-item a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
+            color: color-mix(in srgb, var(--accent-color), white 15%);
+            text-decoration: underline;
+        }
+input.form-control:focus, textarea.form-control:focus, .form-select:focus {
+            background-color: var(--card-bg) !important;
+            color: var(--primary-color) !important;
+            border-color: var(--accent-color) !important;
+            box-shadow: 0 0 0 .25rem color-mix(in srgb, var(--accent-color), transparent 75%) !important;
+        }
+
+        /* 4) Tables: make text readable in cards */
+        .table, .table * {
+            color: var(--primary-color) !important;
+        }
+        .table > :not(caption) > * > * {
+            background-color: transparent !important;
+            border-color: color-mix(in srgb, var(--primary-color), transparent 82%) !important;
+        }
+        .table-striped > tbody > tr:nth-of-type(odd) > * {
+            background-color: color-mix(in srgb, var(--card-bg), var(--primary-color) 4%) !important;
+        }
+        .table-hover > tbody > tr:hover > * {
+            background-color: color-mix(in srgb, var(--card-bg), var(--primary-color) 6%) !important;
+        }
+
+        /* 5) Profile tabs: make them look like pill buttons while keeping Bootstrap tab behavior */
+        .profile-tabs .nav-link {
+            border: 1px solid color-mix(in srgb, var(--primary-color), transparent 80%) !important;
+            border-radius: 9999px !important;
+            padding: .45rem .9rem !important;
+            color: var(--primary-color) !important;
+            background: transparent !important;
+        }
+        /* --- UI consistency patch: keep card headers rounded + readable across themes --- */
+        .card, .content-card, .modal-content, .stat-card {
+            overflow: hidden; /* ensures header backgrounds clip to rounded corners */
+        }
+
+        .card > .card-header, .content-card > .card-header, .card > .modal-header, .modal-content > .modal-header {
+            border-top-left-radius: inherit !important;
+            border-top-right-radius: inherit !important;
+        }
+
+        .card-header, .modal-header {
+            background-clip: padding-box;
+        }
+
+        /* Normalize hard-coded Bootstrap utility text colors to theme text */
+        .text-dark, .text-black {
+            color: var(--primary-color) !important;
+        }
+
+
+
+        /* 3d) Dark theme overrides for hardcoded dark text utilities */
+        html[data-bs-theme="dark"] .text-dark,
+        html[data-bs-theme="dark"] .text-black {
+            color: var(--primary-color) !important;
+        }
+        /* Keep dark text where the background really is light */
+        html[data-bs-theme="dark"] .bg-light.text-dark,
+        html[data-bs-theme="dark"] .btn-light.text-dark {
+            color: #000 !important;
+        }
+
+        /* 3e) Light badges in dark themes: keep readable + on-brand */
+        html[data-bs-theme="dark"] .badge.bg-light,
+        html[data-bs-theme="dark"] .badge.bg-light.text-dark {
+            background-color: color-mix(in srgb, var(--accent-color), transparent 78%) !important;
+            color: var(--primary-color) !important;
+            border: 1px solid color-mix(in srgb, var(--accent-color), transparent 70%) !important;
+        }
+
+        /* 4) Theme-aware secondary/info buttons (prevents too-dark buttons on dark schemes) */
+        .btn-secondary {
+            background-color: color-mix(in srgb, var(--accent-color), var(--card-bg) 70%) !important;
+            border-color: color-mix(in srgb, var(--accent-color), var(--card-bg) 55%) !important;
+            color: var(--primary-color) !important;
+            border-radius: var(--theme-radius);
+        }
+        .btn-secondary:hover, .btn-secondary:focus {
+            background-color: color-mix(in srgb, var(--accent-color), var(--card-bg) 55%) !important;
+            border-color: color-mix(in srgb, var(--accent-color), var(--card-bg) 40%) !important;
+            color: var(--primary-color) !important;
+        }
+
+        .btn-info {
+            background-color: color-mix(in srgb, var(--accent-color), white 10%) !important;
+            border-color: color-mix(in srgb, var(--accent-color), white 5%) !important;
+            color: #fff !important;
+            border-radius: var(--theme-radius);
+        }
+        .btn-info:hover, .btn-info:focus {
+            background-color: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+            color: #fff !important;
+        }
+        .btn-outline-info {
+            color: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+            border-radius: var(--theme-radius);
+        }
+        .btn-outline-info:hover, .btn-outline-info:focus {
+            background-color: var(--accent-color) !important;
+            color: #fff !important;
+        }
+
+        /* .btn-theme - solid variant, used by gridsearch.php, gridstatus.php,
+           and message.php. Same story as .btn-theme-outline below - referenced
+           everywhere, only ever actually defined locally in gridsearch.php, so
+           it did nothing at all on the other pages using it. */
+        .btn-theme {
+            background-color: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+            border-radius: var(--theme-radius);
+            color: #fff !important;
+        }
+        .btn-theme:hover, .btn-theme:focus {
+            filter: brightness(1.05);
+            color: #fff !important;
+        }
+
+        /* .btn-theme-outline - used by gridstatus.php, gridsearch.php, footer.php,
+           and message.php's tab-style buttons. Was referenced everywhere but never
+           actually defined - buttons using it had no real styling at all. */
+        .btn-theme-outline {
+            color: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+            border-radius: var(--theme-radius);
+            background-color: transparent !important;
+        }
+        .btn-theme-outline:hover, .btn-theme-outline:focus {
+            background-color: var(--accent-color) !important;
+            color: #fff !important;
+        }
+        .btn-theme-outline.active {
+            background-color: var(--accent-color) !important;
+            border-color: var(--accent-color) !important;
+            color: #fff !important;
+        }
+
+        /* Shared page hero banner - used by pages that open with a title/subtitle
+           banner (e.g. gridstatus.php, economy.php, admin pages). Previously
+           duplicated separately in each page's own <style> block; consolidated
+           here so every page gets the same treatment automatically. */
+        .page-hero {
+            background: linear-gradient(135deg,
+                color-mix(in srgb, var(--header-color), black 30%),
+                color-mix(in srgb, var(--header-color), black 60%)
+            );
+            border-radius: 15px; padding: 3rem 2rem; margin-bottom: 2rem;
+            text-align: center; color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .page-hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+
+        /* Reading-optimized variant of .content-card, for long-form text pages
+           (About, ToS, DMCA, etc.). Was being used on several pages but never
+           actually defined - text was stretching full-width with no readable
+           line length. Narrower column + taller line-height for readability. */
+        .content-card-read {
+            max-width: 720px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.7;
+        }
+        .content-card-read h2 { margin-top: 2rem; }
