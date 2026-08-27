@@ -24,6 +24,7 @@ $account_subtitle = $__meta['subtitle'];
 
 // Shared header (handles config, sessions, HTML <head>, etc.)
 require_once __DIR__ . '/../include/header.php';
+require_once __DIR__ . '/../include/security.php';
 
 if (!function_exists('format_region_location')) {
     /**
@@ -657,6 +658,74 @@ if (!function_exists('osv_password_hash_opensim')) {
     }
 }
 
+if (!function_exists('osv_verify_current_password')) {
+    function osv_verify_current_password(mysqli $conn, string $UID, string $plainPassword): bool {
+        $AT = osv_table_exists($conn, 'auth') ? 'auth'
+            : (osv_table_exists($conn, 'Auth') ? 'Auth' : '');
+        if (!$AT) {
+            return false;
+        }
+
+        $cols    = osv_get_columns($conn, $AT);
+        $idCol   = osv_pick_col($cols, ['UUID','PrincipalID','UserID']);
+        $hashCol = osv_pick_col($cols, ['passwordHash','passwordhash','Hash','hash']);
+        $saltCol = osv_pick_col($cols, ['passwordSalt','passwordsalt','Salt','salt']);
+        if (!$idCol || !$hashCol || !$saltCol) {
+            return false;
+        }
+
+        $sql = "SELECT `{$hashCol}` AS h, `{$saltCol}` AS s FROM `{$AT}` WHERE `{$idCol}` = ? LIMIT 1";
+        if (!($stmt = $conn->prepare($sql))) {
+            return false;
+        }
+        $stmt->bind_param('s', $UID);
+        if (!$stmt->execute() || !($res = $stmt->get_result())) {
+            $stmt->close();
+            return false;
+        }
+        $row = $res->fetch_assoc();
+        $res->close();
+        $stmt->close();
+
+        if (!$row) {
+            return false;
+        }
+
+        $storedHash = strtolower((string)$row['h']);
+        $salt       = (string)$row['s'];
+        if ($storedHash === '') {
+            return false;
+        }
+
+        // bcrypt (some grids migrate) — accept if present
+        if (preg_match('/^\$2[aby]\$/', $storedHash)) {
+            return password_verify($plainPassword, $storedHash);
+        }
+
+        // canonical lickx/opensim MD5 form
+        if (strtolower(osv_password_hash_opensim($plainPassword, $salt)) === $storedHash) {
+            return true;
+        }
+
+        // A few legacy hash-order variants seen on migrated grids.
+        $alt = [
+            md5($salt . md5($plainPassword)),
+            md5(md5($plainPassword) . $salt),
+            md5($plainPassword . ':' . $salt),
+            md5($salt . ':' . $plainPassword),
+            md5($plainPassword . $salt),
+            md5($salt . $plainPassword),
+        ];
+        foreach ($alt as $cand) {
+            if (strtolower($cand) === $storedHash) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
 if (!function_exists('osv_change_password')) {
     function osv_change_password(mysqli $conn, string $UID, string $newPassword, array &$errors): bool {
         $AT = osv_table_exists($conn, 'auth') ? 'auth'
@@ -725,6 +794,10 @@ if (!function_exists('osv_change_password')) {
 // ------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = isset($_POST['action']) ? trim((string)$_POST['action']) : '';
+    if ($action !== '' && !verify_csrf_token()) {
+        $errors[] = 'Your session has expired or the form was submitted incorrectly. Please try again.';
+        $action = '';
+    }
     if ($action !== '') {
         $connPost = osv_db();
         if (!$connPost) {
@@ -748,9 +821,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     break;
 
                 case 'update_password':
+                    $curPw = isset($_POST['current_password']) ? (string)$_POST['current_password'] : '';
                     $pw1 = isset($_POST['password']) ? (string)$_POST['password'] : '';
                     $pw2 = isset($_POST['confirm_password']) ? (string)$_POST['confirm_password'] : '';
-                    if ($pw1 === '' || $pw2 === '') {
+                    if ($curPw === '') {
+                        $errors[] = 'Please enter your current password.';
+                    } elseif (!osv_verify_current_password($connPost, $UID, $curPw)) {
+                        $errors[] = 'Current password is incorrect.';
+                    } elseif ($pw1 === '' || $pw2 === '') {
                         $errors[] = 'Password fields cannot be empty.';
                     } elseif ($pw1 !== $pw2) {
                         $errors[] = 'New password entries do not match.';
@@ -1867,6 +1945,7 @@ if ($conn && $UID !== '') {
                                     <hr class="my-4">
                                     <h2 class="h5 mb-3">In-world profile text</h2>
                                     <form method="post" action="" class="needs-validation" novalidate>
+                                        <?php echo csrf_token_field(); ?>
                                         <input type="hidden" name="action" value="update_profile">
                                         <div class="row g-3">
                                             <div class="col-md-7">
@@ -2196,6 +2275,7 @@ if ($conn && $UID !== '') {
 
 <h2 class="h5 mb-3">First life</h2>
                             <form method="post" action="" class="needs-validation" novalidate>
+                                <?php echo csrf_token_field(); ?>
                                 <input type="hidden" name="action" value="update_firstlife">
                                 <div class="row g-3">
                                     <div class="col-md-7">
@@ -2237,6 +2317,7 @@ if ($conn && $UID !== '') {
                                         <div class="small text-muted mt-1"><?php echo h($partner['uuid']); ?></div>
                                         <div class="mt-3">
                                             <form method="post" class="d-inline">
+                                                <?php echo csrf_token_field(); ?>
                                                 <input type="hidden" name="action" value="partner_break">
                                                 <button class="btn btn-sm btn-outline-danger" type="submit">
                                                     End partnership
@@ -2254,6 +2335,7 @@ if ($conn && $UID !== '') {
                                         <div class="small text-muted mt-1"><?php echo h($outgoingPartner['uuid']); ?></div>
                                         <div class="mt-3">
                                             <form method="post" class="d-inline">
+                                                <?php echo csrf_token_field(); ?>
                                                 <input type="hidden" name="action" value="partner_cancel">
                                                 <button class="btn btn-sm btn-outline-secondary" type="submit">
                                                     Cancel request
@@ -2284,6 +2366,7 @@ if ($conn && $UID !== '') {
                                                 </div>
                                                 <div class="btn-group">
                                                     <form method="post" class="me-1">
+                                                        <?php echo csrf_token_field(); ?>
                                                         <input type="hidden" name="action" value="partner_accept">
                                                         <input type="hidden" name="from_uuid" value="<?php echo h($req['uuid']); ?>">
                                                         <button class="btn btn-sm btn-primary" type="submit">
@@ -2291,6 +2374,7 @@ if ($conn && $UID !== '') {
                                                         </button>
                                                     </form>
                                                     <form method="post">
+                                                        <?php echo csrf_token_field(); ?>
                                                         <input type="hidden" name="action" value="partner_decline">
                                                         <input type="hidden" name="from_uuid" value="<?php echo h($req['uuid']); ?>">
                                                         <button class="btn btn-sm btn-outline-danger" type="submit">
@@ -2306,6 +2390,7 @@ if ($conn && $UID !== '') {
 
                             <?php if (!$partner_is_reciprocal && !$outgoingPartner): ?>
                                 <form method="post" class="card content-card shadow-sm border-0 p-3">
+                                    <?php echo csrf_token_field(); ?>
                                     <input type="hidden" name="action" value="partner_request">
 
                                     <div class="mb-3">
@@ -2397,6 +2482,7 @@ if ($conn && $UID !== '') {
                             </div>
 
                             <form method="post" action="" class="mb-3 needs-validation" novalidate>
+                                <?php echo csrf_token_field(); ?>
                                 <input type="hidden" name="action" value="update_email">
                                 <div class="mb-2">
                                     <label for="email" class="form-label">Email Address</label>
@@ -2426,7 +2512,13 @@ if ($conn && $UID !== '') {
                                         <div class="card-header bg-light fw-bold"><i class="bi bi-key"></i> Change Password</div>
                                         <div class="card-body">
                                             <form method="post" action="" class="needs-validation" autocomplete="new-password" novalidate>
+                                                <?php echo csrf_token_field(); ?>
                                                 <input type="hidden" name="action" value="update_password">
+                                                <div class="mb-3">
+                                                    <label for="current_password" class="form-label">Current password</label>
+                                                    <input id="current_password" name="current_password" type="password"
+                                                           class="form-control" autocomplete="current-password" required>
+                                                </div>
                                                 <div class="mb-3">
                                                     <label for="password" class="form-label">New password</label>
                                                     <input id="password" name="password" type="password"
@@ -2464,6 +2556,7 @@ if ($conn && $UID !== '') {
                                             </p>
 
                                             <form method="post" onsubmit="return confirm('Are you sure? Old codes will stop working.');">
+                                                <?php echo csrf_token_field(); ?>
                                                 <input type="hidden" name="action" value="regenerate_codes">
                                                 <button class="btn btn-outline-danger w-100" type="submit">
                                                     <i class="bi bi-arrow-repeat"></i> Regenerate New Codes
@@ -2550,6 +2643,7 @@ if ($conn && $UID !== '') {
                                     <hr class="my-4">
                                     <h2 class="h5 mb-3">In-world profile text</h2>
                                     <form method="post" action="" class="needs-validation" novalidate>
+                                        <?php echo csrf_token_field(); ?>
                                         <input type="hidden" name="action" value="update_profile">
                                         <div class="row g-3">
                                             <div class="col-md-7">

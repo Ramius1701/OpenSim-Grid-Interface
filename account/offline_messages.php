@@ -4,6 +4,7 @@
 
 $title = "Offline Messages";
 require_once __DIR__ . '/../include/header.php';
+require_once __DIR__ . '/../include/security.php';
 
 // Require login
 if (empty($_SESSION['user']['principal_id'])): ?>
@@ -34,6 +35,11 @@ $notice = null;
 // Handle deletes (single or bulk)
 if ($con && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+
+    if ($action !== '' && !verify_csrf_token()) {
+        $notice = 'Your session has expired or the form was submitted incorrectly. Please try again.';
+        $action = '';
+    }
 
     if ($action === 'delete_one') {
         $id = $_POST['id'] ?? '';
@@ -212,6 +218,7 @@ if (!$con) {
           <?php else: ?>
             <!-- SINGLE BULK FORM wraps everything so selected ids submit correctly -->
             <form method="post" id="bulkForm">
+              <?php echo csrf_token_field(); ?>
               <input type="hidden" name="action" value="delete_selected">
 
               <div class="d-flex align-items-center justify-content-between mb-2">
