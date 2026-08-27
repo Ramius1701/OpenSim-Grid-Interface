@@ -22,9 +22,21 @@ session_destroy();
 
 $dest = 'welcome.php';
 if (!empty($_GET['next'])) {
-    $n = (string)$_GET['next'];
-    if (strpos($n, '://') === false && strpos($n, '\\') === false) {
-        $dest = ltrim($n, '/');
+    // Strip all leading slashes first so a protocol-relative value like
+    // "//evil.com" collapses to the harmless relative path "evil.com"
+    // before we validate what's left.
+    $n = ltrim((string)$_GET['next'], '/');
+    if ($n !== ''
+        && strpos($n, '\\') === false
+        && strpos($n, "\n") === false
+        && strpos($n, "\r") === false
+        // Reject anything starting with a URI scheme (e.g. "https:evil.com",
+        // "javascript:..."). Browsers parse "scheme:host" as an absolute URL
+        // for special schemes even without "//", so checking for "://" alone
+        // (the previous check) isn't enough to catch it.
+        && !preg_match('/^[a-zA-Z][a-zA-Z0-9+.\-]*:/', $n)
+    ) {
+        $dest = $n;
     }
 }
 header('Location: ' . $dest, true, 302);
