@@ -170,6 +170,20 @@ define('CALENDAR_TITLE', 'Event Calendar');
 if (!defined('REGISTRATION_CREATE_MODE')) {
     define('REGISTRATION_CREATE_MODE', 'db');
 }
+
+// Robust /accounts admin API (used by register.php's osv_robust_createuser()
+// when REGISTRATION_CREATE_MODE is 'robust' or 'auto'). Basic Auth
+// credentials, if needed, are ROBUST_HTTP_USER/PASS in env.php.
+if (!defined('ROBUST_ACCOUNTS_URL')) {
+    define('ROBUST_ACCOUNTS_URL', 'http://127.0.0.1:8003/accounts');
+}
+
+// Optional separate Money-Server database (register.php's
+// sync_money_server()). Leave MONEY_DB_NAME empty (the default) to keep
+// this feature off. Credentials are MONEY_DB_USER/PASS in env.php.
+if (!defined('MONEY_DB_HOST')) define('MONEY_DB_HOST', 'localhost');
+if (!defined('MONEY_DB_PORT')) define('MONEY_DB_PORT', 3306);
+if (!defined('MONEY_DB_NAME')) define('MONEY_DB_NAME', '');
 // Titel des Event-Kalenders / Title of the event calendar
 
 // Viewer / in-world event categories (search_events.Category).

@@ -206,10 +206,10 @@ function sync_money_server($uuid, $email, $conn = null) {
             return false;
         }
 
-        $host = defined('MONEY_DB_HOST') ? constant('MONEY_DB_HOST') : 'localhost';
-        $port = defined('MONEY_DB_PORT') ? (int)constant('MONEY_DB_PORT') : 3306;
-        $user = defined('MONEY_DB_USER') ? constant('MONEY_DB_USER') : 'root';
-        $pass = defined('MONEY_DB_PASS') ? constant('MONEY_DB_PASS') : '';
+        $host = constant('MONEY_DB_HOST');
+        $port = (int)constant('MONEY_DB_PORT');
+        $user = constant('MONEY_DB_USER');
+        $pass = constant('MONEY_DB_PASS');
         $name = constant('MONEY_DB_NAME');
 
         $m = @new mysqli($host, $user, $pass, $name, $port);
@@ -247,8 +247,8 @@ function sync_money_server($uuid, $email, $conn = null) {
 function osv_robust_createuser(string $first, string $last, string $pass, string $email, string $uuid, string $scope, string &$err): bool {
     $err = '';
 
-    // Default to local Robust private port (standard default setup). Override via ROBUST_ACCOUNTS_URL if defined.
-    $url = defined('ROBUST_ACCOUNTS_URL') ? constant('ROBUST_ACCOUNTS_URL') : 'http://127.0.0.1:8003/accounts';
+    // Default to local Robust private port (standard default setup). Override via ROBUST_ACCOUNTS_URL in config.php.
+    $url = constant('ROBUST_ACCOUNTS_URL');
 
     // Build POST body as application/x-www-form-urlencoded
     $post = http_build_query([
@@ -267,8 +267,8 @@ function osv_robust_createuser(string $first, string $last, string $pass, string
     ];
 
     // Optional Basic Auth (Robust supports this for private services)
-    $basicUser = defined('ROBUST_HTTP_USER') ? constant('ROBUST_HTTP_USER') : '';
-    $basicPass = defined('ROBUST_HTTP_PASS') ? constant('ROBUST_HTTP_PASS') : '';
+    $basicUser = constant('ROBUST_HTTP_USER');
+    $basicPass = constant('ROBUST_HTTP_PASS');
 
     // Use cURL if available (more reliable than file_get_contents)
     if (function_exists('curl_init')) {
