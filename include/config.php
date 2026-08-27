@@ -189,6 +189,9 @@ if (!defined('MONEY_DB_NAME')) define('MONEY_DB_NAME', '');
 // filtering, support.php's guest ticket UUID, etc.)
 if (!defined('SYSTEM_PRINCIPAL_ID')) define('SYSTEM_PRINCIPAL_ID', '00000000-0000-0000-0000-000000000000');
 if (!defined('GUEST_PRINCIPAL_ID'))  define('GUEST_PRINCIPAL_ID',  '00000000-0000-0000-0000-000000000001');
+
+// Region snapshot directory (destinations.php, guide.php)
+if (!defined('IMAGE_DIR')) define('IMAGE_DIR', 'region_images');
 // Titel des Event-Kalenders / Title of the event calendar
 
 // Viewer / in-world event categories (search_events.Category).

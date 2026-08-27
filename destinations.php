@@ -11,8 +11,6 @@ if (is_file($envPath)) require_once $envPath;
 $title = "Destinations";
 include_once __DIR__ . "/include/" . HEADER_FILE;
 
-define('IMAGE_DIR', 'region_images');
-
 $mysqli = db();
 if (!$mysqli) {
     echo '<div class="container my-4"><div class="alert alert-danger">Database connection failed.</div></div>';

@@ -16,8 +16,6 @@ ob_end_clean();
 
 $mysqli = function_exists('db') ? db() : null;
 
-define('IMAGE_DIR', 'region_images'); 
-
 $CATEGORY_MAP = [
     3 => "Arts & Culture", 4 => "Business", 5 => "Education", 
     6 => "Gaming", 7 => "Hangout", 8 => "Newcomer", 
