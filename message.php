@@ -1,7 +1,7 @@
 <?php
 // casperia/message.php — Internal web messaging (IM-style) for Casperia site
 // Replaces legacy MOTD JSON endpoint. Keeps filename reserved for messaging.
-// Storage: ws_messages table in the same DB as your OpenSim + site tables.
+// Storage: ws_messages table in this site's own SQLite database (ws_db()).
 
 $title = "Messages";
 
@@ -30,6 +30,9 @@ if (!$isLoggedIn) {
 // ------------------------------------------------------------
 // DB connect
 // ------------------------------------------------------------
+// $con (MySQL) is only needed here to resolve avatar names from
+// UserAccounts; ws_messages itself lives in this site's own SQLite
+// database (ws_db()) - see include/ws_db.php.
 $con = db();
 if (!$con) {
     echo '<div class="content-card"><div class="alert alert-danger mb-0">Database connection failed.</div></div>';
@@ -37,21 +40,12 @@ if (!$con) {
     exit;
 }
 
-// Ensure ws_messages table exists (surgical, self-contained)
-mysqli_query($con, "CREATE TABLE IF NOT EXISTS ws_messages (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    sender_uuid CHAR(36) NOT NULL,
-    receiver_uuid CHAR(36) NOT NULL,
-    subject VARCHAR(150) NOT NULL DEFAULT '',
-    body TEXT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    is_read TINYINT(1) NOT NULL DEFAULT 0,
-    sender_deleted TINYINT(1) NOT NULL DEFAULT 0,
-    receiver_deleted TINYINT(1) NOT NULL DEFAULT 0,
-    INDEX idx_receiver (receiver_uuid, is_read),
-    INDEX idx_sender (sender_uuid),
-    INDEX idx_created (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+$wsdb = ws_db();
+if (!$wsdb) {
+    echo '<div class="content-card"><div class="alert alert-danger mb-0">Database connection failed.</div></div>';
+    include_once __DIR__ . "/include/" . FOOTER_FILE;
+    exit;
+}
 
 // ------------------------------------------------------------
 // Helpers
@@ -96,11 +90,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
         $flashType = 'danger';
         $action = 'compose';
     } else {
-        $sql = "INSERT INTO ws_messages (sender_uuid, receiver_uuid, subject, body) VALUES (?,?,?,?)";
-        $st = mysqli_prepare($con, $sql);
-        mysqli_stmt_bind_param($st, "ssss", $currentUserId, $to, $subj, $body);
-        $ok = mysqli_stmt_execute($st);
-        mysqli_stmt_close($st);
+        $st = $wsdb->prepare("INSERT INTO ws_messages (sender_uuid, receiver_uuid, subject, body) VALUES (?,?,?,?)");
+        $ok = $st->execute([$currentUserId, $to, $subj, $body]);
 
         if ($ok) {
             $flash = "Message sent.";
@@ -121,20 +112,19 @@ if ($action === 'delete' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
 
     // Determine whether user is sender or receiver and soft-delete accordingly
-    $sql = "SELECT sender_uuid, receiver_uuid FROM ws_messages WHERE id = ? LIMIT 1";
-    $st = mysqli_prepare($con, $sql);
-    mysqli_stmt_bind_param($st, "i", $id);
-    mysqli_stmt_execute($st);
-    mysqli_stmt_bind_result($st, $sender, $receiver);
-    if (mysqli_stmt_fetch($st)) {
-        mysqli_stmt_close($st);
+    $st = $wsdb->prepare("SELECT sender_uuid, receiver_uuid FROM ws_messages WHERE id = ? LIMIT 1");
+    $st->execute([$id]);
+    $row = $st->fetch();
+    if ($row) {
+        $sender = $row['sender_uuid'];
+        $receiver = $row['receiver_uuid'];
         if ($sender === $currentUserId) {
-            mysqli_query($con, "UPDATE ws_messages SET sender_deleted=1 WHERE id=".(int)$id);
+            $wsdb->prepare("UPDATE ws_messages SET sender_deleted=1 WHERE id=?")->execute([$id]);
             $flash = "Message removed from Sent.";
             $flashType = 'success';
             $action = 'sent';
         } elseif ($receiver === $currentUserId) {
-            mysqli_query($con, "UPDATE ws_messages SET receiver_deleted=1 WHERE id=".(int)$id);
+            $wsdb->prepare("UPDATE ws_messages SET receiver_deleted=1 WHERE id=?")->execute([$id]);
             $flash = "Message removed from Inbox.";
             $flashType = 'success';
             $action = 'inbox';
@@ -144,7 +134,6 @@ if ($action === 'delete' && isset($_GET['id'])) {
             $action = 'inbox';
         }
     } else {
-        mysqli_stmt_close($st);
         $flash = "Message not found.";
         $flashType = 'danger';
         $action = 'inbox';
@@ -312,13 +301,9 @@ if ($action === 'compose') {
     $id  = (int)$_GET['id'];
     $msg = null;
 
-    if ($st = mysqli_prepare($con, "SELECT * FROM ws_messages WHERE id=? LIMIT 1")) {
-        mysqli_stmt_bind_param($st, "i", $id);
-        mysqli_stmt_execute($st);
-        $res = mysqli_stmt_get_result($st);
-        $msg = mysqli_fetch_assoc($res);
-        mysqli_stmt_close($st);
-    }
+    $st = $wsdb->prepare("SELECT * FROM ws_messages WHERE id=? LIMIT 1");
+    $st->execute([$id]);
+    $msg = $st->fetch() ?: null;
 
     if (!$msg) {
         ?>
@@ -327,7 +312,7 @@ if ($action === 'compose') {
     } else {
         // Mark as read if we are the receiver
         if ($msg['receiver_uuid'] === $currentUserId) {
-            mysqli_query($con, "UPDATE ws_messages SET is_read=1 WHERE id=".(int)$id);
+            $wsdb->prepare("UPDATE ws_messages SET is_read=1 WHERE id=?")->execute([$id]);
         } elseif ($msg['sender_uuid'] !== $currentUserId) {
             ?>
               <div class="alert alert-danger mb-0">You don’t have permission to view that message.</div>
@@ -368,37 +353,23 @@ if ($action === 'compose') {
     $messages = [];
 
     if ($action === 'sent') {
-        $sql = "SELECT id, receiver_uuid, subject, created_at
+        $st = $wsdb->prepare("SELECT id, receiver_uuid, subject, created_at
                 FROM ws_messages
                 WHERE sender_uuid=? AND sender_deleted=0
                 ORDER BY created_at DESC
-                LIMIT 200";
-        if ($st = mysqli_prepare($con, $sql)) {
-            mysqli_stmt_bind_param($st, "s", $currentUserId);
-            mysqli_stmt_execute($st);
-            $res = mysqli_stmt_get_result($st);
-            while ($row = mysqli_fetch_assoc($res)) {
-                $messages[] = $row;
-            }
-            mysqli_stmt_close($st);
-        }
+                LIMIT 200");
+        $st->execute([$currentUserId]);
+        $messages = $st->fetchAll();
     } else {
         // inbox default
         $action = 'inbox';
-        $sql = "SELECT id, sender_uuid, subject, created_at, is_read
+        $st = $wsdb->prepare("SELECT id, sender_uuid, subject, created_at, is_read
                 FROM ws_messages
                 WHERE receiver_uuid=? AND receiver_deleted=0
                 ORDER BY created_at DESC
-                LIMIT 200";
-        if ($st = mysqli_prepare($con, $sql)) {
-            mysqli_stmt_bind_param($st, "s", $currentUserId);
-            mysqli_stmt_execute($st);
-            $res = mysqli_stmt_get_result($st);
-            while ($row = mysqli_fetch_assoc($res)) {
-                $messages[] = $row;
-            }
-            mysqli_stmt_close($st);
-        }
+                LIMIT 200");
+        $st->execute([$currentUserId]);
+        $messages = $st->fetchAll();
     }
     ?>
           <h2 class="mb-3"><?= $action === 'sent' ? 'Sent Messages' : 'Inbox' ?></h2>

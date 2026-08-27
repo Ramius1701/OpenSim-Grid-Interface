@@ -27,16 +27,15 @@ if (!$con) {
 
 $__navTmpCount = 0;
 
-// 1) Unread internal web messages (ws_messages)
-if ($stmt = @mysqli_prepare($con, "SELECT COUNT(*) FROM ws_messages WHERE receiver_uuid = ? AND is_read = 0 AND receiver_deleted = 0")) {
-    mysqli_stmt_bind_param($stmt, 's', $userId);
-    if (mysqli_stmt_execute($stmt)) {
-        mysqli_stmt_bind_result($stmt, $__navTmpCount);
-        if (mysqli_stmt_fetch($stmt)) {
-            $nav_unreadMessagesCount = (int)$__navTmpCount;
-        }
+// 1) Unread internal web messages (ws_messages - this site's own SQLite DB)
+if ($wsdb = @ws_db()) {
+    try {
+        $stmt = $wsdb->prepare("SELECT COUNT(*) FROM ws_messages WHERE receiver_uuid = ? AND is_read = 0 AND receiver_deleted = 0");
+        $stmt->execute([$userId]);
+        $nav_unreadMessagesCount = (int)$stmt->fetchColumn();
+    } catch (Throwable $e) {
+        // leave default 0
     }
-    mysqli_stmt_close($stmt);
 }
 
 // 2) Pending Offline IMs (im_offline)
