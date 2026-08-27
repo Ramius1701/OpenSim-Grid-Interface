@@ -1,0 +1,13 @@
+# Casperia Prime addition: block ALL direct web access to this directory.
+# It holds the site's own SQLite database (website.sqlite) - recovery-code
+# hashes, private messages, and ticket contact emails live here. Unlike
+# helper/.htaccess (which only blocks specific extensions), nothing in this
+# directory is ever meant to be served, so deny everything in it outright.
+
+Require all denied
+
+# Belt-and-suspenders for older Apache (mod_access_compat) setups:
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

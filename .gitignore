@@ -4,6 +4,11 @@ include/env.php
 # Logs
 *.log
 
+# This site's own SQLite database (ws_* tables) - runtime data, not source.
+# data/db/.htaccess is intentionally NOT ignored - it's part of the setup.
+data/db/*.sqlite
+data/db/*.sqlite-*
+
 # OS / editor files
 .DS_Store
 Thumbs.db

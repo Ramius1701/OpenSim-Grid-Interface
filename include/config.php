@@ -206,6 +206,10 @@ define('PATH_DESTINATIONS_JSON',    PATH_DATA_ROOT . '/destinations/destinations
 define('PATH_OSWDESTINATIONS_JSON', PATH_DATA_ROOT . '/destinations/oswdestinations.json');
 define('PATH_GRIDSTATS_JSON',       PATH_DATA_ROOT . '/cache/gridstats.json');
 
+// This site's own bolt-on tables (ws_*) live in a separate SQLite DB, not
+// the shared OpenSim/Robust MySQL database - see include/ws_db.php.
+require_once __DIR__ . '/ws_db.php';
+
 // --- THEME ENGINE 2.0 ---
 // Popular Web Palettes (2024-2025)
 // Structure:
