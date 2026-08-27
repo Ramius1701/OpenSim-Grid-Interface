@@ -12,7 +12,9 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-// Minimum user level required for admin tools
+// Minimum user level required for admin tools. Normally set by config.php,
+// but this module is included from multiple entry points, so keep this
+// defensive fallback in case a caller ever includes it before config.php.
 if (!defined('ADMIN_USERLEVEL_MIN')) {
     define('ADMIN_USERLEVEL_MIN', 200);
 }

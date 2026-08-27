@@ -110,11 +110,7 @@ if ($stmt = mysqli_prepare($db, "SELECT UserLevel, FirstName, LastName FROM User
     mysqli_stmt_close($stmt);
 }
 
-// Require at least ADMIN_USERLEVEL_MIN (from config.php)
-if (!defined('ADMIN_USERLEVEL_MIN')) {
-    define('ADMIN_USERLEVEL_MIN', 200);
-}
-
+// Require at least ADMIN_USERLEVEL_MIN (from config.php, required above)
 if ($userLevel < ADMIN_USERLEVEL_MIN) {
     ?>
     <main class="content-card">
