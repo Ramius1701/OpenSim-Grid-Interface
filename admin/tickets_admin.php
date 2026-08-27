@@ -7,6 +7,7 @@
 
 require_once __DIR__ . '/../include/config.php';
 require_once __DIR__ . '/../include/auth.php';
+require_once __DIR__ . '/../include/security.php';
 
 $title = "Support Tickets";
 
@@ -105,6 +106,12 @@ $flashType = 'info';
 // ------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+
+    if ($action !== '' && !verify_csrf_token()) {
+        $flash     = 'Your session has expired or the form was submitted incorrectly. Please try again.';
+        $flashType = 'danger';
+        $action    = '';
+    }
 
     if ($action === 'update_status') {
         $ticketId = (int)($_POST['ticket_id'] ?? 0);
@@ -335,6 +342,7 @@ if ($res) {
                                         </a>
 
                                         <form method="post" action="" class="d-inline">
+                                            <?php echo csrf_token_field(); ?>
                                             <input type="hidden" name="action" value="update_status">
                                             <input type="hidden" name="ticket_id" value="<?php echo (int)$t['id']; ?>">
                                             <select name="status" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">

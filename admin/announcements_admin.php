@@ -5,6 +5,7 @@ require_once __DIR__ . '/../include/config.php';
 require_once __DIR__ . '/../include/env.php';
 require_once __DIR__ . '/../include/auth.php';
 require_once __DIR__ . '/../include/file_store.php';
+require_once __DIR__ . '/../include/security.php';
 
 $title = "Announcements Admin";
 
@@ -39,6 +40,12 @@ if (is_file($path)) {
 // Handle actions
 $action           = $_POST['action'] ?? '';
 $currentEditIndex = null;
+
+if ($action !== '' && !verify_csrf_token()) {
+    $statusMessage = 'Your session has expired or the form was submitted incorrectly. Please try again.';
+    $statusClass   = 'danger';
+    $action        = '';
+}
 
 if ($action === 'save') {
     $idxRaw = $_POST['idx'] ?? '';
@@ -202,6 +209,7 @@ $self = ann_h($self);
                 </div>
                 <div class="card-body">
                 <form method="post" class="row g-2 align-items-end">
+                    <?php echo csrf_token_field(); ?>
                     <input type="hidden" name="action" value="save" />
                     <input type="hidden" name="idx" value="<?php echo $isEditing ? ann_h((string)$currentEditIndex) : ''; ?>" />
 
@@ -338,6 +346,7 @@ $self = ann_h($self);
                                         </a>
                                         <form method="post" class="d-inline"
                                               onsubmit="return confirm('Delete this announcement?');">
+                                            <?php echo csrf_token_field(); ?>
                                             <input type="hidden" name="action" value="delete">
                                             <input type="hidden" name="idx" value="<?php echo ann_h((string)$i); ?>">
                                             <button class="btn btn-sm btn-outline-danger" type="submit">

@@ -5,6 +5,7 @@ require_once __DIR__ . '/../include/config.php';
 require_once __DIR__ . '/../include/env.php';
 require_once __DIR__ . '/../include/auth.php';
 require_once __DIR__ . '/../include/file_store.php';
+require_once __DIR__ . '/../include/security.php';
 
 $title = 'Add Holiday';
 
@@ -33,7 +34,13 @@ if (is_file($path)) {
     }
 }
 
-if (($_POST['action'] ?? '') === 'save') {
+$csrfOk = ($_POST['action'] ?? '') === '' || verify_csrf_token();
+if (!$csrfOk) {
+    $statusMessage = 'Your session has expired or the form was submitted incorrectly. Please try again.';
+    $statusClass   = 'danger';
+}
+
+if ($csrfOk && ($_POST['action'] ?? '') === 'save') {
     $date        = trim($_POST['date']        ?? '');
     $titleField  = trim($_POST['title']       ?? '');
     $description = trim($_POST['description'] ?? '');
@@ -138,6 +145,7 @@ require_once __DIR__ . '/../include/header.php';
                 </div>
                 <div class="card-body">
                     <form method="post" action="" class="row g-3">
+                        <?php echo csrf_token_field(); ?>
                         <input type="hidden" name="action" value="save" />
 
                         <div class="col-md-4">

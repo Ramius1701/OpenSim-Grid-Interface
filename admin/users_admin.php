@@ -9,7 +9,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 
 require_once __DIR__ . '/../include/config.php';
 // Include auth but do not call require_admin() yet
-require_once __DIR__ . '/../include/auth.php'; 
+require_once __DIR__ . '/../include/auth.php';
+require_once __DIR__ . '/../include/security.php';
 
 // 2. ROBUST AUTH CHECK (Database Lookup)
 // We query the DB directly to get the real UserLevel, ignoring potentially stale session data.
@@ -82,6 +83,12 @@ $editUUID       = trim($_GET['edit'] ?? '');
 // ------------------------------------------------------------------
 if ($con && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+
+    if ($action !== '' && !verify_csrf_token()) {
+        $statusMessage = 'Your session has expired or the form was submitted incorrectly. Please try again.';
+        $statusClass   = 'danger';
+        $action        = '';
+    }
 
     // --- 1. SAVE USER DETAILS ---
     if ($action === 'save_user') {
@@ -420,6 +427,7 @@ if ($con && $editUUID !== '') {
                 </div>
                 <div class="card-body p-4">
                     <form method="post" class="row g-3">
+                        <?php echo csrf_token_field(); ?>
                         <input type="hidden" name="action" value="save_user">
                         <input type="hidden" name="uuid" value="<?php echo u_h($editUser['PrincipalID']); ?>">
                         
@@ -460,6 +468,7 @@ if ($con && $editUUID !== '') {
                                     <h6 class="fw-bold text-dark"><i class="bi bi-key-fill me-1"></i> Admin Password Reset</h6>
                                     <p class="small mb-3 text-body-secondary">Manually set a new password if the user is locked out.</p>
                                     <form method="post">
+                                        <?php echo csrf_token_field(); ?>
                                         <input type="hidden" name="action" value="reset_password">
                                         <input type="hidden" name="uuid" value="<?php echo u_h($editUser['PrincipalID']); ?>">
                                         <input type="text" name="new_password" class="form-control form-control-sm mb-2" placeholder="New Password" required minlength="6">
@@ -478,6 +487,7 @@ if ($con && $editUUID !== '') {
                                     </button>
                                     <div class="collapse mt-2" id="delConfirm">
                                         <form method="post">
+                                            <?php echo csrf_token_field(); ?>
                                             <input type="hidden" name="action" value="delete_user">
                                             <input type="hidden" name="uuid" value="<?php echo u_h($editUser['PrincipalID']); ?>">
                                             <input type="text" name="confirm" class="form-control form-control-sm mb-2 border-danger" placeholder="Type DELETE">

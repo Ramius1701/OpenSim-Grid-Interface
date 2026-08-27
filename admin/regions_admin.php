@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/../include/config.php';
 require_once __DIR__ . '/../include/auth.php';
+require_once __DIR__ . '/../include/security.php';
 
 $title = "Regions Admin";
 
@@ -28,6 +29,12 @@ $forceNoEdit    = false;
 // Handle POST actions
 if ($con && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+
+    if ($action !== '' && !verify_csrf_token()) {
+        $statusMessage = 'Your session has expired or the form was submitted incorrectly. Please try again.';
+        $statusClass   = 'danger';
+        $action        = '';
+    }
 
     if ($action === 'save_region') {
         $uuid   = trim($_POST['uuid'] ?? '');
@@ -222,6 +229,7 @@ if ($editRegion) {
         </div>
         <div class="card-body p-4">
             <form method="post" class="row g-3">
+                <?php echo csrf_token_field(); ?>
                 <input type="hidden" name="action" value="save_region" />
                 <input type="hidden" name="uuid" value="<?php echo s_h($editUUID); ?>" />
 
@@ -289,6 +297,7 @@ if ($editRegion) {
 
             <form method="post" class="mt-3"
                   onsubmit="return confirm('Remove this region\'s registration row from the regions table? Only do this for a region that is no longer running/registered - a still-running region will simply re-register itself again.');">
+                <?php echo csrf_token_field(); ?>
                 <input type="hidden" name="action" value="delete_region" />
                 <input type="hidden" name="uuid" value="<?php echo s_h($editUUID); ?>" />
                 <button class="btn btn-outline-danger btn-sm" type="submit">

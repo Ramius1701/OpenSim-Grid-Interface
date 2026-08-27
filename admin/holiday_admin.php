@@ -5,6 +5,7 @@ require_once __DIR__ . '/../include/config.php';
 require_once __DIR__ . '/../include/env.php';
 require_once __DIR__ . '/../include/auth.php';
 require_once __DIR__ . '/../include/file_store.php';
+require_once __DIR__ . '/../include/security.php';
 
 $title = "Holiday Admin";
 
@@ -45,6 +46,12 @@ if (is_file($path)) {
 // Handle actions (add/update/delete)
 $action            = $_POST['action'] ?? '';
 $currentEditIndex  = null;
+
+if ($action !== '' && !verify_csrf_token()) {
+    $statusMessage = 'Your session has expired or the form was submitted incorrectly. Please try again.';
+    $statusClass   = 'danger';
+    $action        = '';
+}
 
 if ($action === 'save') {
     $idxRaw = $_POST['idx'] ?? '';
@@ -225,6 +232,7 @@ $self = ev_h($self);
         <div class="card-body">
             <section>
                 <form method="post" class="row g-2 align-items-end">
+                    <?php echo csrf_token_field(); ?>
                     <input type="hidden" name="action" value="save" />
                     <input type="hidden" name="idx" value="<?php echo $isEditing ? ev_h((string)$currentEditIndex) : ''; ?>" />
 
@@ -361,6 +369,7 @@ $self = ev_h($self);
                                         </a>
                                         <form method="post" class="d-inline"
                                               onsubmit="return confirm('Delete this event?');">
+                                            <?php echo csrf_token_field(); ?>
                                             <input type="hidden" name="action" value="delete">
                                             <input type="hidden" name="idx" value="<?php echo ev_h((string)$i); ?>">
                                             <button class="btn btn-sm btn-outline-danger" type="submit">

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../include/config.php';
 require_once __DIR__ . '/../include/auth.php';
+require_once __DIR__ . '/../include/security.php';
 
 $title = "Groups Admin";
 
@@ -245,6 +246,12 @@ $editGroupId   = trim($_GET['edit'] ?? '');
 // Handle POST actions
 if ($con && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+
+    if ($action !== '' && !verify_csrf_token()) {
+        $statusMessage = 'Your session has expired or the form was submitted incorrectly. Please try again.';
+        $statusClass   = 'danger';
+        $action        = '';
+    }
 
     if ($action === 'save_group') {
         $gid          = trim($_POST['group_id'] ?? '');
@@ -685,6 +692,7 @@ if ($con && $editGroupId !== '') {
                             $founderName  = ga_get_owner_name($con, $founderId);
                             ?>
                             <form method="post" class="row g-3">
+                                <?php echo csrf_token_field(); ?>
                                 <input type="hidden" name="action" value="save_group">
                                 <input type="hidden" name="group_id" value="<?php echo ga_h($gid); ?>">
 
