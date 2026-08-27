@@ -9,6 +9,45 @@ if (empty($image_url)) {
     die('No image URL provided!');
 }
 
+/**
+ * Only ever fetch from this grid's own asset/texture server. Without this
+ * check, $image_url is fully attacker-controlled and this endpoint becomes
+ * an open SSRF proxy - internal hosts, cloud metadata endpoints, file://
+ * paths, anything the server can reach.
+ */
+function image_url_is_allowed(string $url): bool {
+    $parts = parse_url($url);
+    if ($parts === false || empty($parts['scheme']) || empty($parts['host'])) {
+        return false;
+    }
+
+    $scheme = strtolower($parts['scheme']);
+    if ($scheme !== 'http' && $scheme !== 'https') {
+        return false;
+    }
+
+    static $allowed = null;
+    if ($allowed === null) {
+        $allowed = [];
+        foreach ([GRID_ASSETS_SERVER, TEXTURE_PNG_SERVICE_URL] as $base) {
+            $b = parse_url($base);
+            if (!empty($b['host'])) {
+                $bScheme = strtolower($b['scheme'] ?? 'http');
+                $bPort   = $b['port'] ?? ($bScheme === 'https' ? 443 : 80);
+                $allowed[strtolower($b['host']) . ':' . $bPort] = true;
+            }
+        }
+    }
+
+    $port = $parts['port'] ?? ($scheme === 'https' ? 443 : 80);
+    return isset($allowed[strtolower($parts['host']) . ':' . $port]);
+}
+
+if (!image_url_is_allowed($image_url)) {
+    http_response_code(403);
+    die('This image URL is not from an allowed source.');
+}
+
 function fetch_image_data(string $url) {
     // Attempt 1: file_get_contents
     if (ini_get('allow_url_fopen')) {
@@ -16,7 +55,8 @@ function fetch_image_data(string $url) {
             'http' => [
                 'method' => 'GET',
                 'timeout' => 5,
-                'user_agent' => 'OpenSimWebHelper/1.0'
+                'user_agent' => 'OpenSimWebHelper/1.0',
+                'follow_location' => 0,
             ]
         ];
         $context = stream_context_create($opts);
@@ -35,8 +75,9 @@ function fetch_image_data(string $url) {
             CURLOPT_CONNECTTIMEOUT => 5,
             CURLOPT_TIMEOUT => 10,
             CURLOPT_USERAGENT => 'OpenSimWebHelper/1.0',
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_FOLLOWLOCATION => false,
         ]);
         $data = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
