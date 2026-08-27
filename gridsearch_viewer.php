@@ -11,7 +11,11 @@ include_once "include/config.php";
 
 $con = db();
 if (!$con) {
-    die("Database connection failed: " . mysqli_error($con));
+    // mysqli_error() requires a real mysqli instance in PHP 8+; $con is
+    // null/false here since the connection itself failed, so calling
+    // mysqli_error($con) would throw its own fatal TypeError instead of
+    // showing this message. mysqli_connect_error() takes no argument.
+    die("Database connection failed: " . mysqli_connect_error());
 }
 
 if (!function_exists('safe_stmt_query')) {
