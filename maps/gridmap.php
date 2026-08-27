@@ -21,8 +21,11 @@ if (!$dbName) {
 /* ---------- 2.  VIEWPORT ---------- */
 $cx = isset($_GET['cx']) ? (int)$_GET['cx'] : (defined('MAP_CENTER_X') ? (int)MAP_CENTER_X : 1000);
 $cy = isset($_GET['cy']) ? (int)$_GET['cy'] : (defined('MAP_CENTER_Y') ? (int)MAP_CENTER_Y : 1000);
-$w  = isset($_GET['w'])  ? max(4,(int)$_GET['w'])  : (defined('MAP_TILES_X') ? (int)MAP_TILES_X : 32);
-$h  = isset($_GET['h'])  ? max(4,(int)$_GET['h'])  : (defined('MAP_TILES_Y') ? (int)MAP_TILES_Y : 32);
+// Capped at 256 as well as floored at 4 - uncapped, a request like ?w=100000
+// would force the tile-rendering loop below to emit on the order of 1e10
+// elements (a trivial CPU/memory DoS).
+$w  = isset($_GET['w'])  ? max(4, min(256, (int)$_GET['w']))  : (defined('MAP_TILES_X') ? (int)MAP_TILES_X : 32);
+$h  = isset($_GET['h'])  ? max(4, min(256, (int)$_GET['h']))  : (defined('MAP_TILES_Y') ? (int)MAP_TILES_Y : 32);
 $w = $h = 4 * (int)round($w / 4);                 // keep even for zoom symmetry
 $focusRegion = isset($_GET['region']) ? trim($_GET['region']) : '';
 
