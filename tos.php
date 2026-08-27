@@ -2,12 +2,6 @@
 $title = "TOS";
 include_once 'include/header.php';
 
-/**
- * Safe fallbacks so this page renders even if some constants are missing.
- */
-if (!defined('SITE_NAME')) define('SITE_NAME', 'Casperia');
-if (!defined('BASE_URL'))  define('BASE_URL', '/');
-
 $site       = SITE_NAME;
 $site_html  = htmlspecialchars($site, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
