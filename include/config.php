@@ -523,6 +523,44 @@ if (!defined('CONTENT_CARD_SHELL_MARGIN_Y')) define('CONTENT_CARD_SHELL_MARGIN_Y
 if (!defined('CONTENT_CARD_SHELL_PADDING')) define('CONTENT_CARD_SHELL_PADDING', '1.5rem'); // Padding for top-level content-card shells
 
 
+// ---- Features page (features.php) settings ----
+// These describe the grid itself (versions, supported viewers/engines,
+// economy blurbs) rather than any one page's layout, so they live here.
+// Adjust to match your grid; features.php falls back to these same
+// defaults if this section is ever removed.
+if (!defined('OS_NAME_MAIN'))    define('OS_NAME_MAIN', 'OpenSimulator');
+if (!defined('OS_VERSION_MAIN')) define('OS_VERSION_MAIN', '0.9.3.1 (Build 372, g4f35b8553f)');
+if (!defined('BETA_ENABLED'))    define('BETA_ENABLED', true);
+if (!defined('BETA_LABEL'))      define('BETA_LABEL', 'Beta (NGC)');
+if (!defined('OS_NAME_BETA'))    define('OS_NAME_BETA', 'OpenSim NGC (Tranquillity)');
+if (!defined('OS_VERSION_BETA')) define('OS_VERSION_BETA', '0.9.3.9441');
+if (!defined('VIEWERS_SUPPORTED')) define('VIEWERS_SUPPORTED', 'Firestorm, Cool VL Viewer');
+if (!defined('FEATURE_HYPERGRID'))   define('FEATURE_HYPERGRID', true);
+if (!defined('FEATURE_VARREGIONS'))  define('FEATURE_VARREGIONS', true);
+if (!defined('SEARCH_ENABLED'))      define('SEARCH_ENABLED', true);
+if (!defined('MESH_ENABLED'))        define('MESH_ENABLED', true);
+if (!defined('NPC_ENABLED'))         define('NPC_ENABLED', true);
+if (!defined('OFFLINE_IM_ENABLED'))  define('OFFLINE_IM_ENABLED', true);
+if (!defined('FEATURE_SCRIPT_ENGINE')) define('FEATURE_SCRIPT_ENGINE', 'YEngine');
+if (!defined('PHYSICS_ENGINES'))       define('PHYSICS_ENGINES', 'Bullet, ubODE');
+if (!defined('EXPERIENCES_BETA'))      define('EXPERIENCES_BETA', true);
+if (!defined('FEATURE_VOICE')) define('FEATURE_VOICE', 'Available');
+if (!defined('VOICE_NOTE'))    define('VOICE_NOTE', 'Vivox active while we evaluate WebRTC voice.');
+if (!defined('ECONOMY_GLOEBIT'))       define('ECONOMY_GLOEBIT', true);
+if (!defined('CURRENCY_NAME_GLOEBIT')) define('CURRENCY_NAME_GLOEBIT', 'Gloebit');
+if (!defined('CURRENCY_RATE_GLOEBIT')) define('CURRENCY_RATE_GLOEBIT', '≈ 200 Gloebit = 1 USD');
+if (!defined('ECONOMY_LOCAL'))    define('ECONOMY_LOCAL', true);
+if (!defined('LOCAL_MONEY_NAME')) define('LOCAL_MONEY_NAME', 'MoneyServer');
+if (!defined('LOCAL_WALLET_CAP')) define('LOCAL_WALLET_CAP', '20,000');
+if (!defined('FREE_OFFERS')) define('FREE_OFFERS', 'Free groups, Free classifieds advertising, Free mesh uploads, Free texture uploads, Free events listings, Free apartments & homes with land (350 prims), Free land lots (435 prims), Free shops for creators (250 prims)');
+if (!defined('OTHER_PERKS')) define('OTHER_PERKS', 'No region setup fees, Region referral program, Partnerships, Hypergrid traveling, Offline messaging, Offline IM, Offline group notices, Members area, Weekly OAR/Database backups, NPCs enabled, Mesh enabled, Second Inventory (Stored Inventory) enabled, Monthly grid meetings, Forums area, Mentors program, Support ticket system (Members area), Optimized region performance (idle physics objects automatically sleep when a region is empty, keeping regions running smoothly)');
+if (!defined('URL_REGISTER')) define('URL_REGISTER', 'register.php');
+if (!defined('URL_HELP'))     define('URL_HELP', 'help.php');
+if (!defined('REPO_CORE_MASTER')) define('REPO_CORE_MASTER', 'https://github.com/Ramius1701/opensim');
+if (!defined('REPO_ENHANCED'))    define('REPO_ENHANCED', 'https://github.com/Ramius1701/opensim-enhanced');
+if (!defined('REPO_INTERFACE'))   define('REPO_INTERFACE', 'https://github.com/Ramius1701/OpenSim-Grid-Interface');
+
+
 // --- Safety: feature flags helper (keeps header.php from fataling if not defined elsewhere)
 if (!function_exists('casperia_feature_enabled')) {
     function casperia_feature_enabled(string $featureKey): bool {
