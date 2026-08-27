@@ -34,21 +34,6 @@ if (!function_exists('h')) {
     }
 }
 
-function ws_has_column(mysqli $con, string $table, string $column): bool {
-    try {
-        $tableEsc = str_replace('`', '``', $table);
-        $colEsc   = str_replace('`', '``', $column);
-        $q = "SHOW COLUMNS FROM `{$tableEsc}` LIKE '{$colEsc}'";
-        $res = mysqli_query($con, $q);
-        if (!$res) return false;
-        $ok = mysqli_num_rows($res) > 0;
-        mysqli_free_result($res);
-        return $ok;
-    } catch (Throwable $e) {
-        return false;
-    }
-}
-
 $allowedCategories = [
     'account'   => 'Account / Login',
     'technical' => 'Technical Issue',
@@ -67,39 +52,16 @@ $flash = '';
 $flashType = 'info';
 
 // ------------------------------------------------------------
-// DB connect
+// DB connect (ws_tickets lives in this site's own SQLite database)
 // ------------------------------------------------------------
-$con = db();
-if (!$con) {
+$wsdb = ws_db();
+if (!$wsdb) {
     echo '<div class="container-fluid mt-4 mb-4"><div class="row"><div class="col-12 col-lg-8 mx-auto">'
        . '<div class="content-card shadow-sm p-3 p-md-4"><div class="alert alert-danger mb-0"><i class="bi bi-x-circle me-2"></i>'
        . 'Database connection failed.</div></div></div></div></div>';
     include_once __DIR__ . "/include/" . FOOTER_FILE;
     exit;
 }
-
-// ------------------------------------------------------------
-// Ensure ws_tickets table exists (surgical, self-contained)
-// - Includes contact_email for new installs; existing installs remain unchanged.
-// ------------------------------------------------------------
-mysqli_query($con, "CREATE TABLE IF NOT EXISTS ws_tickets (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_uuid CHAR(36) NOT NULL,
-    user_name VARCHAR(64) NOT NULL DEFAULT '',
-    contact_email VARCHAR(190) NOT NULL DEFAULT '',
-    category VARCHAR(50) NOT NULL DEFAULT 'other',
-    subject VARCHAR(150) NOT NULL DEFAULT '',
-    message TEXT NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'open',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_user (user_uuid, status),
-    INDEX idx_status (status),
-    INDEX idx_created (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
-// Detect whether contact_email exists on this installation
-$hasContactEmail = ws_has_column($con, 'ws_tickets', 'contact_email');
 
 // ------------------------------------------------------------
 // Handle ticket creation (logged-in OR guest)
@@ -156,40 +118,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
                     $ticketUserName = $isLoggedIn ? $currentUserName : $guestName;
                     $ticketEmail    = $isLoggedIn ? '' : $guestEmail;
 
-                    // If we don't have a contact_email column, embed it into the message (admin can still see it)
-                    $storeMessage = $message;
-                    if (!$isLoggedIn && !$hasContactEmail) {
-                        $storeMessage = "Contact Email: {$guestEmail}\n\n" . $message;
-                    }
-
                     try {
-                        if ($hasContactEmail) {
-                            $sql = "INSERT INTO ws_tickets (user_uuid, user_name, contact_email, category, subject, message)
-                                    VALUES (?,?,?,?,?,?)";
-                            $st = mysqli_prepare($con, $sql);
-                            if ($st) {
-                                mysqli_stmt_bind_param($st, "ssssss", $ticketUserUUID, $ticketUserName, $ticketEmail, $category, $subject, $storeMessage);
-                                $ok = mysqli_stmt_execute($st);
-                                mysqli_stmt_close($st);
-                            } else {
-                                $ok = false;
-                            }
-                        } else {
-                            $sql = "INSERT INTO ws_tickets (user_uuid, user_name, category, subject, message)
-                                    VALUES (?,?,?,?,?)";
-                            $st = mysqli_prepare($con, $sql);
-                            if ($st) {
-                                mysqli_stmt_bind_param($st, "sssss", $ticketUserUUID, $ticketUserName, $category, $subject, $storeMessage);
-                                $ok = mysqli_stmt_execute($st);
-                                mysqli_stmt_close($st);
-                            } else {
-                                $ok = false;
-                            }
-                        }
+                        $st = $wsdb->prepare(
+                            "INSERT INTO ws_tickets (user_uuid, user_name, contact_email, category, subject, message)
+                             VALUES (?,?,?,?,?,?)"
+                        );
+                        $ok = $st->execute([$ticketUserUUID, $ticketUserName, $ticketEmail, $category, $subject, $message]);
 
                         if (!empty($ok)) {
                             $_SESSION['ws_last_ticket_ts'] = $now;
-                            $ticketId = (int)mysqli_insert_id($con);
+                            $ticketId = (int)$wsdb->lastInsertId();
                             if ($isLoggedIn) {
                                 $flash = "Your ticket has been submitted. Reference #{$ticketId}.";
                             } else {
@@ -222,29 +160,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
 // ------------------------------------------------------------
 $tickets = [];
 if ($isLoggedIn) {
-    $sql = "SELECT id, category, subject, status, created_at, updated_at
-            FROM ws_tickets
-            WHERE user_uuid = ?
-            ORDER BY
-                CASE status
-                    WHEN 'open' THEN 0
-                    WHEN 'in_progress' THEN 1
-                    ELSE 2
-                END,
-                created_at DESC
-            LIMIT 100";
-    if ($st = mysqli_prepare($con, $sql)) {
-        mysqli_stmt_bind_param($st, "s", $currentUserId);
-        mysqli_stmt_execute($st);
-        $res = mysqli_stmt_get_result($st);
-        if ($res) {
-            while ($row = mysqli_fetch_assoc($res)) {
-                $tickets[] = $row;
-            }
-            mysqli_free_result($res);
-        }
-        mysqli_stmt_close($st);
-    }
+    $st = $wsdb->prepare(
+        "SELECT id, category, subject, status, created_at, updated_at
+         FROM ws_tickets
+         WHERE user_uuid = ?
+         ORDER BY
+             CASE status
+                 WHEN 'open' THEN 0
+                 WHEN 'in_progress' THEN 1
+                 ELSE 2
+             END,
+             created_at DESC
+         LIMIT 100"
+    );
+    $st->execute([$currentUserId]);
+    $tickets = $st->fetchAll();
 }
 
 ?>

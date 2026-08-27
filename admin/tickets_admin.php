@@ -26,21 +26,6 @@ if (!function_exists('h')) {
     }
 }
 
-function ws_has_column(mysqli $con, string $table, string $column): bool {
-    try {
-        $tableEsc = str_replace('`', '``', $table);
-        $colEsc   = str_replace('`', '``', $column);
-        $q = "SHOW COLUMNS FROM `{$tableEsc}` LIKE '{$colEsc}'";
-        $res = mysqli_query($con, $q);
-        if (!$res) return false;
-        $ok = mysqli_num_rows($res) > 0;
-        mysqli_free_result($res);
-        return $ok;
-    } catch (Throwable $e) {
-        return false;
-    }
-}
-
 function ws_extract_contact_email(string $message): string {
     // Look for "Contact Email: ..." at the top of the message (guest fallback)
     if (preg_match('/^Contact\s*Email:\s*([^\r\n]+)\s*(?:\r?\n|$)/i', $message, $m)) {
@@ -53,10 +38,10 @@ function ws_extract_contact_email(string $message): string {
 }
 
 // ------------------------------------------------------------
-// DB connect
+// DB connect (ws_tickets lives in this site's own SQLite database)
 // ------------------------------------------------------------
-$con = db();
-if (!$con) {
+$wsdb = ws_db();
+if (!$wsdb) {
     echo '<div class="container-fluid mt-4 mb-4"><div class="row"><div class="col-12 col-xl-10 mx-auto">'
        . '<div class="content-card shadow-sm p-3 p-md-4"><div class="alert alert-danger mb-0"><i class="bi bi-x-circle me-2"></i>'
        . 'Database connection failed.</div></div></div></div></div>';
@@ -64,24 +49,6 @@ if (!$con) {
     exit;
 }
 
-// Ensure ws_tickets exists (and includes contact_email for new installs)
-mysqli_query($con, "CREATE TABLE IF NOT EXISTS ws_tickets (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_uuid CHAR(36) NOT NULL,
-    user_name VARCHAR(64) NOT NULL DEFAULT '',
-    contact_email VARCHAR(190) NOT NULL DEFAULT '',
-    category VARCHAR(50) NOT NULL DEFAULT 'other',
-    subject VARCHAR(150) NOT NULL DEFAULT '',
-    message TEXT NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'open',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_user (user_uuid, status),
-    INDEX idx_status (status),
-    INDEX idx_created (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
-$hasContactEmail = ws_has_column($con, 'ws_tickets', 'contact_email');
 $GUEST_UUID = '00000000-0000-0000-0000-000000000000';
 
 $allowedStatuses = [
@@ -118,19 +85,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $newStatus = (string)($_POST['status'] ?? 'open');
 
         if ($ticketId > 0 && isset($allowedStatuses[$newStatus])) {
-            $sql = "UPDATE ws_tickets SET status = ? WHERE id = ?";
-            if ($st = mysqli_prepare($con, $sql)) {
-                mysqli_stmt_bind_param($st, "si", $newStatus, $ticketId);
-                $ok = mysqli_stmt_execute($st);
-                mysqli_stmt_close($st);
+            $st = $wsdb->prepare(
+                "UPDATE ws_tickets SET status = ?, updated_at = strftime('%Y-%m-%d %H:%M:%S','now') WHERE id = ?"
+            );
+            $ok = $st->execute([$newStatus, $ticketId]);
 
-                if ($ok) {
-                    $flash = "Ticket #{$ticketId} updated.";
-                    $flashType = 'success';
-                } else {
-                    $flash = "Failed to update ticket.";
-                    $flashType = 'danger';
-                }
+            if ($ok) {
+                $flash = "Ticket #{$ticketId} updated.";
+                $flashType = 'success';
             } else {
                 $flash = "Failed to update ticket.";
                 $flashType = 'danger';
@@ -149,46 +111,27 @@ $viewTicket = null;
 if (isset($_GET['view'])) {
     $viewId = (int)$_GET['view'];
     if ($viewId > 0) {
-        $sql = "SELECT * FROM ws_tickets WHERE id = ?";
-        if ($st = mysqli_prepare($con, $sql)) {
-            mysqli_stmt_bind_param($st, "i", $viewId);
-            mysqli_stmt_execute($st);
-            $res = mysqli_stmt_get_result($st);
-            if ($res && ($row = mysqli_fetch_assoc($res))) {
-                $viewTicket = $row;
-            }
-            if ($res) {
-                mysqli_free_result($res);
-            }
-            mysqli_stmt_close($st);
-        }
+        $st = $wsdb->prepare("SELECT * FROM ws_tickets WHERE id = ?");
+        $st->execute([$viewId]);
+        $viewTicket = $st->fetch() ?: null;
     }
 }
 
 // ------------------------------------------------------------
 // Load tickets list
 // ------------------------------------------------------------
-$tickets = [];
-$listSql = "SELECT id, user_uuid, user_name"
-         . ($hasContactEmail ? ", contact_email" : "")
-         . ", category, subject, status, created_at, updated_at
-            FROM ws_tickets
-            ORDER BY
-                CASE status
-                    WHEN 'open' THEN 0
-                    WHEN 'in_progress' THEN 1
-                    ELSE 2
-                END,
-                created_at DESC
-            LIMIT 500";
-
-$res = mysqli_query($con, $listSql);
-if ($res) {
-    while ($row = mysqli_fetch_assoc($res)) {
-        $tickets[] = $row;
-    }
-    mysqli_free_result($res);
-}
+$tickets = $wsdb->query(
+    "SELECT id, user_uuid, user_name, contact_email, category, subject, status, created_at, updated_at
+     FROM ws_tickets
+     ORDER BY
+         CASE status
+             WHEN 'open' THEN 0
+             WHEN 'in_progress' THEN 1
+             ELSE 2
+         END,
+         created_at DESC
+     LIMIT 500"
+)->fetchAll();
 
 ?>
 
@@ -253,7 +196,7 @@ if ($res) {
                     <?php
                         $isGuest = (($viewTicket['user_uuid'] ?? '') === $GUEST_UUID);
                         $email = '';
-                        if ($hasContactEmail && !empty($viewTicket['contact_email'])) {
+                        if (!empty($viewTicket['contact_email'])) {
                             $email = (string)$viewTicket['contact_email'];
                         } else {
                             $email = ws_extract_contact_email((string)($viewTicket['message'] ?? ''));
@@ -313,7 +256,7 @@ if ($res) {
                                 <?php
                                     $isGuest = (($t['user_uuid'] ?? '') === $GUEST_UUID);
                                     $email = '';
-                                    if ($hasContactEmail && !empty($t['contact_email'])) {
+                                    if (!empty($t['contact_email'])) {
                                         $email = (string)$t['contact_email'];
                                     }
                                     $status = (string)($t['status'] ?? 'open');

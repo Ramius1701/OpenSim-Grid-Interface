@@ -62,29 +62,22 @@ if ($stmt = @mysqli_prepare($con, "SELECT COUNT(*) FROM Friends WHERE Friend = ?
     mysqli_stmt_close($stmt);
 }
 
-// 4) Open / in-progress tickets for this user (ws_tickets — may or may not exist yet)
-if ($stmt = @mysqli_prepare($con, "SELECT COUNT(*) FROM ws_tickets WHERE user_uuid = ? AND status IN ('open','in_progress')")) {
-    mysqli_stmt_bind_param($stmt, 's', $userId);
-    if (mysqli_stmt_execute($stmt)) {
-        mysqli_stmt_bind_result($stmt, $__navTmpCount);
-        if (mysqli_stmt_fetch($stmt)) {
-            $nav_userOpenTicketsCount = (int)$__navTmpCount;
-        }
-    }
-    mysqli_stmt_close($stmt);
-}
+// 4) Open / in-progress tickets for this user (ws_tickets - this site's own SQLite DB)
+if ($wsdb = @ws_db()) {
+    try {
+        $stmt = $wsdb->prepare("SELECT COUNT(*) FROM ws_tickets WHERE user_uuid = ? AND status IN ('open','in_progress')");
+        $stmt->execute([$userId]);
+        $nav_userOpenTicketsCount = (int)$stmt->fetchColumn();
 
-// 5) Open tickets grid-wide (for admin menu badge)
-// We don't check $showAdminAnalyticsLink here; the Admin menu markup already
-// hides this from non-admins.
-if ($stmt = @mysqli_prepare($con, "SELECT COUNT(*) FROM ws_tickets WHERE status IN ('open','in_progress')")) {
-    if (mysqli_stmt_execute($stmt)) {
-        mysqli_stmt_bind_result($stmt, $__navTmpCount);
-        if (mysqli_stmt_fetch($stmt)) {
-            $nav_adminOpenTicketsCount = (int)$__navTmpCount;
-        }
+        // 5) Open tickets grid-wide (for admin menu badge)
+        // We don't check $showAdminAnalyticsLink here; the Admin menu markup
+        // already hides this from non-admins.
+        $nav_adminOpenTicketsCount = (int)$wsdb->query(
+            "SELECT COUNT(*) FROM ws_tickets WHERE status IN ('open','in_progress')"
+        )->fetchColumn();
+    } catch (Throwable $e) {
+        // leave defaults 0
     }
-    mysqli_stmt_close($stmt);
 }
 
 // Total global badge for the account menu
