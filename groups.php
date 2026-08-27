@@ -2,6 +2,7 @@
 $title = "Groups";
 include_once "include/config.php";
 include_once "include/" . HEADER_FILE;
+require_once "include/security.php";
 
 // Database connection
 $con = db();
@@ -813,6 +814,7 @@ if (!empty($_SESSION['user']['principal_id'])) {
 
 <script>
 // Group Management Functions
+const CSRF_TOKEN = <?php echo json_encode(OSWebSecurity::generateCSRFToken()); ?>;
 function joinGroup(groupId) {
     if (confirm('Do you want to join this group?')) {
         // AJAX call to join group
@@ -823,7 +825,8 @@ function joinGroup(groupId) {
             },
             body: JSON.stringify({
                 action: 'join_group',
-                group_id: groupId
+                group_id: groupId,
+                csrf_token: CSRF_TOKEN
             })
         })
         .then(response => response.json())
@@ -852,7 +855,8 @@ function requestInvite(groupId) {
             },
             body: JSON.stringify({
                 action: 'request_invite',
-                group_id: groupId
+                group_id: groupId,
+                csrf_token: CSRF_TOKEN
             })
         })
         .then(response => response.json())

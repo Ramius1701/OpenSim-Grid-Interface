@@ -41,6 +41,12 @@ if (!is_array($data)) {
     $data = $_POST ?? [];
 }
 
+// CSRF protection: token must match the one issued to this session by groups.php
+$csrfToken = (string)($data['csrf_token'] ?? '');
+if (empty($_SESSION['csrf_token']) || $csrfToken === '' || !hash_equals($_SESSION['csrf_token'], $csrfToken)) {
+    g_api_respond(false, 'Invalid or expired security token. Please reload the page and try again.');
+}
+
 $action  = $data['action']   ?? '';
 $groupId = $data['group_id'] ?? '';
 
@@ -120,11 +126,12 @@ switch ($action) {
         break;
 
     case 'request_invite':
-        // For now, treat "request invite" as: auto-create an invite entry and membership.
-        // This at least provides a working flow and can be tightened later.
-        mysqli_begin_transaction($con);
-
-        // Create an invite record
+        // Create a pending invite record only. This must NOT grant membership
+        // directly — doing so let anyone join an invite-only (OpenEnrollment=0)
+        // group by calling this action instead of join_group, bypassing the
+        // enrollment check entirely. Actual membership is granted when an
+        // officer/founder approves the invite (or the invitee accepts it
+        // in-world), the same as any other OpenSim group invite.
         $inviteId = uuidv4();
         mysqli_query(
             $con,
@@ -134,26 +141,7 @@ switch ($action) {
              ('$inviteId', '$gId', '$defaultRoleId', '$uId', NOW())"
         );
 
-        // Also add membership immediately so it "just works"
-        mysqli_query(
-            $con,
-            "INSERT INTO os_groups_membership
-             (GroupID, PrincipalID, SelectedRoleID, Contribution, ListInProfile, AcceptNotices, AccessToken)
-             VALUES
-             ('$gId', '$uId', '$defaultRoleId', 0, 1, 1, '" . uuidv4() . "')
-             ON DUPLICATE KEY UPDATE SelectedRoleID = VALUES(SelectedRoleID)"
-        );
-
-        mysqli_query(
-            $con,
-            "INSERT IGNORE INTO os_groups_rolemembership
-             (GroupID, RoleID, PrincipalID)
-             VALUES ('$gId', '$defaultRoleId', '$uId')"
-        );
-
-        mysqli_commit($con);
-
-        g_api_respond(true, "Invitation request processed. You are now a member of {$groupName}.");
+        g_api_respond(true, "Your request to join {$groupName} has been submitted and is pending approval.");
         break;
 
     default:

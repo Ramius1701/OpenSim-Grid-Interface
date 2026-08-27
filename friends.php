@@ -2,6 +2,7 @@
 $title = "Friends System";
 include_once "include/config.php";
 include_once "include/" . HEADER_FILE;
+require_once "include/security.php";
 
 // ------------------------------------------------------------
 // Session / current user
@@ -746,12 +747,13 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
 <script>
 // Friend Management Functions (only for logged-in users)
 <?php if ($isLoggedIn): ?>
+const CSRF_TOKEN = <?php echo json_encode(OSWebSecurity::generateCSRFToken()); ?>;
 function sendFriendRequest(userId) {
     if (confirm('Do you want to send a friend request to this user?')) {
         fetch('<?php echo URL_API_ROOT; ?>/friends_api.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'send_request', user_id: userId })
+            body: JSON.stringify({ action: 'send_request', user_id: userId, csrf_token: CSRF_TOKEN })
         })
         .then(r => r.json())
         .then(data => {
@@ -767,7 +769,7 @@ function acceptFriendRequest(userId) {
         fetch('<?php echo URL_API_ROOT; ?>/friends_api.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'accept_request', user_id: userId })
+            body: JSON.stringify({ action: 'accept_request', user_id: userId, csrf_token: CSRF_TOKEN })
         })
         .then(r => r.json())
         .then(data => {
@@ -782,7 +784,7 @@ function declineFriendRequest(userId) {
         fetch('<?php echo URL_API_ROOT; ?>/friends_api.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'decline_request', user_id: userId })
+            body: JSON.stringify({ action: 'decline_request', user_id: userId, csrf_token: CSRF_TOKEN })
         })
         .then(r => r.json())
         .then(data => {
@@ -797,7 +799,7 @@ function removeFriend(userId, userName) {
         fetch('<?php echo URL_API_ROOT; ?>/friends_api.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'remove_friend', user_id: userId })
+            body: JSON.stringify({ action: 'remove_friend', user_id: userId, csrf_token: CSRF_TOKEN })
         })
         .then(r => r.json())
         .then(data => {

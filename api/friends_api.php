@@ -96,6 +96,12 @@ if (!is_array($data)) {
     $data = $_POST ?? [];
 }
 
+// CSRF protection: token must match the one issued to this session by friends.php
+$csrfToken = (string)($data['csrf_token'] ?? '');
+if (empty($_SESSION['csrf_token']) || $csrfToken === '' || !hash_equals($_SESSION['csrf_token'], $csrfToken)) {
+    api_respond(false, 'Invalid or expired security token. Please reload the page and try again.');
+}
+
 $action  = $data['action']  ?? '';
 $userRaw = $data['user_id'] ?? '';
 

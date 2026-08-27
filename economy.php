@@ -24,6 +24,7 @@ if (isset($_GET['logout'])) {
 
 $pageLayout = 'wide'; // Wider layout for dashboard-style pages
 include_once "include/" . HEADER_FILE;
+require_once "include/security.php";
 
 // Check if user is logged in
 $currentUserId = null;
@@ -1140,13 +1141,14 @@ function exportTransactions() {
 
 // Send Money Form (only for logged-in users)
 <?php if ($isLoggedIn): ?>
+const CSRF_TOKEN = <?php echo json_encode(OSWebSecurity::generateCSRFToken()); ?>;
 document.getElementById('sendMoneyForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
-    
+
     const recipient = document.getElementById('recipient').value;
     const amount = document.getElementById('amount').value;
     const description = document.getElementById('description').value;
-    
+
     if (confirm(`Do you want to send FC$ ${amount} to ${recipient}?`)) {
         // AJAX call for money transfer
         fetch('<?php echo URL_API_ROOT; ?>/economy_api.php', {
@@ -1158,7 +1160,8 @@ document.getElementById('sendMoneyForm')?.addEventListener('submit', function(e)
                 action: 'send_money',
                 recipient: recipient,
                 amount: amount,
-                description: description
+                description: description,
+                csrf_token: CSRF_TOKEN
             })
         })
         .then(response => response.json())
