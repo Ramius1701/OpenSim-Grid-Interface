@@ -3,6 +3,7 @@
 if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
 
 require_once __DIR__ . '/../include/config.php';
+require_once __DIR__ . '/_api_common.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -27,51 +28,7 @@ if (empty($_SESSION['user']['principal_id'])) {
 $currentUserId = $_SESSION['user']['principal_id'];
 $currentUserName = $_SESSION['user']['name'] ?? '';
 
-// UUIDv4 for transactions / tokens
-function uuidv4(): string {
-    $data = random_bytes(16);
-    $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
-    $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
-    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
-}
-
-// Resolve avatar by UUID or "First Last"
-function econ_resolve_avatar(mysqli $con, string $input): ?array {
-    $input = trim($input);
-    if (strlen($input) === 36 && strpos($input, '-') !== false) {
-        $uuid = mysqli_real_escape_string($con, $input);
-        $res = mysqli_query(
-            $con,
-            "SELECT PrincipalID, FirstName, LastName
-             FROM UserAccounts
-             WHERE PrincipalID = '$uuid'
-             LIMIT 1"
-        );
-        if ($res && $row = mysqli_fetch_assoc($res)) {
-            return $row;
-        }
-        return null;
-    }
-
-    $parts = preg_split('/\s+/', $input);
-    if (count($parts) < 2) {
-        return null;
-    }
-    $first = mysqli_real_escape_string($con, $parts[0]);
-    $last  = mysqli_real_escape_string($con, $parts[1]);
-
-    $res = mysqli_query(
-        $con,
-        "SELECT PrincipalID, FirstName, LastName
-         FROM UserAccounts
-         WHERE FirstName = '$first' AND LastName = '$last'
-         LIMIT 1"
-    );
-    if ($res && $row = mysqli_fetch_assoc($res)) {
-        return $row;
-    }
-    return null;
-}
+// uuidv4() and resolve_avatar() come from api/_api_common.php
 
 // Get numeric balance (balances.user)
 function get_balance(mysqli $con, string $userId): int {
@@ -128,7 +85,7 @@ if ($amount <= 0) {
     e_respond(false, 'Amount must be greater than zero.');
 }
 
-$recipient = econ_resolve_avatar($con, (string)$recipientIn);
+$recipient = resolve_avatar($con, (string)$recipientIn);
 if (!$recipient) {
     e_respond(false, 'Recipient not found.');
 }

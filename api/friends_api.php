@@ -3,6 +3,7 @@
 if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
 
 require_once __DIR__ . '/../include/config.php';
+require_once __DIR__ . '/_api_common.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -30,45 +31,7 @@ if (empty($_SESSION['user']['principal_id'])) {
 }
 $currentUserId = $_SESSION['user']['principal_id'];
 
-// --- Helper: resolve avatar by UUID or "First Last" ---
-function resolve_avatar(mysqli $con, string $input): ?array {
-    $input = trim($input);
-    // Looks like a UUID already
-    if (strlen($input) === 36 && strpos($input, '-') !== false) {
-        $uuid = mysqli_real_escape_string($con, $input);
-        $res = mysqli_query(
-            $con,
-            "SELECT PrincipalID, FirstName, LastName
-             FROM UserAccounts
-             WHERE PrincipalID = '$uuid'
-             LIMIT 1"
-        );
-        if ($res && $row = mysqli_fetch_assoc($res)) {
-            return $row;
-        }
-        return null;
-    }
-
-    // Try "First Last"
-    $parts = preg_split('/\s+/', $input);
-    if (count($parts) < 2) {
-        return null;
-    }
-    $first = mysqli_real_escape_string($con, $parts[0]);
-    $last  = mysqli_real_escape_string($con, $parts[1]);
-
-    $res = mysqli_query(
-        $con,
-        "SELECT PrincipalID, FirstName, LastName
-         FROM UserAccounts
-         WHERE FirstName = '$first' AND LastName = '$last'
-         LIMIT 1"
-    );
-    if ($res && $row = mysqli_fetch_assoc($res)) {
-        return $row;
-    }
-    return null;
-}
+// resolve_avatar() comes from api/_api_common.php
 
 // --- Helper: check if friendship already exists ---
 function friends_are_connected(mysqli $con, string $u1, string $u2): bool {

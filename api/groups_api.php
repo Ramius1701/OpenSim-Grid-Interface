@@ -3,6 +3,7 @@
 if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
 
 require_once __DIR__ . '/../include/config.php';
+require_once __DIR__ . '/_api_common.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -26,13 +27,7 @@ if (empty($_SESSION['user']['principal_id'])) {
 }
 $currentUserId = $_SESSION['user']['principal_id'];
 
-// Simple UUID v4 generator for tokens / InviteID
-function uuidv4(): string {
-    $data = random_bytes(16);
-    $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
-    $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
-    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
-}
+// uuidv4() comes from api/_api_common.php
 
 // Parse JSON / fallback
 $raw  = file_get_contents('php://input');
