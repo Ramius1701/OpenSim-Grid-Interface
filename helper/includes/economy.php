@@ -403,12 +403,21 @@ function currency_get_balance( $agentID, $secureID = null ) {
 }
 
 function currency_get_confirm_value( $ipAddress ) {
-	// TODO:
-	// Option to force key to be something else than default
-	$key          = empty( CURRENCY_SCRIPT_KEY ) ? '1234567883789' : CURRENCY_SCRIPT_KEY;
-	$confirmvalue = md5( $key . '_' . $ipAddress );
+	// The shipped example/default key ('123456789') is public - it's in
+	// config.example.php in this repo and every fork of it. Anyone who knows
+	// (or can guess) a requester's IP can compute this "confirm" value
+	// themselves if the operator never changed it, defeating the check
+	// entirely. Refuse to produce a stable value in that case rather than
+	// silently trusting a key that isn't actually secret: return a random
+	// value instead, so the confirm check downstream can never match and the
+	// purchase flow fails safely (logged) until a real key is configured.
+	$key = defined( 'CURRENCY_SCRIPT_KEY' ) ? CURRENCY_SCRIPT_KEY : '';
+	if ( empty( $key ) || $key === '123456789' ) {
+		error_log( 'currency_get_confirm_value(): CURRENCY_SCRIPT_KEY is unset or still the shipped default - refusing to compute a predictable confirm value. Set a real secret for CURRENCY_SCRIPT_KEY in helper/includes/config.php.' );
+		return bin2hex( random_bytes( 16 ) );
+	}
 
-	return $confirmvalue;
+	return md5( $key . '_' . $ipAddress );
 }
 
 function currency_process_transaction( $avatarID, $cost, $ipAddress ) {
