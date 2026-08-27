@@ -1,6 +1,7 @@
 <?php
 $title = "Password Reset";
 include_once 'include/header.php';
+require_once __DIR__ . '/include/security.php';
 
 // SHARED DB CONNECTION
 $conn = db();
@@ -22,95 +23,118 @@ $msg = "";
 $msgType = ""; // success or danger
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $fname = trim($_POST['firstName']);
-    $lname = trim($_POST['lastName']);
+    $fname = trim($_POST['firstName'] ?? '');
+    $lname = trim($_POST['lastName'] ?? '');
     $code  = strtoupper(preg_replace('/[^A-Z0-9]/', '', trim($_POST['recoveryCode'] ?? '')));
-    $pass  = $_POST['newPassword'];
-    $pass2 = $_POST['confirmPassword'];
+    $pass  = $_POST['newPassword'] ?? '';
+    $pass2 = $_POST['confirmPassword'] ?? '';
 
-    // 1. Basic Validation
-    if ($pass !== $pass2) {
-        $msg = "New passwords do not match.";
-        $msgType = "danger";
-    } elseif (strlen($pass) < 6) {
-        $msg = "Password must be at least 6 characters.";
+    // Generic message for every "this didn't work" outcome below the CSRF/
+    // rate-limit checks - using distinct messages for "no such avatar" vs.
+    // "wrong recovery code" lets an attacker enumerate which avatar names
+    // exist on the grid just by watching which message comes back.
+    $invalidMsg = "Invalid name or recovery code. Please check your spelling and try again.";
+
+    if (!verify_csrf_token()) {
+        $msg = "Your session has expired or the form was submitted incorrectly. Please try again.";
         $msgType = "danger";
     } else {
-        // 2. Find User UUID
-        $sql = "SELECT PrincipalID FROM UserAccounts WHERE FirstName = ? AND LastName = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ss", $fname, $lname);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        
-        if ($row = $res->fetch_assoc()) {
-            $uuid = $row['PrincipalID'];
-            ensure_recovery_table($conn);
-            
-            // 3. Fetch all UNUSED recovery codes for this user
-            // We verify them one by one using password_verify()
-            $codeFound = false;
-            $codeIDToInvalidate = 0;
-            
-            $sqlCodes = "SELECT id, code_hash FROM ws_recovery_codes WHERE PrincipalID = ? AND is_used = 0";
-            $stmtCodes = $conn->prepare($sqlCodes);
-            $stmtCodes->bind_param("s", $uuid);
-            $stmtCodes->execute();
-            $resCodes = $stmtCodes->get_result();
-            
-            while ($cRow = $resCodes->fetch_assoc()) {
-                // Check if the input code matches this hash
-                if (password_verify($code, $cRow['code_hash'])) {
-                    $codeFound = true;
-                    $codeIDToInvalidate = $cRow['id'];
-                    break; // Stop looking, we found a match
+        // Rate limit by IP (broad anti-automation) and by the target avatar
+        // name (so an attacker can't dodge the account-level limit by
+        // spreading guesses across many IPs). Recovery codes are only 32
+        // bits of entropy, so this matters more here than almost anywhere
+        // else in the app.
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+        $ipRateOk    = OSWebSecurity::checkRateLimit('reset_ip:' . $ip, 15, 900);
+        $accountKey  = 'reset_user:' . strtolower($fname . ' ' . $lname);
+        $acctRateOk  = OSWebSecurity::checkRateLimit($accountKey, 8, 900);
+
+        // 1. Basic Validation
+        if (!$ipRateOk || !$acctRateOk) {
+            $msg = "Too many attempts. Please wait a few minutes and try again.";
+            $msgType = "danger";
+        } elseif ($pass !== $pass2) {
+            $msg = "New passwords do not match.";
+            $msgType = "danger";
+        } elseif (strlen($pass) < 6) {
+            $msg = "Password must be at least 6 characters.";
+            $msgType = "danger";
+        } else {
+            // 2. Find User UUID
+            $sql = "SELECT PrincipalID FROM UserAccounts WHERE FirstName = ? AND LastName = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ss", $fname, $lname);
+            $stmt->execute();
+            $res = $stmt->get_result();
+
+            if ($row = $res->fetch_assoc()) {
+                $uuid = $row['PrincipalID'];
+                ensure_recovery_table($conn);
+
+                // 3. Fetch all UNUSED recovery codes for this user
+                // We verify them one by one using password_verify()
+                $codeFound = false;
+                $codeIDToInvalidate = 0;
+
+                $sqlCodes = "SELECT id, code_hash FROM ws_recovery_codes WHERE PrincipalID = ? AND is_used = 0";
+                $stmtCodes = $conn->prepare($sqlCodes);
+                $stmtCodes->bind_param("s", $uuid);
+                $stmtCodes->execute();
+                $resCodes = $stmtCodes->get_result();
+
+                while ($cRow = $resCodes->fetch_assoc()) {
+                    // Check if the input code matches this hash
+                    if (password_verify($code, $cRow['code_hash'])) {
+                        $codeFound = true;
+                        $codeIDToInvalidate = $cRow['id'];
+                        break; // Stop looking, we found a match
+                    }
                 }
-            }
-            
-            if ($codeFound) {
-                // 4. Code is valid! Perform Password Reset (atomic: update password + burn code)
-                $conn->begin_transaction();
-                try {
-                    // A. Update Password in 'auth' table
-                    $newSalt = md5(uniqid(mt_rand(), true));
-                    $newHash = md5(md5($pass) . ":" . $newSalt);
 
-                    $upSql = "UPDATE auth SET passwordHash = ?, passwordSalt = ? WHERE UUID = ?";
-                    $upStmt = $conn->prepare($upSql);
-                    $upStmt->bind_param("sss", $newHash, $newSalt, $uuid);
+                if ($codeFound) {
+                    // 4. Code is valid! Perform Password Reset (atomic: update password + burn code)
+                    $conn->begin_transaction();
+                    try {
+                        // A. Update Password in 'auth' table
+                        $newSalt = md5(uniqid(mt_rand(), true));
+                        $newHash = md5(md5($pass) . ":" . $newSalt);
 
-                    if (!$upStmt->execute()) {
-                        throw new Exception("Database error updating password.");
+                        $upSql = "UPDATE auth SET passwordHash = ?, passwordSalt = ? WHERE UUID = ?";
+                        $upStmt = $conn->prepare($upSql);
+                        $upStmt->bind_param("sss", $newHash, $newSalt, $uuid);
+
+                        if (!$upStmt->execute()) {
+                            throw new Exception("Database error updating password.");
+                        }
+
+                        // B. Burn the code (Mark as used) - only if still unused
+                        $burnSql = "UPDATE ws_recovery_codes SET is_used = 1 WHERE id = ? AND is_used = 0";
+                        $burnStmt = $conn->prepare($burnSql);
+                        $burnStmt->bind_param("i", $codeIDToInvalidate);
+
+                        if (!$burnStmt->execute() || $burnStmt->affected_rows !== 1) {
+                            throw new Exception("Database error invalidating recovery code.");
+                        }
+
+                        if (!$conn->commit()) {
+                            throw new Exception("Database error finalizing reset.");
+                        }
+
+                        $msg = "Success! Your password has been reset. You can log in now.";
+                        $msgType = "success";
+                    } catch (Throwable $e) {
+                        $conn->rollback();
+                        $msg = $e->getMessage();
+                        $msgType = "danger";
                     }
-
-                    // B. Burn the code (Mark as used) - only if still unused
-                    $burnSql = "UPDATE ws_recovery_codes SET is_used = 1 WHERE id = ? AND is_used = 0";
-                    $burnStmt = $conn->prepare($burnSql);
-                    $burnStmt->bind_param("i", $codeIDToInvalidate);
-
-                    if (!$burnStmt->execute() || $burnStmt->affected_rows !== 1) {
-                        throw new Exception("Database error invalidating recovery code.");
-                    }
-
-                    if (!$conn->commit()) {
-                        throw new Exception("Database error finalizing reset.");
-                    }
-
-                    $msg = "Success! Your password has been reset. You can log in now.";
-                    $msgType = "success";
-                } catch (Throwable $e) {
-                    $conn->rollback();
-                    $msg = $e->getMessage();
+                } else {
+                    $msg = $invalidMsg;
                     $msgType = "danger";
                 }
-} else {
-                $msg = "Invalid Recovery Code. Please check your spelling or try a different code.";
+            } else {
+                $msg = $invalidMsg;
                 $msgType = "danger";
             }
-            
-        } else {
-            $msg = "Avatar not found.";
-            $msgType = "danger";
         }
     }
 }
@@ -130,6 +154,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="card shadow">
         <div class="card-body">
             <form method="POST">
+                <?php echo csrf_token_field(); ?>
                 <div class="row mb-3">
                     <div class="col">
                         <label class="form-label fw-bold">First Name</label>
