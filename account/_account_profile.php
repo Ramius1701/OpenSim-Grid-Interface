@@ -25,6 +25,7 @@ $account_subtitle = $__meta['subtitle'];
 // Shared header (handles config, sessions, HTML <head>, etc.)
 require_once __DIR__ . '/../include/header.php';
 require_once __DIR__ . '/../include/security.php';
+require_once __DIR__ . '/../include/schema_checks.php';
 
 if (!function_exists('format_region_location')) {
     /**
@@ -94,41 +95,6 @@ if (!function_exists('osv_db')) {
             mysqli_set_charset($c, 'utf8mb4');
         }
         return $c;
-    }
-}
-
-if (!function_exists('osv_table_exists')) {
-    function osv_table_exists(mysqli $c, string $t): bool {
-        $t = $c->real_escape_string($t);
-        if ($rs = $c->query("SHOW TABLES LIKE '{$t}'")) {
-            $ok = $rs->num_rows > 0;
-            $rs->close();
-            return $ok;
-        }
-        return false;
-    }
-}
-
-if (!function_exists('osv_get_columns')) {
-    function osv_get_columns(mysqli $c, string $t): array {
-        $cols = [];
-        if ($rs = $c->query("SHOW COLUMNS FROM `{$t}`")) {
-            while ($row = $rs->fetch_assoc()) {
-                $cols[strtolower($row['Field'])] = $row['Field'];
-            }
-            $rs->close();
-        }
-        return $cols;
-    }
-}
-
-if (!function_exists('osv_pick_col')) {
-    function osv_pick_col(array $cols, array $cands): ?string {
-        foreach ($cands as $cand) {
-            $k = strtolower($cand);
-            if (isset($cols[$k])) return $cols[$k];
-        }
-        return null;
     }
 }
 

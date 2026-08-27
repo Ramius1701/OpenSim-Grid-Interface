@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/include/config.php';
+require_once __DIR__ . '/include/schema_checks.php';
 $title = 'Edit Event';
 require_once __DIR__ . '/include/header.php';
 
@@ -55,39 +56,8 @@ if (!$db) {
 
 // --- Regions owned by this user (for dropdown) ---
 $myRegions = [];
-// Lightweight helpers (mirrors logic used in account dashboard)
-if (!function_exists('osv_table_exists')) {
-    function osv_table_exists(mysqli $c, string $t): bool {
-        $t = $c->real_escape_string($t);
-        if ($rs = $c->query("SHOW TABLES LIKE '{$t}'")) {
-            $ok = $rs->num_rows > 0;
-            $rs->close();
-            return $ok;
-        }
-        return false;
-    }
-}
-if (!function_exists('osv_get_columns')) {
-    function osv_get_columns(mysqli $c, string $t): array {
-        $cols = [];
-        if ($rs = $c->query("SHOW COLUMNS FROM `{$t}`")) {
-            while ($row = $rs->fetch_assoc()) {
-                $cols[strtolower($row['Field'])] = $row['Field'];
-            }
-            $rs->close();
-        }
-        return $cols;
-    }
-}
-if (!function_exists('osv_pick_col')) {
-    function osv_pick_col(array $cols, array $cands): ?string {
-        foreach ($cands as $cand) {
-            $k = strtolower($cand);
-            if (isset($cols[$k])) return $cols[$k];
-        }
-        return null;
-    }
-}
+// osv_table_exists/osv_get_columns/osv_pick_col come from
+// include/schema_checks.php (shared with account/_account_profile.php).
 
 if ($db && $uid) {
     $REGIONS = osv_table_exists($db, 'regions') ? 'regions'

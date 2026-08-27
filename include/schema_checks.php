@@ -1,11 +1,39 @@
 <?php
-function db_has_table(mysqli $con, string $table): bool {
-    $stmt = $con->prepare('SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?');
-    if (!$stmt) return false;
-    $stmt->bind_param('s', $table);
-    $stmt->execute();
-    $stmt->store_result();
-    $ok = $stmt->num_rows > 0;
-    $stmt->close();
-    return $ok;
+// Shared MySQL schema-introspection helpers (used where a page needs to
+// tolerate different fork's table/column naming, e.g. regions vs
+// GridRegions, estate_settings vs EstateSettings).
+
+if (!function_exists('osv_table_exists')) {
+    function osv_table_exists(mysqli $c, string $t): bool {
+        $t = $c->real_escape_string($t);
+        if ($rs = $c->query("SHOW TABLES LIKE '{$t}'")) {
+            $ok = $rs->num_rows > 0;
+            $rs->close();
+            return $ok;
+        }
+        return false;
+    }
+}
+
+if (!function_exists('osv_get_columns')) {
+    function osv_get_columns(mysqli $c, string $t): array {
+        $cols = [];
+        if ($rs = $c->query("SHOW COLUMNS FROM `{$t}`")) {
+            while ($row = $rs->fetch_assoc()) {
+                $cols[strtolower($row['Field'])] = $row['Field'];
+            }
+            $rs->close();
+        }
+        return $cols;
+    }
+}
+
+if (!function_exists('osv_pick_col')) {
+    function osv_pick_col(array $cols, array $cands): ?string {
+        foreach ($cands as $cand) {
+            $k = strtolower($cand);
+            if (isset($cols[$k])) return $cols[$k];
+        }
+        return null;
+    }
 }
