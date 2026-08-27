@@ -1,6 +1,19 @@
 <?php
 // OpenSim Webinterface Setup Assistant
 // This file helps with the initial configuration
+
+// Before config.php/env.php exist there's no DB, no admin accounts, and
+// nothing to gate this with - that window is unavoidable for a first-run
+// setup page. But once setup has actually completed, an admin auth
+// mechanism exists and there's no legitimate reason for this page to keep
+// disclosing server/config state to anonymous visitors indefinitely - so
+// require admin login from that point on.
+$__setupComplete = file_exists(__DIR__ . '/include/env.php') && file_exists(__DIR__ . '/include/config.php');
+if ($__setupComplete) {
+    require_once __DIR__ . '/include/config.php';
+    require_once __DIR__ . '/include/auth.php';
+    require_admin();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
