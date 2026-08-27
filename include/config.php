@@ -245,7 +245,7 @@ require_once __DIR__ . '/ws_db.php';
 $colorSchemes = array(
     // --- DARK MODES (Gaming / Tech / Night) ---
 
-    // 1. OBSIDIAN (True Dark - OLED Friendly)
+    // 1. OBSIDIAN (True Dark - OLED Friendly) - keeper
     'obsidian' => [
         'header'    => '#000000',
         'footer'    => '#000000',
@@ -254,7 +254,7 @@ $colorSchemes = array(
         'text'      => '#E0E0E0',
         'accent'    => '#3b82f6'   // Royal Blue
     ],
-    
+
     // 2. SLATE (Modern SaaS - The "Default" Dark Mode of the web)
     'slate' => [
         'header'    => '#0f172a',  // Slate 900
@@ -265,49 +265,9 @@ $colorSchemes = array(
         'accent'    => '#38bdf8'   // Sky Blue
     ],
 
-    // 3. AMETHYST (Web3 / Metaverse / Mystical) - Very Popular
-    'amethyst' => [
-        'header'    => '#2e1065',  // Deep Violet
-        'footer'    => '#170536',
-        'page_bg'   => '#1e1b4b',  // Indigo-Dark
-        'card_bg'   => '#4c1d95',  // Violet 900
-        'text'      => '#f3e8ff',  // Light Purple Text
-        'accent'    => '#d8b4fe'   // Lavender Pop
-    ],
-
-    // 4. CYBERPUNK (Gaming / Sci-Fi)
-    'cyber' => [
-        'header'    => '#18181b',  // Zinc 900
-        'footer'    => '#000000',
-        'page_bg'   => '#09090b',  // Zinc 950
-        'card_bg'   => '#27272a',  // Zinc 800
-        'text'      => '#e4e4e7',
-        'accent'    => '#ec4899'   // Neon Pink
-    ],
-
-    // 5. MIDNIGHT (Deep Ocean)
-    'midnight' => [
-        'header'    => '#0c4a6e',  // Sky 900
-        'footer'    => '#082f49',
-        'page_bg'   => '#0f172a',  // Slate 900
-        'card_bg'   => '#1e293b',  // Slate 800
-        'text'      => '#e0f2fe',  // Light Blue Text
-        'accent'    => '#0ea5e9'   // Bright Cyan
-    ],
-
-    // 6. CRIMSON (Bold / Aggressive)
-    'crimson' => [
-        'header'    => '#7f1d1d',  // Red 900
-        'footer'    => '#450a0a',
-        'page_bg'   => '#1a0505',  // Very Dark Red
-        'card_bg'   => '#2b0a0a',
-        'text'      => '#fecaca',  // Red 100
-        'accent'    => '#ef4444'   // Red 500
-    ],
-
     // --- LIGHT MODES (Professional / Clean / Day) ---
 
-    // 7. AZURE (Corporate / Trust / Clean)
+    // 3. AZURE (Corporate / Trust / Clean)
     'azure' => [
         'header'    => '#0284c7',  // Sky 600
         'footer'    => '#0c4a6e',
@@ -316,8 +276,8 @@ $colorSchemes = array(
         'text'      => '#0f172a',
         'accent'    => '#0284c7'
     ],
-    
-    // 8. EMERALD (Nature / Health / Calm)
+
+    // 4. EMERALD (Nature / Health / Calm)
     'emerald' => [
         'header'    => '#059669',  // Emerald 600
         'footer'    => '#064e3b',
@@ -327,27 +287,7 @@ $colorSchemes = array(
         'accent'    => '#10b981'
     ],
 
-    // 9. LATTE (Warm / Modern Minimalist) - Very Trendy
-    'latte' => [
-        'header'    => '#78350f',  // Amber 900 (Coffee)
-        'footer'    => '#451a03',
-        'page_bg'   => '#fffbeb',  // Amber 50 (Cream)
-        'card_bg'   => '#ffffff',
-        'text'      => '#431407',  // Dark Brown Text
-        'accent'    => '#d97706'   // Amber 600 (Caramel)
-    ],
-
-    // 10. ROSE (Soft / Welcoming)
-    'rose' => [
-        'header'    => '#e11d48',  // Rose 600
-        'footer'    => '#881337',
-        'page_bg'   => '#fff1f2',  // Rose 50
-        'card_bg'   => '#ffffff',
-        'text'      => '#881337',  // Dark Red Text
-        'accent'    => '#f43f5e'   // Rose 500
-    ],
-
-    // 11. NORDIC (Cool Grey / Minimal)
+    // 5. NORDIC (Cool Grey / Minimal) - keeper, site default
     'nordic' => [
         'header'    => '#475569',  // Slate 600
         'footer'    => '#334155',
@@ -357,17 +297,7 @@ $colorSchemes = array(
         'accent'    => '#64748b'   // Slate 500
     ],
 
-    // 12. SAPPHIRE (Legacy Blue Dark)
-    'sapphire' => [
-        'header'    => '#1e1b4b',
-        'footer'    => '#1e1b4b',
-        'page_bg'   => '#172554',
-        'card_bg'   => '#1e3a8a',
-        'text'      => '#eff6ff',
-        'accent'    => '#60a5fa'
-    ],
-
-    // 13. GRAPHITE (Neutral Dark)
+    // 6. GRAPHITE (Neutral Dark)
     'graphite' => [
         'header'    => '#374151',
         'footer'    => '#111827',
@@ -377,7 +307,7 @@ $colorSchemes = array(
         'accent'    => '#9ca3af'
     ],
 
-    // 14. CLASSIC (Tribute to Original Creator)
+    // 7. CLASSIC (Tribute to Original Creator) - keeper, all other themes are based on this one
     'original' => [
         'header'    => '#cdb38b', 
         'footer'    => '#eecfa1', 
