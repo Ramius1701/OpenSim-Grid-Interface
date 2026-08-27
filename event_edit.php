@@ -199,7 +199,7 @@ if (!empty($event['DateUTC'])) {
         <!-- Sidebar -->
         <div class="col-md-3">
             <div class="card mb-3">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header">
                     <h5 class="mb-0">
                         <i class="bi bi-calendar-plus me-1"></i>
                         <?= $isNew ? 'Create event' : 'Edit event' ?>

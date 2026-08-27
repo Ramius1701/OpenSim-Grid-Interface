@@ -263,7 +263,7 @@ if ($firstName && $lastName && !$userId) {
                 ?>
                 
                 <div class="card">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header">
                         <div class="row align-items-center">
                             <div class="col">
                                 <h4 class="mb-0">
@@ -465,7 +465,7 @@ if ($firstName && $lastName && !$userId) {
                                     <div class="col-md-6 col-lg-4 mb-3">
                                         <div class="card h-100 <?php echo $pick['toppick'] ? 'border-warning' : ''; ?>">
                                             <?php if ($pick['toppick']): ?>
-                                            <div class="card-header bg-warning text-dark text-center py-1">
+                                            <div class="card-header text-center py-1">
                                                 <small><i class="bi bi-star-fill"></i> TOP PICK</small>
                                             </div>
                                             <?php endif; ?>

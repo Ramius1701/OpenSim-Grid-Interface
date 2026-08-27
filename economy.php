@@ -190,7 +190,7 @@ if ($isLoggedIn) {
     <div class="row">
         <div class="col-md-3">
             <div class="card">
-                <div class="card-header bg-<?php echo $isLoggedIn ? 'success' : 'info'; ?> text-white">
+                <div class="card-header">
                     <h5 class="mb-0"><i class="bi bi-wallet2"></i> <?php echo $isLoggedIn ? 'My Account' : 'Economy Overview'; ?></h5>
                 </div>
                 <div class="card-body">
@@ -293,7 +293,7 @@ if ($isLoggedIn) {
             <?php if ($action == 'my_account'): ?>
                 <?php if (!$isLoggedIn): ?>
                     <div class="card">
-                        <div class="card-header bg-warning text-dark">
+                        <div class="card-header">
                             <h4><i class="bi bi-lock"></i> Authentication Required</h4>
                         </div>
                         <div class="card-body text-center">
@@ -306,7 +306,7 @@ if ($isLoggedIn) {
                     </div>
                 <?php else: ?>
                     <div class="card">
-                        <div class="card-header bg-primary text-white">
+                        <div class="card-header">
                             <h4><i class="bi bi-person-circle"></i> My economy account</h4>
                             <small class="text-white-50">Welcome, <?php echo htmlspecialchars($userName); ?></small>
                         </div>
@@ -319,7 +319,7 @@ if ($isLoggedIn) {
                             
                             <div class="row">
                                 <div class="col-md-4">
-                                    <div class="card bg-success text-white">
+                                    <div class="card">
                                         <div class="card-body text-center">
                                             <h2>FC$ <?php echo number_format($balance['balance'] ?? 0, 0, ',', '.'); ?></h2>
                                             <p class="mb-0">Current balance</p>
@@ -327,7 +327,7 @@ if ($isLoggedIn) {
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="card bg-info text-white">
+                                    <div class="card">
                                         <div class="card-body text-center">
                                             <?php
                                             $monthlySpent = mysqli_fetch_row(mysqli_query($con, "
@@ -342,7 +342,7 @@ if ($isLoggedIn) {
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="card bg-warning text-white">
+                                    <div class="card">
                                         <div class="card-body text-center">
                                             <?php
                                             $monthlyReceived = mysqli_fetch_row(mysqli_query($con, "
@@ -446,7 +446,7 @@ if ($isLoggedIn) {
             <?php elseif ($action == 'send_money'): ?>
                 <?php if (!$isLoggedIn): ?>
                     <div class="card">
-                        <div class="card-header bg-warning text-dark">
+                        <div class="card-header">
                             <h4><i class="bi bi-lock"></i> Authentication Required</h4>
                         </div>
                         <div class="card-body text-center">
@@ -458,7 +458,7 @@ if ($isLoggedIn) {
                     </div>
                 <?php else: ?>
                     <div class="card">
-                        <div class="card-header bg-success text-white">
+                        <div class="card-header">
                             <h4><i class="bi bi-send"></i> Send money</h4>
                             <small class="text-white-50">Available balance: FC$ <?php echo number_format($myBalance['balance'] ?? 0, 0, ',', '.'); ?></small>
                         </div>
@@ -476,7 +476,7 @@ if ($isLoggedIn) {
             <?php elseif ($action == 'my_transactions'): ?>
                 <?php if (!$isLoggedIn): ?>
                     <div class="card">
-                        <div class="card-header bg-warning text-dark">
+                        <div class="card-header">
                             <h4><i class="bi bi-lock"></i> Authentication Required</h4>
                         </div>
                         <div class="card-body text-center">
@@ -488,7 +488,7 @@ if ($isLoggedIn) {
                     </div>
                 <?php else: ?>
                     <div class="card">
-                        <div class="card-header bg-info text-white">
+                        <div class="card-header">
                             <h4><i class="bi bi-list-ul"></i> My transactions</h4>
                             <small class="text-white-50">Transaction history for <?php echo htmlspecialchars($userName); ?></small>
                         </div>
@@ -544,7 +544,7 @@ if ($isLoggedIn) {
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="card">
-                                    <div class="card-header bg-warning text-dark">
+                                    <div class="card-header">
                                         <h5 class="mb-0"><i class="bi bi-coin"></i> Top accounts (balance)</h5>
                                     </div>
                                     <div class="card-body">
@@ -579,7 +579,7 @@ if ($isLoggedIn) {
 
                             <div class="col-md-6">
                                 <div class="card">
-                                    <div class="card-header bg-info text-white">
+                                    <div class="card-header">
                                         <h5 class="mb-0"><i class="bi bi-arrow-left-right"></i> Most active users (30 days)</h5>
                                     </div>
                                     <div class="card-body">
@@ -635,7 +635,7 @@ if ($isLoggedIn) {
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-3">
-                                <div class="card text-white">
+                                <div class="card">
                                     <div class="card-body text-center">
                                         <i class="bi bi-coin fs-2 mb-2"></i>
                                         <h4>FC$ <?php echo number_format($stats['total_money'], 0, ',', '.'); ?></h4>
@@ -644,7 +644,7 @@ if ($isLoggedIn) {
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="card bg-success text-white">
+                                <div class="card">
                                     <div class="card-body text-center">
                                         <i class="bi bi-people fs-2 mb-2"></i>
                                         <h4><?php echo number_format($stats['total_users'], 0, ',', '.'); ?></h4>
@@ -653,7 +653,7 @@ if ($isLoggedIn) {
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="card bg-info text-white">
+                                <div class="card">
                                     <div class="card-body text-center">
                                         <i class="bi bi-arrow-left-right fs-2 mb-2"></i>
                                         <h4><?php echo number_format($stats['total_transactions'], 0, ',', '.'); ?></h4>
@@ -662,7 +662,7 @@ if ($isLoggedIn) {
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="card bg-warning text-white">
+                                <div class="card">
                                     <div class="card-body text-center">
                                         <i class="bi bi-graph-up fs-2 mb-2"></i>
                                         <h4>FC$ <?php echo number_format($stats['daily_volume'], 0, ',', '.'); ?></h4>
@@ -880,7 +880,7 @@ if ($isLoggedIn) {
 
             <?php else: ?>
                 <div class="card">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header">
                         <h4><i class="bi bi-speedometer2"></i> Economy Dashboard</h4>
                         <p class="mb-0">
                             Overview of the grid economy
@@ -896,7 +896,7 @@ if ($isLoggedIn) {
                 <div class="row mt-3">
                     
                     <div class="col-md-3">
-                        <div class="card text-white">
+                        <div class="card">
                             <div class="card-body text-center">
                                 <i class="bi bi-coin fs-2 mb-2"></i>
                                 <h4>FC$ <?php echo number_format($stats['total_money'], 0, ',', '.'); ?></h4>
@@ -905,7 +905,7 @@ if ($isLoggedIn) {
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card bg-success text-white">
+                        <div class="card">
                             <div class="card-body text-center">
                                 <i class="bi bi-people fs-2 mb-2"></i>
                                 <h4><?php echo number_format($stats['total_users'], 0, ',', '.'); ?></h4>
@@ -914,7 +914,7 @@ if ($isLoggedIn) {
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card bg-info text-white">
+                        <div class="card">
                             <div class="card-body text-center">
                                 <i class="bi bi-arrow-left-right fs-2 mb-2"></i>
                                 <h4><?php echo number_format($stats['total_transactions'], 0, ',', '.'); ?></h4>
@@ -923,7 +923,7 @@ if ($isLoggedIn) {
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="card bg-warning text-white">
+                        <div class="card">
                             <div class="card-body text-center">
                                 <i class="bi bi-graph-up fs-2 mb-2"></i>
                                 <h4>FC$ <?php echo number_format($stats['daily_volume'], 0, ',', '.'); ?></h4>

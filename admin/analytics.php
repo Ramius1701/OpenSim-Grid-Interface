@@ -397,7 +397,7 @@ mysqli_close($db);
     <div class="col-md-3">
       <!-- Snapshot / summary -->
       <div class="card mb-3">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header">
           <h5 class="mb-0">
             <i class="bi bi-graph-up me-1"></i> Grid snapshot
           </h5>
@@ -441,7 +441,7 @@ mysqli_close($db);
 
       <!-- Economy summary -->
       <div class="card mb-3">
-        <div class="card-header bg-info text-white">
+        <div class="card-header">
           <h5 class="mb-0">
             <i class="bi bi-cash-coin me-1"></i> Economy summary
           </h5>
@@ -500,7 +500,7 @@ mysqli_close($db);
           <div class="row g-3">
             <!-- Total users -->
             <div class="col-md-3 col-sm-6">
-              <div class="card h-100 bg-primary text-white">
+              <div class="card h-100">
                 <div class="card-body d-flex flex-column justify-content-between">
                   <div>
                     <div class="text-uppercase small fw-semibold">
@@ -517,7 +517,7 @@ mysqli_close($db);
 
             <!-- Regions -->
             <div class="col-md-3 col-sm-6">
-              <div class="card h-100 bg-info text-white">
+              <div class="card h-100">
                 <div class="card-body d-flex flex-column justify-content-between">
                   <div>
                     <div class="text-uppercase small fw-semibold">
@@ -534,7 +534,7 @@ mysqli_close($db);
 
             <!-- Online -->
             <div class="col-md-3 col-sm-6">
-              <div class="card h-100 bg-success text-white">
+              <div class="card h-100">
                 <div class="card-body d-flex flex-column justify-content-between">
                   <div>
                     <div class="text-uppercase small fw-semibold">
@@ -551,7 +551,7 @@ mysqli_close($db);
 
             <!-- Volume -->
             <div class="col-md-3 col-sm-6">
-              <div class="card h-100 bg-warning text-dark">
+              <div class="card h-100">
                 <div class="card-body d-flex flex-column justify-content-between">
                   <div>
                     <div class="text-uppercase small fw-semibold">
@@ -571,7 +571,7 @@ mysqli_close($db);
 
       <!-- Recent transactions -->
       <div class="card mb-3">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header">
           <div class="d-flex justify-content-between align-items-center">
             <h5 class="mb-0">
               <i class="bi bi-cash-stack me-1"></i> Recent transactions
@@ -645,7 +645,7 @@ mysqli_close($db);
         <!-- Users -->
         <div class="col-lg-6">
           <div class="card h-100">
-            <div class="card-header bg-info text-white">
+            <div class="card-header">
               <h5 class="mb-0">
                 <i class="bi bi-people-fill me-1"></i> Users
               </h5>
@@ -723,7 +723,7 @@ mysqli_close($db);
         <!-- Regions + activity -->
         <div class="col-lg-6">
           <div class="card mb-3">
-            <div class="card-header bg-success text-white">
+            <div class="card-header">
               <h5 class="mb-0">
                 <i class="bi bi-map-fill me-1"></i> Top regions (by presence count)
               </h5>
@@ -773,7 +773,7 @@ mysqli_close($db);
           </div>
 
           <div class="card">
-            <div class="card-header bg-warning text-dark">
+            <div class="card-header">
               <h5 class="mb-0">
                 <i class="bi bi-activity me-1"></i> Recent user activity
               </h5>

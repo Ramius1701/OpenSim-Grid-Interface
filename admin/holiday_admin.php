@@ -193,7 +193,7 @@ $self = ev_h($self);
         <div class="col-md-3">
 
             <div class="card mb-3">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header">
                     <h5 class="mb-0"><i class="bi bi-tools me-1"></i> Admin</h5>
                 </div>
                 <div class="card-body">

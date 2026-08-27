@@ -305,7 +305,7 @@ $userId = isset($_GET['user']) ? $_GET['user'] : '';
                             <?php while ($row = mysqli_fetch_assoc($result)): ?>
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card h-100 border-warning">
-                                    <div class="card-header bg-warning text-dark">
+                                    <div class="card-header">
                                         <i class="bi bi-star"></i> TOP PICK
                                     </div>
                                     
@@ -404,7 +404,7 @@ $userId = isset($_GET['user']) ? $_GET['user'] : '';
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card h-100 <?php echo $row['toppick'] ? 'border-warning' : ''; ?>">
                                     <?php if ($row['toppick']): ?>
-                                    <div class="card-header bg-warning text-dark text-center">
+                                    <div class="card-header text-center">
                                         <i class="bi bi-star"></i> TOP PICK
                                     </div>
                                     <?php endif; ?>

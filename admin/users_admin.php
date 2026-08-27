@@ -315,7 +315,7 @@ if ($con && $editUUID !== '') {
         <div class="col-md-3">
 
             <div class="card mb-3">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header">
                     <h5 class="mb-0"><i class="bi bi-info-circle me-1"></i> Admin Tools</h5>
                 </div>
                 <div class="card-body small">
@@ -414,7 +414,7 @@ if ($con && $editUUID !== '') {
 
             <?php if ($editUser): ?>
             <div class="card border-0 shadow mb-4 animate-fade-in">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <span class="fw-bold"><i class="bi bi-pencil-square me-2"></i> Editing: <?php echo u_h($editUser['FirstName'].' '.$editUser['LastName']); ?></span>
                     <a href="admin/users_admin.php" class="btn btn-sm btn-light text-primary"><i class="bi bi-x-lg"></i> Close</a>
                 </div>
@@ -456,7 +456,7 @@ if ($con && $editUUID !== '') {
 
                     <div class="row g-4 mt-4 border-top pt-4">
                         <div class="col-md-6">
-                            <div class="card bg-warning-subtle border-0 h-100">
+                            <div class="card border-0 h-100">
                                 <div class="card-body">
                                     <h6 class="fw-bold text-dark"><i class="bi bi-key-fill me-1"></i> Admin Password Reset</h6>
                                     <p class="small mb-3 text-body-secondary">Manually set a new password if the user is locked out.</p>
@@ -472,7 +472,7 @@ if ($con && $editUUID !== '') {
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="card bg-danger-subtle border-0 h-100">
+                            <div class="card border-0 h-100">
                                 <div class="card-body d-flex flex-column justify-content-center text-center">
                                     <h6 class="fw-bold text-danger"><i class="bi bi-trash3 me-1"></i> Delete Account</h6>
                                     <button class="btn btn-sm btn-outline-danger w-100 mt-2" type="button" data-bs-toggle="collapse" data-bs-target="#delConfirm">

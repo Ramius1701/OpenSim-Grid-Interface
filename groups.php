@@ -233,7 +233,7 @@ if (!empty($_SESSION['user']['principal_id'])) {
                 ?>
                 
                 <div class="card">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header">
                         <div class="row align-items-center">
                             <div class="col">
                                 <h4 class="mb-0">
@@ -535,7 +535,7 @@ if (!empty($_SESSION['user']['principal_id'])) {
                                     <?php while ($invite = mysqli_fetch_assoc($invitesResult)): ?>
                                     <div class="col-md-6 mb-3">
                                         <div class="card border-warning">
-                                            <div class="card-header bg-warning text-dark">
+                                            <div class="card-header">
                                                 <i class="bi bi-envelope"></i> Invitation
                                             </div>
                                             <div class="card-body">
@@ -672,7 +672,7 @@ if (!empty($_SESSION['user']['principal_id'])) {
                             <?php while ($group = mysqli_fetch_assoc($openGroupsResult)): ?>
                             <div class="col-md-6 col-lg-4 mb-3">
                                 <div class="card border-success">
-                                    <div class="card-header bg-success text-white">
+                                    <div class="card-header">
                                         <i class="bi bi-door-open"></i> Joinable
                                     </div>
                                     <div class="card-body">

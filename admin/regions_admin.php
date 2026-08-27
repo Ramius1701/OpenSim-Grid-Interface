@@ -180,7 +180,7 @@ if ($editRegion) {
         <div class="col-md-3">
 
             <div class="card mb-3">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header">
                     <h5 class="mb-0"><i class="bi bi-info-circle me-1"></i> Admin Tools</h5>
                 </div>
                 <div class="card-body small">
@@ -216,7 +216,7 @@ if ($editRegion) {
 
     <?php if ($editRegion): ?>
     <div class="card border-0 shadow mb-4">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <span class="fw-bold"><i class="bi bi-pencil-square me-2"></i> Editing: <?php echo s_h($editRegionName !== '' ? $editRegionName : $editUUID); ?></span>
             <a href="admin/regions_admin.php" class="btn btn-sm btn-light text-primary"><i class="bi bi-x-lg"></i> Close</a>
         </div>

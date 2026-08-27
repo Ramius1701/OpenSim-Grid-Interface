@@ -536,7 +536,7 @@ if ($robustOk) {
 
     <?php if ($step == 1): ?>
     <div class="card shadow">
-        <div class="card-header bg-primary text-white">Step 1: Account Details</div>
+        <div class="card-header">Step 1: Account Details</div>
         <div class="card-body">
             <form method="POST">
                 <div class="row mb-3">
@@ -569,7 +569,7 @@ if ($robustOk) {
 
     <?php if ($step == 2): ?>
     <div class="card shadow border-danger">
-        <div class="card-header bg-danger text-white">Step 2: Save Your Recovery Codes</div>
+        <div class="card-header">Step 2: Save Your Recovery Codes</div>
         <div class="card-body text-center">
             <p class="text-muted">
                 If you forget your password, these codes are the <strong>ONLY</strong> way to reset it yourself.<br>
@@ -603,7 +603,7 @@ if ($robustOk) {
 
     <?php if ($step == 3): ?>
     <div class="card shadow border-success">
-        <div class="card-header bg-success text-white">Step 3: Finalize</div>
+        <div class="card-header">Step 3: Finalize</div>
         <div class="card-body">
             <h5>Ready to create avatar?</h5>
             <p><strong>Name:</strong> <?php echo htmlspecialchars($_SESSION['reg_data']['f'] . " " . $_SESSION['reg_data']['l']); ?></p>

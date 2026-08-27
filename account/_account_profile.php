@@ -2448,7 +2448,7 @@ if ($conn && $UID !== '') {
 
                                 <div class="col-md-6">
                                     <div class="card h-100 border-warning">
-                                        <div class="card-header bg-warning text-dark fw-bold"><i class="bi bi-life-preserver"></i> Recovery Codes</div>
+                                        <div class="card-header fw-bold"><i class="bi bi-life-preserver"></i> Recovery Codes</div>
                                         <div class="card-body">
                                             <p>If you lose your password, these codes are the only way to recover your account yourself.</p>
                                             

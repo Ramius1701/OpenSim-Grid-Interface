@@ -466,7 +466,7 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
                 <!-- Friend requests -->
                 <?php if (!$isLoggedIn): ?>
                     <div class="card">
-                        <div class="card-header bg-warning text-dark">
+                        <div class="card-header">
                             <h4><i class="bi bi-lock"></i> Authentication Required</h4>
                         </div>
                         <div class="card-body text-center">
@@ -497,7 +497,7 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
                                 <?php while ($request = mysqli_fetch_assoc($requestsResult)): ?>
                                 <div class="col-md-6 col-lg-4 mb-3">
                                     <div class="card border-warning">
-                                        <div class="card-header bg-warning text-dark">
+                                        <div class="card-header">
                                             <i class="bi bi-clock"></i> Friend request
                                         </div>
                                         <div class="card-body">
@@ -541,7 +541,7 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
                 <!-- Online friends -->
                 <?php if (!$isLoggedIn): ?>
                     <div class="card">
-                        <div class="card-header bg-warning text-dark">
+                        <div class="card-header">
                             <h4><i class="bi bi-lock"></i> Authentication Required</h4>
                         </div>
                         <div class="card-body text-center">
@@ -578,7 +578,7 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
                                 ?>
                                 <div class="col-md-6 col-lg-4 mb-3">
                                     <div class="card border-success">
-                                        <div class="card-header bg-success text-white">
+                                        <div class="card-header">
                                             <i class="bi bi-circle-fill"></i> ONLINE
                                         </div>
                                         <div class="card-body">
@@ -665,11 +665,11 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
                                 <div class="col-md-6 col-lg-4 mb-3">
                                     <div class="card <?php echo $isOnline ? 'border-success' : ($isRecentlyActive ? 'border-warning' : ''); ?>">
                                         <?php if ($isOnline): ?>
-                                        <div class="card-header bg-success text-white py-2">
+                                        <div class="card-header py-2">
                                             <small><i class="bi bi-circle-fill"></i> ONLINE</small>
                                         </div>
                                         <?php elseif ($isRecentlyActive): ?>
-                                        <div class="card-header bg-warning text-dark py-2">
+                                        <div class="card-header py-2">
                                             <small><i class="bi bi-clock"></i> Active today</small>
                                         </div>
                                         <?php endif; ?>

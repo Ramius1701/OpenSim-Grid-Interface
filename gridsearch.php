@@ -483,7 +483,7 @@ if (!empty($results)) {
         <div class="col-md-9">
             <!-- Search form -->
             <div class="card">
-                <div class="card-header text-white">
+                <div class="card-header">
                     <h5 class="mb-0"><i class="bi bi-search"></i> Grid Search</h5>
                 </div>
                 <div class="card-body">
@@ -607,7 +607,7 @@ if (!empty($results)) {
                             <div class="col-md-6 col-lg-4 mb-3">
                                 <div class="card <?php echo $place['toppick'] ? 'border-warning' : ''; ?>">
                                     <?php if ($place['toppick']): ?>
-                                    <div class="card-header bg-warning text-dark py-1 text-center">
+                                    <div class="card-header py-1 text-center">
                                         <small><i class="bi bi-star-fill"></i> TOP PICK</small>
                                     </div>
                                     <?php endif; ?>
