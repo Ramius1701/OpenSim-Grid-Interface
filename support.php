@@ -119,11 +119,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
                     $ticketEmail    = $isLoggedIn ? '' : $guestEmail;
 
                     try {
+                        $nowGrid = ws_now();
                         $st = $wsdb->prepare(
-                            "INSERT INTO ws_tickets (user_uuid, user_name, contact_email, category, subject, message)
-                             VALUES (?,?,?,?,?,?)"
+                            "INSERT INTO ws_tickets (user_uuid, user_name, contact_email, category, subject, message, created_at, updated_at)
+                             VALUES (?,?,?,?,?,?,?,?)"
                         );
-                        $ok = $st->execute([$ticketUserUUID, $ticketUserName, $ticketEmail, $category, $subject, $message]);
+                        $ok = $st->execute([$ticketUserUUID, $ticketUserName, $ticketEmail, $category, $subject, $message, $nowGrid, $nowGrid]);
 
                         if (!empty($ok)) {
                             $_SESSION['ws_last_ticket_ts'] = $now;

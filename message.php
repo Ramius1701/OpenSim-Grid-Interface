@@ -90,8 +90,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_message'])) {
         $flashType = 'danger';
         $action = 'compose';
     } else {
-        $st = $wsdb->prepare("INSERT INTO ws_messages (sender_uuid, receiver_uuid, subject, body) VALUES (?,?,?,?)");
-        $ok = $st->execute([$currentUserId, $to, $subj, $body]);
+        $st = $wsdb->prepare("INSERT INTO ws_messages (sender_uuid, receiver_uuid, subject, body, created_at) VALUES (?,?,?,?,?)");
+        $ok = $st->execute([$currentUserId, $to, $subj, $body, ws_now()]);
 
         if ($ok) {
             $flash = "Message sent.";

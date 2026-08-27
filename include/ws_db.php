@@ -15,6 +15,24 @@
 define('WS_DB_DIR',  PATH_DATA_ROOT . '/db');
 define('WS_DB_PATH', WS_DB_DIR . '/website.sqlite');
 
+/**
+ * "Now", in Grid Time (see GRID_TIMEZONE in config.php) - the same clock the
+ * rest of the site uses. SQLite's own strftime('now')/datetime('now') are
+ * always UTC regardless of PHP's configured timezone, so anything that
+ * writes or compares a "current time" against a ws_ table must go through
+ * this function (as a bound parameter) instead of embedding strftime/
+ * datetime('now', ...) in SQL - otherwise writes and reads end up on two
+ * different clocks whenever the grid isn't running on UTC.
+ */
+function ws_now(): string {
+    return date('Y-m-d H:i:s');
+}
+
+/** Grid-Time "now" offset by $seconds (negative for the past), for range queries. */
+function ws_now_offset(int $seconds): string {
+    return date('Y-m-d H:i:s', time() + $seconds);
+}
+
 function ws_db(): ?PDO {
     static $pdo = null;
     static $bootstrapped = false;
@@ -65,6 +83,14 @@ function ws_db(): ?PDO {
  *   - ON UPDATE CURRENT_TIMESTAMP -> no SQLite trigger; the one write path that
  *                                    updates each such column sets it explicitly
  *                                    instead (see gridsearch.php / tickets_admin.php)
+ *
+ * Note: the strftime('now') DEFAULTs below are only a last-resort fallback -
+ * every actual INSERT in this codebase passes its timestamp column(s)
+ * explicitly via ws_now(), because strftime('now')/datetime('now', ...) are
+ * always UTC in SQLite regardless of PHP's configured timezone. If some
+ * future INSERT ever omits a timestamp column, it would silently get a UTC
+ * value here instead of Grid Time - acceptable for a fallback that should
+ * never actually fire, not for anything on the read/write hot path.
  */
 function ws_bootstrap_schema(PDO $pdo): void {
     $pdo->exec("CREATE TABLE IF NOT EXISTS ws_search_log (

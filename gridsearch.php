@@ -226,13 +226,14 @@ function log_search_term(string $term, string $area = 'all') : void {
     $pdo = ws_db();
     if (!$pdo) return;
 
+    $now = ws_now();
     $stmt = $pdo->prepare(
-        "INSERT INTO ws_search_log (term, area, hits) VALUES (?, ?, 1)
+        "INSERT INTO ws_search_log (term, area, hits, last_search) VALUES (?, ?, 1, ?)
          ON CONFLICT(term, area) DO UPDATE SET
             hits = hits + 1,
-            last_search = strftime('%Y-%m-%d %H:%M:%S','now')"
+            last_search = ?"
     );
-    $stmt->execute([$term, $area]);
+    $stmt->execute([$term, $area, $now, $now]);
 }
 
 function getPopularSearches(int $limit = 12) : array {

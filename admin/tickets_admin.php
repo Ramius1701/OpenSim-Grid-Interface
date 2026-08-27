@@ -85,10 +85,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $newStatus = (string)($_POST['status'] ?? 'open');
 
         if ($ticketId > 0 && isset($allowedStatuses[$newStatus])) {
-            $st = $wsdb->prepare(
-                "UPDATE ws_tickets SET status = ?, updated_at = strftime('%Y-%m-%d %H:%M:%S','now') WHERE id = ?"
-            );
-            $ok = $st->execute([$newStatus, $ticketId]);
+            $st = $wsdb->prepare("UPDATE ws_tickets SET status = ?, updated_at = ? WHERE id = ?");
+            $ok = $st->execute([$newStatus, ws_now(), $ticketId]);
 
             if ($ok) {
                 $flash = "Ticket #{$ticketId} updated.";
