@@ -136,11 +136,14 @@ class OSWebSecurity {
     /**
      * Rate limiting.
      *
-     * Backed by the database rather than the session: a session-based counter
-     * is trivially bypassed by simply not sending the session cookie, which
-     * gives every request a fresh counter. $key should identify what's being
-     * throttled (e.g. "login_ip:1.2.3.4" or "login_user:someone@example.com")
-     * so callers can rate-limit by IP and by target account independently.
+     * Backed by this site's own SQLite database (ws_db(), see
+     * include/ws_db.php) rather than the shared OpenSim MySQL database - this
+     * is purely a site feature, not grid data. Also not session-based: a
+     * session-based counter is trivially bypassed by simply not sending the
+     * session cookie, which gives every request a fresh counter. $key should
+     * identify what's being throttled (e.g. "login_ip:1.2.3.4" or
+     * "login_user:someone@example.com") so callers can rate-limit by IP and
+     * by target account independently.
      *
      * Returns true (and records this attempt) if the caller is still under
      * the limit, false if the limit has already been reached for $key within
@@ -150,23 +153,12 @@ class OSWebSecurity {
      * a working DB connection to do anything meaningful anyway.
      */
     public static function checkRateLimit(string $key, int $max_attempts = 8, int $time_window = 900): bool {
-        if (!function_exists('db')) {
+        if (!function_exists('ws_db')) {
             return true;
         }
-        $conn = db();
-        if (!$conn) {
+        $pdo = ws_db();
+        if (!$pdo) {
             return true;
-        }
-
-        static $tableReady = false;
-        if (!$tableReady) {
-            mysqli_query($conn, "CREATE TABLE IF NOT EXISTS ws_rate_limits (
-                id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                rl_key VARCHAR(191) NOT NULL,
-                attempted_at INT UNSIGNED NOT NULL,
-                KEY idx_key_time (rl_key, attempted_at)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-            $tableReady = true;
         }
 
         $now         = time();
@@ -174,34 +166,18 @@ class OSWebSecurity {
 
         // Opportunistic cleanup of this key's expired rows, so the table
         // doesn't grow without bound.
-        if ($stmt = mysqli_prepare($conn, "DELETE FROM ws_rate_limits WHERE rl_key = ? AND attempted_at < ?")) {
-            mysqli_stmt_bind_param($stmt, 'si', $key, $windowStart);
-            mysqli_stmt_execute($stmt);
-            mysqli_stmt_close($stmt);
-        }
+        $del = $pdo->prepare("DELETE FROM ws_rate_limits WHERE rl_key = ? AND attempted_at < ?");
+        $del->execute([$key, $windowStart]);
 
-        $count = 0;
-        if ($stmt = mysqli_prepare($conn, "SELECT COUNT(*) FROM ws_rate_limits WHERE rl_key = ? AND attempted_at >= ?")) {
-            mysqli_stmt_bind_param($stmt, 'si', $key, $windowStart);
-            if (mysqli_stmt_execute($stmt)) {
-                mysqli_stmt_bind_result($stmt, $count);
-                mysqli_stmt_fetch($stmt);
-            }
-            mysqli_stmt_close($stmt);
-        }
-
-        if ($count >= $max_attempts) {
-            mysqli_close($conn);
+        $count = $pdo->prepare("SELECT COUNT(*) FROM ws_rate_limits WHERE rl_key = ? AND attempted_at >= ?");
+        $count->execute([$key, $windowStart]);
+        if ((int)$count->fetchColumn() >= $max_attempts) {
             return false;
         }
 
-        if ($stmt = mysqli_prepare($conn, "INSERT INTO ws_rate_limits (rl_key, attempted_at) VALUES (?, ?)")) {
-            mysqli_stmt_bind_param($stmt, 'si', $key, $now);
-            mysqli_stmt_execute($stmt);
-            mysqli_stmt_close($stmt);
-        }
+        $ins = $pdo->prepare("INSERT INTO ws_rate_limits (rl_key, attempted_at) VALUES (?, ?)");
+        $ins->execute([$key, $now]);
 
-        mysqli_close($conn);
         return true;
     }
     
