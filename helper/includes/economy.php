@@ -419,10 +419,18 @@ function currency_process_transaction( $avatarID, $cost, $ipAddress ) {
 	// 5 dollars will be 500
 	// 15 dollars will be 1500
 
+	// No payment gateway is wired up here by default, so every direct-mode
+	// purchase must be declined until this function actually verifies and
+	// charges the payment method. Returning true unconditionally lets any
+	// authenticated avatar mint free currency.
+	//
+	// Gloebit and Podex purchases do not depend on this function: their
+	// callers already redirect to the provider's own verified purchase flow
+	// when this returns false (see currency_xmlrpc_buy() in currency.php).
+	//
 	// if ($avatarID==CURRENCY_BANKER) return true;
-	// return false;
 
-	return true;
+	return false;
 }
 
 function currency_virtual_to_real( $amount ) {

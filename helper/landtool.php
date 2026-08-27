@@ -139,15 +139,17 @@ function buy_land( $method_name, $params, $app_data ) {
 						'errorURI'     => '' . CURRENCY_HELPER_URL . '',
 					)
 				);
+				header( 'Content-type: text/xml' );
+				echo $response_xml;
+				return '';
 			}
-						$enough_money = false;
-			$res                      = currency_add_money( $agentid, $amount, $sessionid );
+			$enough_money = false;
+			$res          = currency_add_money( $agentid, $amount, $sessionid );
 			if ( $res['success'] ) {
 				$enough_money = true;
 			}
 
 			if ( $enough_money ) {
-				$amount += currency_get_balance( $agentid );
 				currency_move_money( $agentid, null, $amount, 5002, 0, 'Land Purchase', 0, 0, $ipAddress );
 				currency_update_simulator_balance( $agentid, -1, $sessionid );
 				$response_xml = xmlrpc_encode( array( 'success' => true ) );
