@@ -31,16 +31,21 @@ function gen_recovery_code() {
     return strtoupper(bin2hex(random_bytes(4))); // Generates 8-char code (e.g., A1B2C3D4)
 }
 
-// Helper: Check whether recovery table exists (NO auto-create; keep schema untouched)
-function ensure_recovery_table($conn) {
+// Save the 5 generated recovery codes for a newly created account. Recovery
+// codes live in this site's own SQLite database (ws_db()), not the shared
+// OpenSim MySQL database. Best-effort: called after account creation has
+// already succeeded, so a failure here just means the user won't have
+// recovery codes yet, not a failed registration.
+function save_recovery_codes(string $uuid, array $codes): void {
+    $wsdb = ws_db();
+    if (!$wsdb) return;
     try {
-        if (!($conn instanceof mysqli)) return false;
-        $rs = $conn->query("SHOW TABLES LIKE 'ws_recovery_codes'");
-        $ok = ($rs && $rs->num_rows > 0);
-        if ($rs) $rs->close();
-        return $ok;
+        $stmt = $wsdb->prepare("INSERT INTO ws_recovery_codes (PrincipalID, code_hash) VALUES (?, ?)");
+        foreach ($codes as $c) {
+            $stmt->execute([$uuid, password_hash($c, PASSWORD_DEFAULT)]);
+        }
     } catch (Throwable $e) {
-        return false;
+        error_log("Recovery code save failed: " . $e->getMessage());
     }
 }
 
@@ -415,7 +420,6 @@ if ($fname === '' || $lname === '' || $email === '') {
 
     // --- STEP 3: CREATE ACCOUNT ---
     elseif (isset($_POST['step3'])) {
-        $hasRecovery = ensure_recovery_table($conn);
         $d = $_SESSION['reg_data'] ?? null;
         $codes = $_SESSION['reg_codes'] ?? null;
         
@@ -443,22 +447,7 @@ if ($useRobust) {
 }
 
 if ($robustOk) {
-    // Store recovery codes only if ws_recovery_codes exists (best-effort)
-    if ($hasRecovery) {
-        try {
-            $sql3 = "INSERT INTO ws_recovery_codes (PrincipalID, code_hash) VALUES (?, ?)";
-            if ($stmt3 = $conn->prepare($sql3)) {
-                foreach ($codes as $c) {
-                    $c_hash = password_hash($c, PASSWORD_DEFAULT);
-                    $stmt3->bind_param("ss", $uuid, $c_hash);
-                    $stmt3->execute();
-                }
-                $stmt3->close();
-            }
-        } catch (Throwable $e) {
-            error_log("Recovery code save failed: " . $e->getMessage());
-        }
-    }
+    save_recovery_codes($uuid, $codes);
 
     // Email sync (best-effort)
     sync_money_server($uuid, $d['e'], $conn);
@@ -514,22 +503,7 @@ if ($robustOk) {
                 throw new Exception("Database Error committing transaction.");
             }
 
-            // Store recovery codes only if ws_recovery_codes exists (best-effort)
-            if ($hasRecovery) {
-                try {
-                    $sql3 = "INSERT INTO ws_recovery_codes (PrincipalID, code_hash) VALUES (?, ?)";
-                    if ($stmt3 = $conn->prepare($sql3)) {
-                        foreach ($codes as $c) {
-                            $c_hash = password_hash($c, PASSWORD_DEFAULT);
-                            $stmt3->bind_param("ss", $uuid, $c_hash);
-                            $stmt3->execute();
-                        }
-                        $stmt3->close();
-                    }
-                } catch (Throwable $e) {
-                    error_log("Recovery code save failed: " . $e->getMessage());
-                }
-            }
+            save_recovery_codes($uuid, $codes);
 
             // Email sync (best-effort)
             sync_money_server($uuid, $d['e'], $conn);

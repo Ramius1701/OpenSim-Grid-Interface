@@ -3,20 +3,11 @@ $title = "Password Reset";
 include_once 'include/header.php';
 require_once __DIR__ . '/include/security.php';
 
-// SHARED DB CONNECTION
+// SHARED DB CONNECTION (UserAccounts/auth - core OpenSim data)
 $conn = db();
-
-// Ensure Recovery Codes table exists (supports grids that predate this feature)
-function ensure_recovery_table($conn) {
-    $sql = "CREATE TABLE IF NOT EXISTS ws_recovery_codes (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        PrincipalID CHAR(36) NOT NULL,
-        code_hash VARCHAR(255) NOT NULL,
-        is_used TINYINT(1) DEFAULT 0,
-        INDEX (PrincipalID)
-    )";
-    $conn->query($sql);
-}
+// This site's own recovery-codes table (ws_recovery_codes) lives in its own
+// SQLite database instead - see include/ws_db.php.
+$wsdb = ws_db();
 
 
 $msg = "";
@@ -67,22 +58,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->execute();
             $res = $stmt->get_result();
 
-            if ($row = $res->fetch_assoc()) {
+            if (($row = $res->fetch_assoc()) && $wsdb) {
                 $uuid = $row['PrincipalID'];
-                ensure_recovery_table($conn);
+                ws_ensure_recovery_table($wsdb);
 
                 // 3. Fetch all UNUSED recovery codes for this user
                 // We verify them one by one using password_verify()
                 $codeFound = false;
                 $codeIDToInvalidate = 0;
 
-                $sqlCodes = "SELECT id, code_hash FROM ws_recovery_codes WHERE PrincipalID = ? AND is_used = 0";
-                $stmtCodes = $conn->prepare($sqlCodes);
-                $stmtCodes->bind_param("s", $uuid);
-                $stmtCodes->execute();
-                $resCodes = $stmtCodes->get_result();
+                $stmtCodes = $wsdb->prepare("SELECT id, code_hash FROM ws_recovery_codes WHERE PrincipalID = ? AND is_used = 0");
+                $stmtCodes->execute([$uuid]);
 
-                while ($cRow = $resCodes->fetch_assoc()) {
+                foreach ($stmtCodes->fetchAll() as $cRow) {
                     // Check if the input code matches this hash
                     if (password_verify($code, $cRow['code_hash'])) {
                         $codeFound = true;
@@ -92,40 +80,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
 
                 if ($codeFound) {
-                    // 4. Code is valid! Perform Password Reset (atomic: update password + burn code)
-                    $conn->begin_transaction();
-                    try {
-                        // A. Update Password in 'auth' table
-                        $newSalt = md5(uniqid(mt_rand(), true));
-                        $newHash = md5(md5($pass) . ":" . $newSalt);
+                    // 4. Code is valid! Perform the password reset.
+                    //
+                    // auth (MySQL) and ws_recovery_codes (SQLite) are two
+                    // separate database engines now, so this can no longer
+                    // be one atomic transaction. Update the password first -
+                    // that's the security-critical half and must succeed on
+                    // its own. If burning the code afterward fails, the
+                    // password reset has still succeeded (the important
+                    // outcome); the worst case is that one code stays
+                    // "unused" and could theoretically be reused later - an
+                    // accepted, low-severity tradeoff rather than building
+                    // real two-phase commit for a single-operator app.
+                    $newSalt = md5(uniqid(mt_rand(), true));
+                    $newHash = md5(md5($pass) . ":" . $newSalt);
 
-                        $upSql = "UPDATE auth SET passwordHash = ?, passwordSalt = ? WHERE UUID = ?";
-                        $upStmt = $conn->prepare($upSql);
-                        $upStmt->bind_param("sss", $newHash, $newSalt, $uuid);
+                    $upSql = "UPDATE auth SET passwordHash = ?, passwordSalt = ? WHERE UUID = ?";
+                    $upStmt = $conn->prepare($upSql);
+                    $upStmt->bind_param("sss", $newHash, $newSalt, $uuid);
 
-                        if (!$upStmt->execute()) {
-                            throw new Exception("Database error updating password.");
-                        }
-
-                        // B. Burn the code (Mark as used) - only if still unused
-                        $burnSql = "UPDATE ws_recovery_codes SET is_used = 1 WHERE id = ? AND is_used = 0";
-                        $burnStmt = $conn->prepare($burnSql);
-                        $burnStmt->bind_param("i", $codeIDToInvalidate);
-
-                        if (!$burnStmt->execute() || $burnStmt->affected_rows !== 1) {
-                            throw new Exception("Database error invalidating recovery code.");
-                        }
-
-                        if (!$conn->commit()) {
-                            throw new Exception("Database error finalizing reset.");
-                        }
-
+                    if (!$upStmt->execute()) {
+                        $msg = "Database error updating password.";
+                        $msgType = "danger";
+                    } else {
                         $msg = "Success! Your password has been reset. You can log in now.";
                         $msgType = "success";
-                    } catch (Throwable $e) {
-                        $conn->rollback();
-                        $msg = $e->getMessage();
-                        $msgType = "danger";
+
+                        try {
+                            $burnStmt = $wsdb->prepare("UPDATE ws_recovery_codes SET is_used = 1 WHERE id = ? AND is_used = 0");
+                            $burnStmt->execute([$codeIDToInvalidate]);
+                        } catch (Throwable $e) {
+                            error_log("Recovery code burn failed after successful password reset: " . $e->getMessage());
+                            // Deliberately not surfaced to the user - their password change succeeded.
+                        }
                     }
                 } else {
                     $msg = $invalidMsg;

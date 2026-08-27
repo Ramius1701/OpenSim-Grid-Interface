@@ -843,77 +843,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // --- NEW ACTION: REGENERATE CODES ---
                 case 'regenerate_codes':
-                    if (!osv_table_exists($connPost, 'ws_recovery_codes')) {
+                    // ws_recovery_codes lives in this site's own SQLite database
+                    // (ws_db()), not the shared OpenSim MySQL database.
+                    $wsdbPost = ws_db();
+                    if (!$wsdbPost) {
                         $errors[] = 'Recovery codes are not available on this system.';
                         break;
                     }
 
-                    // Detect column names (supports slight schema variations)
-                    $rcTable = 'ws_recovery_codes';
-                    $rcCols  = osv_get_columns($connPost, $rcTable);
-                    $pidCol  = osv_pick_col($rcCols, ['PrincipalID','principalid','UserUUID','useruuid','PrincipalId']);
-                    $hashCol = osv_pick_col($rcCols, ['code_hash','codehash','CodeHash','hash']);
-                    $usedCol = osv_pick_col($rcCols, ['is_used','isused','IsUsed','used']);
-
-                    if (!$pidCol || !$hashCol) {
-                        $errors[] = 'Recovery codes table schema is missing required columns.';
-                        break;
-                    }
-
                     $new_codes_raw = [];
-                    $hash = ''; // bound by reference
 
-                    $didTx = false;
-                    if (method_exists($connPost, 'begin_transaction')) {
-                        $connPost->begin_transaction();
-                        $didTx = true;
-                    }
-
+                    $wsdbPost->beginTransaction();
                     try {
-                        // 1) Delete old codes for this user (prepared)
-                        $sqlDel = "DELETE FROM `{$rcTable}` WHERE `{$pidCol}` = ?";
-                        if (!($stDel = $connPost->prepare($sqlDel))) {
-                            throw new Exception('Could not prepare recovery-code delete.');
-                        }
-                        $stDel->bind_param('s', $UID);
-                        if (!$stDel->execute()) {
-                            throw new Exception('Could not clear existing recovery codes.');
-                        }
-                        $stDel->close();
+                        // 1) Delete old codes for this user
+                        $wsdbPost->prepare("DELETE FROM ws_recovery_codes WHERE PrincipalID = ?")->execute([$UID]);
 
                         // 2) Insert 5 new ones (store hashes only; raw codes are shown once)
-                        $sqlInsert = $usedCol
-                            ? "INSERT INTO `{$rcTable}` (`{$pidCol}`, `{$hashCol}`, `{$usedCol}`) VALUES (?,?,0)"
-                            : "INSERT INTO `{$rcTable}` (`{$pidCol}`, `{$hashCol}`) VALUES (?,?)";
-
-                        if (!($stmt = $connPost->prepare($sqlInsert))) {
-                            throw new Exception('Could not prepare recovery-code insert.');
-                        }
-
-                        // Bind once; $hash is updated each loop
-                        $stmt->bind_param('ss', $UID, $hash);
-
+                        $stmt = $wsdbPost->prepare("INSERT INTO ws_recovery_codes (PrincipalID, code_hash, is_used) VALUES (?, ?, 0)");
                         for ($i = 0; $i < 5; $i++) {
                             $raw = strtoupper(bin2hex(random_bytes(4))); // 8 chars
                             $new_codes_raw[] = $raw;
                             $hash = password_hash($raw, PASSWORD_DEFAULT);
 
-                            if (!$stmt->execute()) {
+                            if (!$stmt->execute([$UID, $hash])) {
                                 throw new Exception('Database error while generating recovery codes.');
                             }
                         }
-                        $stmt->close();
 
-                        if ($didTx) {
-                            $connPost->commit();
-                        }
+                        $wsdbPost->commit();
 
                         $newRecoveryCodes = $new_codes_raw; // Pass to view
                         $messages[] = 'New recovery codes generated. Save them now; they will not be shown again.';
                     } catch (Throwable $e) {
-                        if ($didTx) {
-                            $connPost->rollback();
-                        }
+                        $wsdbPost->rollBack();
                         $errors[] = $e->getMessage();
                     }
                     break;
@@ -1187,30 +1149,11 @@ if ($conn) {
         }
     }
     
-    // --- LOAD RECOVERY CODES COUNT (NEW) ---
-    if (osv_table_exists($conn, 'ws_recovery_codes')) {
-        $rcTable = 'ws_recovery_codes';
-        $rcCols  = osv_get_columns($conn, $rcTable);
-
-        $pidCol  = osv_pick_col($rcCols, ['PrincipalID','principalid','UserUUID','useruuid','PrincipalId']);
-        $usedCol = osv_pick_col($rcCols, ['is_used','isused','IsUsed','used']);
-
-        if ($pidCol) {
-            $sql = "SELECT COUNT(*) FROM `{$rcTable}` WHERE `{$pidCol}` = ?"
-                . ($usedCol ? " AND `{$usedCol}` = 0" : "");
-
-            if ($st = $conn->prepare($sql)) {
-                $st->bind_param('s', $UID);
-                if ($st->execute()) {
-                    $cnt = 0;
-                    $st->bind_result($cnt);
-                    if ($st->fetch()) {
-                        $recoveryCount = (int)$cnt;
-                    }
-                }
-                $st->close();
-            }
-        }
+    // --- LOAD RECOVERY CODES COUNT (ws_recovery_codes - this site's own SQLite DB) ---
+    if ($wsdb = ws_db()) {
+        $st = $wsdb->prepare("SELECT COUNT(*) FROM ws_recovery_codes WHERE PrincipalID = ? AND is_used = 0");
+        $st->execute([$UID]);
+        $recoveryCount = (int)$st->fetchColumn();
     }
 }
 
