@@ -27,15 +27,53 @@ $show = in_array($show, ['all', 'holidays', 'announcements', 'events'], true) ? 
 $gridTz = defined('GRID_TIMEZONE') ? GRID_TIMEZONE : date_default_timezone_get();
 
 // 3. Database (Viewer Events)
+//
+// normViewer() in the page's own JS below reads v.DateUTC/v.Name/
+// v.Description (PascalCase) - the aliases the primary query below
+// produces. If that query fails (e.g. an install missing a column like
+// parcelUUID) and the raw "SELECT *" fallback runs instead, its lowercase
+// column names (name, description, dateUTC as the DB actually declares it)
+// don't match what the JS expects, so every event's timestamp parses to 0
+// and gets filtered out - events silently vanish rather than degrading
+// gracefully. Normalizing every row to the same PascalCase shape here,
+// regardless of which query path ran, fixes that.
+function normalize_viewer_event_row(array $row): array {
+    $pick = function (array $row, array $keys) {
+        foreach ($keys as $k) {
+            if (array_key_exists($k, $row)) return $row[$k];
+        }
+        return null;
+    };
+    return [
+        'EventID'      => $pick($row, ['EventID', 'eventid']),
+        'owneruuid'    => $pick($row, ['owneruuid']),
+        'CreatorUUID'  => $pick($row, ['CreatorUUID', 'creatoruuid']),
+        'Name'         => $pick($row, ['Name', 'name']),
+        'Category'     => $pick($row, ['Category', 'category']),
+        'Description'  => $pick($row, ['Description', 'description']),
+        'DateUTC'      => $pick($row, ['DateUTC', 'dateUTC', 'dateutc']),
+        'Duration'     => $pick($row, ['Duration', 'duration']),
+        'SimName'      => $pick($row, ['SimName', 'simname']),
+        'ParcelUUID'   => $pick($row, ['ParcelUUID', 'parcelUUID', 'parceluuid']),
+        'GlobalPos'    => $pick($row, ['GlobalPos', 'globalPos', 'globalpos']),
+        'covercharge'  => $pick($row, ['covercharge']),
+        'coveramount'  => $pick($row, ['coveramount']),
+        'EventFlags'   => $pick($row, ['EventFlags', 'eventflags']),
+    ];
+}
+
 $viewerEventsData = [];
 if (function_exists('db')) {
     $conn = db();
     if ($conn) {
         $sql = "SELECT eventid AS EventID, owneruuid, creatoruuid AS CreatorUUID, name AS Name, category AS Category, description AS Description, dateUTC AS DateUTC, duration AS Duration, simname AS SimName, parcelUUID AS ParcelUUID, globalPos AS GlobalPos, covercharge, coveramount, eventflags AS EventFlags FROM search_events ORDER BY dateUTC ASC LIMIT 500";
         $res = @mysqli_query($conn, $sql);
-        if (!$res) $res = @mysqli_query($conn, "SELECT * FROM search_events LIMIT 500");
+        if (!$res) {
+            error_log('events.php: primary search_events query failed (' . mysqli_error($conn) . '), falling back to SELECT *');
+            $res = @mysqli_query($conn, "SELECT * FROM search_events LIMIT 500");
+        }
         if ($res) {
-            while ($row = mysqli_fetch_assoc($res)) $viewerEventsData[] = $row;
+            while ($row = mysqli_fetch_assoc($res)) $viewerEventsData[] = normalize_viewer_event_row($row);
             mysqli_free_result($res);
         }
     }
