@@ -471,8 +471,8 @@ if ($con && $editUUID !== '') {
                                         <?php echo csrf_token_field(); ?>
                                         <input type="hidden" name="action" value="reset_password">
                                         <input type="hidden" name="uuid" value="<?php echo u_h($editUser['PrincipalID']); ?>">
-                                        <input type="text" name="new_password" class="form-control form-control-sm mb-2" placeholder="New Password" required minlength="6">
-                                        <input type="text" name="confirm_password" class="form-control form-control-sm mb-2" placeholder="Confirm Password" required minlength="6">
+                                        <input type="password" name="new_password" class="form-control form-control-sm mb-2" placeholder="New Password" required minlength="6" autocomplete="new-password">
+                                        <input type="password" name="confirm_password" class="form-control form-control-sm mb-2" placeholder="Confirm Password" required minlength="6" autocomplete="new-password">
                                         <button type="submit" class="btn btn-sm btn-dark w-100">Set Password</button>
                                     </form>
                                 </div>
