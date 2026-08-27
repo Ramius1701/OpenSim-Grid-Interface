@@ -218,102 +218,39 @@ function format_region_location($x, $y) : string {
     return $xi . ', ' . $yi;
 }
 
-function ensure_search_log_table(mysqli $con) : void {
-    // Create table if missing (modern schema)
-    $create = "CREATE TABLE IF NOT EXISTS ws_search_log (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                term VARCHAR(255) NOT NULL,
-                area VARCHAR(32) NOT NULL DEFAULT 'all',
-                hits INT NOT NULL DEFAULT 1,
-                last_search TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                UNIQUE KEY term_area (term, area)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-    try { mysqli_query($con, $create); } catch (mysqli_sql_exception $e) { /* ignore */ }
-
-    // If table existed already, migrate older schemas safely.
-    $cols = [];
-    $res = safe_stmt_query($con,
-        "SELECT COLUMN_NAME FROM information_schema.columns WHERE table_schema = ? AND table_name = 'ws_search_log'",
-        "s",
-        [DB_NAME]
-    );
-    if ($res) {
-        while ($r = mysqli_fetch_assoc($res)) { $cols[] = $r['COLUMN_NAME']; }
-    }
-
-    // Add missing columns one-by-one
-    if (!in_array('area', $cols, true)) {
-        try { mysqli_query($con, "ALTER TABLE ws_search_log ADD COLUMN area VARCHAR(32) NOT NULL DEFAULT 'all' AFTER term"); }
-        catch (mysqli_sql_exception $e) {}
-    }
-    if (!in_array('hits', $cols, true)) {
-        try { mysqli_query($con, "ALTER TABLE ws_search_log ADD COLUMN hits INT NOT NULL DEFAULT 1 AFTER area"); }
-        catch (mysqli_sql_exception $e) {}
-        // Legacy support: if old column 'count' exists, copy it
-        if (in_array('count', $cols, true)) {
-            try { mysqli_query($con, "UPDATE ws_search_log SET hits = `count`"); }
-            catch (mysqli_sql_exception $e) {}
-        }
-    }
-    if (!in_array('last_search', $cols, true)) {
-        try { mysqli_query($con, "ALTER TABLE ws_search_log ADD COLUMN last_search TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER hits"); }
-        catch (mysqli_sql_exception $e) {}
-    }
-
-    // Ensure unique key term_area exists (avoid duplicate key fatal)
-    $idxRes = safe_stmt_query($con,
-        "SELECT INDEX_NAME FROM information_schema.statistics
-         WHERE table_schema = ? AND table_name = 'ws_search_log' AND index_name = 'term_area' LIMIT 1",
-        "s",
-        [DB_NAME]
-    );
-    $hasIdx = ($idxRes && mysqli_num_rows($idxRes) > 0);
-    if (!$hasIdx) {
-        try { mysqli_query($con, "ALTER TABLE ws_search_log ADD UNIQUE KEY term_area (term, area)"); }
-        catch (mysqli_sql_exception $e) {}
-    }
-}
-
-function log_search_term(mysqli $con, string $term, string $area = 'all') : void {
+function log_search_term(string $term, string $area = 'all') : void {
     $term = trim(mb_strtolower($term, 'UTF-8'));
     $area = trim($area) ?: 'all';
     if ($term === '') return;
 
-    ensure_search_log_table($con);
+    $pdo = ws_db();
+    if (!$pdo) return;
 
-    $sql = "INSERT INTO ws_search_log (term, area, hits)
-            VALUES (?, ?, 1)
-            ON DUPLICATE KEY UPDATE hits = hits + 1, last_search = CURRENT_TIMESTAMP";
-
-    try {
-        safe_stmt_query($con, $sql, 'ss', [$term, $area]);
-    } catch (mysqli_sql_exception $e) {
-        // Very old schema fallback (no area)
-        try {
-            safe_stmt_query($con,
-                "INSERT INTO ws_search_log (term, hits) VALUES (?, 1)
-                 ON DUPLICATE KEY UPDATE hits = hits + 1, last_search = CURRENT_TIMESTAMP",
-                "s",
-                [$term]
-            );
-        } catch (mysqli_sql_exception $e2) {}
-    }
+    $stmt = $pdo->prepare(
+        "INSERT INTO ws_search_log (term, area, hits) VALUES (?, ?, 1)
+         ON CONFLICT(term, area) DO UPDATE SET
+            hits = hits + 1,
+            last_search = strftime('%Y-%m-%d %H:%M:%S','now')"
+    );
+    $stmt->execute([$term, $area]);
 }
 
-function getPopularSearches(mysqli $con, int $limit = 12) : array {
-    ensure_search_log_table($con);
+function getPopularSearches(int $limit = 12) : array {
+    $pdo = ws_db();
+    if (!$pdo) return [];
 
     $popular = [];
-    $sql = "SELECT term, SUM(hits) AS total_hits
-            FROM ws_search_log
-            GROUP BY term
-            ORDER BY total_hits DESC, last_search DESC
-            LIMIT ?";
-    $res = safe_stmt_query($con, $sql, 'i', [$limit]);
-    if ($res) {
-        while ($row = mysqli_fetch_assoc($res)) {
-            $popular[$row['term']] = (int)$row['total_hits'];
-        }
+    $stmt = $pdo->prepare(
+        "SELECT term, SUM(hits) AS total_hits
+         FROM ws_search_log
+         GROUP BY term
+         ORDER BY total_hits DESC, last_search DESC
+         LIMIT ?"
+    );
+    $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+    $stmt->execute();
+    foreach ($stmt->fetchAll() as $row) {
+        $popular[$row['term']] = (int)$row['total_hits'];
     }
     return $popular; // no fake defaults
 }
@@ -425,7 +362,7 @@ $results = [];
 $totalResults = 0;
 
 if ($query !== '') {
-    log_search_term($con, $query, $type);
+    log_search_term($query, $type);
     $results = searchAll($con, $query, $type, $MATURITY_FILTER);
 } elseif ($browse && $type !== 'all') {
     $results = searchAll($con, '', $type, $MATURITY_FILTER);
@@ -484,7 +421,7 @@ if (!empty($results)) {
                     <h5 class="mb-0"><i class="bi bi-fire"></i> Popular Searches</h5>
                 </div>
                 <div class="card-body">
-                    <?php $popularSearches = getPopularSearches($con); ?>
+                    <?php $popularSearches = getPopularSearches(); ?>
                     <?php if (empty($popularSearches)): ?>
                         <div class="text-muted small">No results.</div>
                     <?php else: ?>
