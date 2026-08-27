@@ -20,7 +20,10 @@
 
 // Shared database credentials for all helper/ subsystems (search, mute,
 // events, economy) - one file instead of separate duplicated copies.
-require_once dirname( __DIR__, 2 ) . '/databaseinfo.php';
+// (Was require_once dirname(__DIR__, 2) . '/databaseinfo.php' - that
+// resolved to the repo root, not this directory, so it fatally failed to
+// find the file at all whenever this was actually loaded.)
+require_once __DIR__ . '/databaseinfo.php';
 
 define( 'OPENSIM_DB', true );
 define( 'OPENSIM_DB_HOST', $DB_HOST );

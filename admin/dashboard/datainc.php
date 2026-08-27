@@ -16,10 +16,11 @@ require_once __DIR__ . '/../../include/config.php';
 require_once __DIR__ . '/../../include/auth.php';
 require_admin();
 
-// Datenbankverbindung für Statistiksoftware
-$dsn = 'mysql:host=localhost;dbname=casperia;charset=utf8mb4';
-$user = 'casperia';
-$pass = '***REMOVED-DB-PASSWORD***';
+// Datenbankverbindung für Statistiksoftware (credentials from include/env.php,
+// already loaded by include/config.php above - not hardcoded/committed here)
+$dsn = 'mysql:host=' . DB_SERVER . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+$user = DB_USERNAME;
+$pass = DB_PASSWORD;
 $options = [
 	PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 	PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
