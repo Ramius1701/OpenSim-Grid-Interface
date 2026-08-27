@@ -1,9 +1,9 @@
 <?php
-$title = "Web Search";
-include 'include/header.php';
-
 header('X-Frame-Options: SAMEORIGIN');
 header('X-Content-Type-Options: nosniff');
+
+$title = "Web Search";
+include 'include/header.php';
 
 function gs_param($keys, $default = '')
 {
@@ -170,136 +170,31 @@ if ($queryText !== '') {
 
 mysqli_close($mysqli);
 ?>
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grid Search</title>
-    <style>
-        :root {
-            color-scheme: dark;
-            --bg: #151515;
-            --bg-top: #2a2a2a;
-            --panel: #1f1f1f;
-            --panel-border: #3d3d3d;
-            --text: #ececec;
-            --muted: #b5b5b5;
-            --input-bg: #242424;
-            --input-border: #505050;
-            --th-bg: #2d2d2d;
-            --row-border: #3a3a3a;
-            --accent: #7a7a7a;
-            --accent-2: #5e5e5e;
-        }
 
-        body {
-            font-family: Arial, sans-serif;
-            margin: 1rem;
-            background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg) 42%);
-            color: var(--text);
-        }
+<div class="content-card" style="max-width: 700px; margin: 0 auto;">
+    <h2 class="mb-3"><i class="bi bi-search"></i> Grid Search</h2>
+    <form method="get" class="d-flex gap-2 flex-wrap mb-3">
+        <input type="text" name="q" class="form-control" style="flex: 1 1 220px;"
+               value="<?php echo htmlspecialchars($queryText); ?>" placeholder="Search term..." required>
+        <select name="type" class="form-select" style="flex: 0 1 160px;">
+            <option value="all" <?php echo $queryType === 'all' ? 'selected' : ''; ?>>All</option>
+            <option value="people" <?php echo $queryType === 'people' ? 'selected' : ''; ?>>People</option>
+            <option value="groups" <?php echo $queryType === 'groups' ? 'selected' : ''; ?>>Groups</option>
+            <option value="places" <?php echo $queryType === 'places' ? 'selected' : ''; ?>>Places</option>
+            <option value="classifieds" <?php echo $queryType === 'classifieds' ? 'selected' : ''; ?>>Classifieds</option>
+        </select>
+        <button type="submit" class="btn btn-theme">Search</button>
+    </form>
 
-        .card {
-            background: var(--panel);
-            border: 1px solid var(--panel-border);
-            border-radius: 8px;
-            padding: 1rem;
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            margin: 0 auto;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-        }
-
-        .toolbar {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            margin-bottom: 1rem;
-        }
-
-        input,
-        select,
-        button {
-            padding: 0.45rem 0.55rem;
-            border: 1px solid var(--input-border);
-            border-radius: 6px;
-            background: var(--input-bg);
-            color: var(--text);
-        }
-
-        input::placeholder {
-            color: var(--muted);
-        }
-
-        button {
-            background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
-            color: #ffffff;
-            border-color: #6c6c6c;
-            cursor: pointer;
-        }
-
-        button:hover {
-            filter: brightness(1.06);
-        }
-
-        input:focus,
-        select:focus,
-        button:focus {
-            outline: 2px solid rgba(170, 170, 170, 0.35);
-            outline-offset: 1px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            border-bottom: 1px solid var(--row-border);
-            text-align: left;
-            padding: 0.55rem;
-            font-size: 0.95rem;
-        }
-
-        th {
-            background: var(--th-bg);
-        }
-
-        tbody tr:nth-child(even) {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .muted {
-            color: var(--muted);
-        }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h2>Grid Search</h2>
-        <form method="get" class="toolbar">
-            <input type="text" name="q" value="<?php echo htmlspecialchars($queryText); ?>" placeholder="Search term..." required>
-            <select name="type">
-                <option value="all" <?php echo $queryType === 'all' ? 'selected' : ''; ?>>All</option>
-                <option value="people" <?php echo $queryType === 'people' ? 'selected' : ''; ?>>People</option>
-                <option value="groups" <?php echo $queryType === 'groups' ? 'selected' : ''; ?>>Groups</option>
-                <option value="places" <?php echo $queryType === 'places' ? 'selected' : ''; ?>>Places</option>
-                <option value="classifieds" <?php echo $queryType === 'classifieds' ? 'selected' : ''; ?>>Classifieds</option>
-            </select>
-            <button type="submit">Search</button>
-        </form>
-
-        <?php if ($queryText === ''): ?>
-            <p class="muted">Search parameter can be passed by viewer as `q`, `query`, `search` or `term`.</p>
-        <?php else: ?>
-            <p class="muted">Results: <?php echo count($rows); ?></p>
-            <?php foreach ($warnings as $warning): ?>
-                <p class="muted"><?php echo htmlspecialchars($warning); ?></p>
-            <?php endforeach; ?>
-            <table>
+    <?php if ($queryText === ''): ?>
+        <p class="text-muted">Search parameter can be passed by viewer as `q`, `query`, `search` or `term`.</p>
+    <?php else: ?>
+        <p class="text-muted">Results: <?php echo count($rows); ?></p>
+        <?php foreach ($warnings as $warning): ?>
+            <p class="text-muted"><?php echo htmlspecialchars($warning); ?></p>
+        <?php endforeach; ?>
+        <div class="table-responsive">
+            <table class="table table-striped">
                 <thead>
                     <tr>
                         <th>Type</th>
@@ -321,7 +216,8 @@ mysqli_close($mysqli);
                 <?php endif; ?>
                 </tbody>
             </table>
-        <?php endif; ?>
-    </div>
-</body>
-</html>
+        </div>
+    <?php endif; ?>
+</div>
+
+<?php include 'include/' . FOOTER_FILE; ?>
