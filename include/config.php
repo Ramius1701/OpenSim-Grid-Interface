@@ -184,6 +184,11 @@ if (!defined('ROBUST_ACCOUNTS_URL')) {
 if (!defined('MONEY_DB_HOST')) define('MONEY_DB_HOST', 'localhost');
 if (!defined('MONEY_DB_PORT')) define('MONEY_DB_PORT', 3306);
 if (!defined('MONEY_DB_NAME')) define('MONEY_DB_NAME', '');
+
+// Well-known principal IDs (economy.php's system/guest transaction
+// filtering, support.php's guest ticket UUID, etc.)
+if (!defined('SYSTEM_PRINCIPAL_ID')) define('SYSTEM_PRINCIPAL_ID', '00000000-0000-0000-0000-000000000000');
+if (!defined('GUEST_PRINCIPAL_ID'))  define('GUEST_PRINCIPAL_ID',  '00000000-0000-0000-0000-000000000001');
 // Titel des Event-Kalenders / Title of the event calendar
 
 // Viewer / in-world event categories (search_events.Category).

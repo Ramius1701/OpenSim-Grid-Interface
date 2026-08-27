@@ -13,7 +13,7 @@ include_once __DIR__ . "/include/" . HEADER_FILE;
 // ------------------------------------------------------------
 // Current user (logged-in or guest)
 // ------------------------------------------------------------
-$GUEST_UUID = '00000000-0000-0000-0000-000000000000';
+$GUEST_UUID = SYSTEM_PRINCIPAL_ID;
 
 $currentUserId   = $GUEST_UUID;
 $currentUserName = 'Guest';

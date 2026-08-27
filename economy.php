@@ -47,10 +47,6 @@ if (!$con) {
     die("Database connection failed: " . mysqli_connect_error());
 }
 
-// System principal IDs used by the money module / system accounts
-if (!defined('SYSTEM_PRINCIPAL_ID')) { define('SYSTEM_PRINCIPAL_ID', '00000000-0000-0000-0000-000000000000'); }
-if (!defined('GUEST_PRINCIPAL_ID'))  { define('GUEST_PRINCIPAL_ID',  '00000000-0000-0000-0000-000000000001'); }
-
 // Fetch once and reuse everywhere on this page, instead of querying the same
 // aggregate stats three separate times (sidebar card + two different action views).
 $stats = getEconomyStats($con);
