@@ -182,22 +182,36 @@ class OSWebSecurity {
     }
     
     /**
-     * Secure session management
+     * Secure session management - call before any session_start(), since the
+     * cookie ini flags below only take effect if set before the session
+     * actually starts.
      */
     public static function startSecureSession() {
         if (session_status() === PHP_SESSION_NONE) {
-            // Secure session configuration
             ini_set('session.cookie_httponly', 1);
-            ini_set('session.cookie_secure', isset($_SERVER['HTTPS']));
+            ini_set('session.cookie_secure', isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
             ini_set('session.use_strict_mode', 1);
-            
+
             session_start();
-            
-            // Regenerate session ID on login
-            if (!isset($_SESSION['initiated'])) {
-                session_regenerate_id(true);
-                $_SESSION['initiated'] = true;
-            }
+        }
+    }
+
+    /**
+     * Regenerate the session ID (preserving session data). Call this
+     * immediately after a successful authentication (login, password
+     * reset, etc.) - a session ID that already existed before
+     * authentication, e.g. one seeded by an attacker via session fixation,
+     * must never be allowed to become the authenticated session's ID.
+     *
+     * (Previously this logic lived inside startSecureSession(), gated on
+     * "is this the first session ever seen", which only ever fires once per
+     * session lifetime and never actually at the moment of login - so it
+     * never provided real fixation protection. This is the real fix,
+     * called from the login flow directly instead.)
+     */
+    public static function regenerateSessionOnLogin(): void {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
         }
     }
 }

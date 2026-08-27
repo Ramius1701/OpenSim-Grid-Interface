@@ -187,7 +187,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           } elseif (!verify_opensim_password($pass, $ph, $ps)) {
             $login_error = 'Invalid credentials (password mismatch).';
           } else {
-            // SUCCESS
+            // SUCCESS - regenerate the session ID before writing the
+            // authenticated session, so a pre-existing (possibly attacker-
+            // seeded) session ID never carries over into a logged-in session.
+            OSWebSecurity::regenerateSessionOnLogin();
             $_SESSION['user'] = [
               'principal_id' => $row['PrincipalID'],
               'email'        => $row['Email'],
