@@ -42,7 +42,7 @@ function getAllClassifieds($con, $category = null, $search = null) {
     $sql = "SELECT c.*, COALESCE(c.clickthrough,0) AS clickthrough, u.FirstName, u.LastName, r.regionName 
             FROM classifieds c 
             LEFT JOIN UserAccounts u ON c.creatoruuid = u.PrincipalID 
-            LEFT JOIN regions r ON c.simname = r.regionName 
+            LEFT JOIN regions r ON c.simname = r.regionName COLLATE utf8mb4_unicode_ci
             WHERE 1=1";
     if ($category && $category !== 'all') { $catInt = (int)$category; $sql .= " AND c.category = $catInt"; }
     if ($search) { $search = mysqli_real_escape_string($con, $search); $sql .= " AND (c.name LIKE '%$search%' OR c.description LIKE '%$search%')"; }
@@ -55,7 +55,7 @@ function getClassifiedById($con, $classifieduuid) {
     $sql = "SELECT c.*, COALESCE(c.clickthrough,0) AS clickthrough, u.FirstName, u.LastName, r.regionName, r.serverURI 
             FROM classifieds c 
             LEFT JOIN UserAccounts u ON c.creatoruuid = u.PrincipalID 
-            LEFT JOIN regions r ON c.simname = r.regionName 
+            LEFT JOIN regions r ON c.simname = r.regionName COLLATE utf8mb4_unicode_ci
             WHERE c.classifieduuid = '$classifieduuid'";
     return mysqli_query($con, $sql);
 }

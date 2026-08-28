@@ -44,7 +44,7 @@ function getAllPicks($con, $search = null, $user = null) {
     $sql = "SELECT p.*, u.FirstName, u.LastName, r.regionName 
             FROM userpicks p 
             LEFT JOIN UserAccounts u ON p.creatoruuid = u.PrincipalID 
-            LEFT JOIN regions r ON SUBSTRING_INDEX(p.simname, ' ', 1) = r.regionName 
+            LEFT JOIN regions r ON SUBSTRING_INDEX(p.simname, ' ', 1) = r.regionName COLLATE utf8mb4_unicode_ci 
             WHERE 1=1";
     
     if ($user) {
@@ -65,7 +65,7 @@ function getPickById($con, $pickuuid) {
     $sql = "SELECT p.*, u.FirstName, u.LastName, r.regionName, r.serverURI 
             FROM userpicks p 
             LEFT JOIN UserAccounts u ON p.creatoruuid = u.PrincipalID 
-            LEFT JOIN regions r ON SUBSTRING_INDEX(p.simname, ' ', 1) = r.regionName 
+            LEFT JOIN regions r ON SUBSTRING_INDEX(p.simname, ' ', 1) = r.regionName COLLATE utf8mb4_unicode_ci 
             WHERE p.pickuuid = '" . mysqli_real_escape_string($con, $pickuuid) . "'";
     
     return mysqli_query($con, $sql);
@@ -75,7 +75,7 @@ function getTopPicks($con, $limit = 6) {
     $sql = "SELECT p.*, u.FirstName, u.LastName, r.regionName 
             FROM userpicks p 
             LEFT JOIN UserAccounts u ON p.creatoruuid = u.PrincipalID 
-            LEFT JOIN regions r ON SUBSTRING_INDEX(p.simname, ' ', 1) = r.regionName 
+            LEFT JOIN regions r ON SUBSTRING_INDEX(p.simname, ' ', 1) = r.regionName COLLATE utf8mb4_unicode_ci 
             WHERE p.toppick = 1 
             ORDER BY RAND() 
             LIMIT " . intval($limit);
