@@ -513,6 +513,20 @@ if (!defined('REPO_CORE_MASTER')) define('REPO_CORE_MASTER', 'https://github.com
 if (!defined('REPO_ENHANCED'))    define('REPO_ENHANCED', 'https://github.com/Ramius1701/opensim-enhanced');
 if (!defined('REPO_INTERFACE'))   define('REPO_INTERFACE', 'https://github.com/Ramius1701/OpenSim-Grid-Interface');
 
+// avatarpicker.php: shared-password gate + outfit thumbnail directory.
+// *** CHANGE THIS PASSWORD LIST *** before relying on this page - anyone
+// who knows one of these can view any avatar's outfit folders by name,
+// this isn't tied to their own login. AVATARPICKER_DIR must end with a
+// slash (getImageByName() does plain string concatenation, not path
+// joining) and should contain one <outfit-folder-name>.jpg per outfit
+// plus a default.jpg fallback.
+if (!isset($registration_passwords_avatarpicker)) {
+    $registration_passwords_avatarpicker = ["EugW3d9jU5EPlPqq", "H2sHVvuDf8AMYF6t", "XTTQ4689dMiu8afT", "SWogtvKIpR9Mxozy", "vateDhRqGjIlhyBw"];
+}
+if (!defined('AVATARPICKER_DIR')) {
+    define('AVATARPICKER_DIR', __DIR__ . '/../pics/outfits/');
+}
+
 
 // --- Safety: feature flags helper (keeps header.php from fataling if not defined elsewhere)
 if (!function_exists('casperia_feature_enabled')) {

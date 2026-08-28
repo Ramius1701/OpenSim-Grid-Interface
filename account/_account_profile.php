@@ -1561,6 +1561,50 @@ if ($conn && $UID !== '') {
     }
 }
 
+// --- First-life profile (text & image) ---
+$profileFirstText  = '';
+$profileFirstImage = '';
+
+if ($conn && $UID !== '') {
+    $UPfl = osv_table_exists($conn, 'userprofile') ? 'userprofile'
+        : (osv_table_exists($conn, 'UserProfile') ? 'UserProfile' : '');
+    if ($UPfl) {
+        $flCols   = osv_get_columns($conn, $UPfl);
+        $fl_id    = osv_pick_col($flCols, ['useruuid','UserUUID','PrincipalID','UUID']);
+        $fl_text  = osv_pick_col($flCols, ['profileFirstText','profilefirsttext','FirstText','firsttext']);
+        $fl_image = osv_pick_col($flCols, ['profileFirstImage','profilefirstimage','FirstImage','firstimage']);
+
+        if ($fl_id && ($fl_text || $fl_image)) {
+            $flFields = [];
+            if ($fl_text) {
+                $flFields[] = "p.`{$fl_text}` AS first_text";
+            }
+            if ($fl_image) {
+                $flFields[] = "p.`{$fl_image}` AS first_image";
+            }
+
+            if (!empty($flFields)) {
+                $sql = "SELECT " . implode(', ', $flFields) . " FROM `{$UPfl}` p WHERE p.`{$fl_id}` = ? LIMIT 1";
+                if ($stmt = $conn->prepare($sql)) {
+                    $stmt->bind_param('s', $UID);
+                    if ($stmt->execute() && ($res = $stmt->get_result())) {
+                        if ($row = $res->fetch_assoc()) {
+                            if ($fl_text && array_key_exists('first_text', $row)) {
+                                $profileFirstText = (string)($row['first_text'] ?? '');
+                            }
+                            if ($fl_image && array_key_exists('first_image', $row)) {
+                                $profileFirstImage = (string)($row['first_image'] ?? '');
+                            }
+                        }
+                        $res->close();
+                    }
+                    $stmt->close();
+                }
+            }
+        }
+    }
+}
+
 // --- Partner info & requests (mutual consent) ---
 $partner = null;               // holds accepted partner
 $outgoingPartner = null;       // holds pending outgoing target
@@ -2191,13 +2235,13 @@ if ($conn && $UID !== '') {
                                         <div class="mb-3">
                                             <label for="first_image_uuid" class="form-label">First-life image UUID</label>
                                             <input id="first_image_uuid" name="first_image_uuid" type="text"
-                                                   class="form-control"
+                                                   class="form-control" value="<?php echo h($profileFirstImage); ?>"
                                                    placeholder="00000000-0000-0000-0000-000000000000">
                                         </div>
                                         <div class="mb-3">
                                             <label for="first_text" class="form-label">First-life text</label>
                                             <textarea id="first_text" name="first_text" rows="5" class="form-control"
-                                                      placeholder="Optional first life description..."></textarea>
+                                                      placeholder="Optional first life description..."><?php echo h($profileFirstText); ?></textarea>
                                         </div>
                                         <button class="btn btn-outline-secondary" type="submit">
                                             Save first-life info
@@ -2407,9 +2451,13 @@ if ($conn && $UID !== '') {
                                 </button>
                             </form>
 
+                            <?php
+                                $__accountLevel = (int)($profile['user_level'] ?? 0);
+                                $__accountLevelLabel = ($__accountLevel >= (defined('ADMIN_USERLEVEL_MIN') ? ADMIN_USERLEVEL_MIN : 200)) ? 'Admin' : 'Standard';
+                            ?>
                             <p class="text-muted small mb-0">
                                 <strong>Current account level:</strong>
-                                <?php echo h((string)($profile['user_level'] ?? '0')); ?> (Standard)
+                                <?php echo h((string)$__accountLevel); ?> (<?php echo h($__accountLevelLabel); ?>)
                             </p>
 
                             <hr class="my-5">
