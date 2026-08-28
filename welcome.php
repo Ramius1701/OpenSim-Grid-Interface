@@ -16,6 +16,7 @@ if (!empty($IS_VIEWER)) {
 
 require_once __DIR__ . "/include/header.php";
 require_once __DIR__ . "/include/utils.php";
+require_once __DIR__ . "/include/region_status.php";
 ?>
 
 <style>
@@ -218,7 +219,15 @@ require_once __DIR__ . "/include/utils.php";
         } elseif($r=mysqli_query($con, "SELECT COUNT(*) FROM Presence")) {
             $stats['online'] = mysqli_fetch_row($r)[0];
         }
-        if($r=mysqli_query($con, "SELECT COUNT(*) FROM regions")) $stats['regions'] = mysqli_fetch_row($r)[0];
+        $onlineCount = 0;
+        if ($r = mysqli_query($con, "SELECT serverIP, serverPort, serverHttpPort FROM regions")) {
+            while ($row = mysqli_fetch_assoc($r)) {
+                if (region_is_online((string)$row['serverIP'], region_status_port($row))) {
+                    $onlineCount++;
+                }
+            }
+        }
+        $stats['regions'] = $onlineCount;
 
         // Var / Single region counts (requires regions.sizeX/sizeY)
         $hasSizeX = false; $hasSizeY = false;
@@ -265,7 +274,7 @@ require_once __DIR__ . "/include/utils.php";
                 <i class="bi bi-map-fill stat-icon"></i>
                 <div>
                     <div class="stat-number"><?php echo $stats['regions']; ?></div>
-                    <div class="stat-label">Regions</div>
+                    <div class="stat-label">Regions Online</div>
                 </div>
             </div>
         </div>
@@ -347,10 +356,19 @@ require_once __DIR__ . "/include/utils.php";
         try {
             $con = db();
             if ($con) {
-                $sql = "SELECT regionName FROM regions ORDER BY last_seen DESC LIMIT 10";
+                $sql = "SELECT regionName, serverIP, serverPort, serverHttpPort FROM regions ORDER BY last_seen DESC LIMIT 20";
                 $res = mysqli_query($con, $sql);
-                if ($res && mysqli_num_rows($res) > 0) {
+                $onlineRows = [];
+                if ($res) {
                     while ($row = mysqli_fetch_assoc($res)) {
+                        if (region_is_online((string)$row['serverIP'], region_status_port($row))) {
+                            $onlineRows[] = $row;
+                            if (count($onlineRows) >= 10) break;
+                        }
+                    }
+                }
+                if (!empty($onlineRows)) {
+                    foreach ($onlineRows as $row) {
                         // In-viewer splash page context: populates the "Start Location" box before login
                         if (!empty($IS_VIEWER)) {
                             $url = "secondlife://" . rawurlencode($row['regionName']) . "/110/128/22";

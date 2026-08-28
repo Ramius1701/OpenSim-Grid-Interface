@@ -7,6 +7,7 @@ header('Cache-Control: no-store');
 $baseDir = dirname(__DIR__); 
 require_once $baseDir . '/include/env.php';
 require_once $baseDir . '/include/config.php';
+require_once $baseDir . '/include/region_status.php';
 
 // 2. Map Casperia Prime constants to the variables for the connection
 $db_host = DB_SERVER;
@@ -95,7 +96,17 @@ if ($action === 'stats') {
     if ($res = $mysqli->query("SELECT COUNT(*) FROM regions")) {
         $count = (int)$res->fetch_row()[0];
         if ($stats['totalRegions'] <= 0) $stats['totalRegions'] = $count;
-        if ($stats['onlineRegions'] <= 0) $stats['onlineRegions'] = $count; // no reliable online flag in core table
+    }
+    if ($stats['onlineRegions'] <= 0) {
+        if ($res = $mysqli->query("SELECT serverIP, serverPort, serverHttpPort FROM regions")) {
+            $onlineCount = 0;
+            while ($row = $res->fetch_assoc()) {
+                if (region_is_online((string)$row['serverIP'], region_status_port($row))) {
+                    $onlineCount++;
+                }
+            }
+            $stats['onlineRegions'] = $onlineCount;
+        }
     }
 
     if ($resUsers = $mysqli->query("SELECT COUNT(*) FROM UserAccounts")) {
@@ -168,7 +179,7 @@ if ($action === 'search') {
             $gx = (int)$m[1];
             $gy = (int)$m[2];
 
-            $stmt = $mysqli->prepare("SELECT RegionName, LocX, LocY, SizeX, SizeY, UUID FROM regions WHERE (LocX DIV 256)=? AND (LocY DIV 256)=? LIMIT 20");
+            $stmt = $mysqli->prepare("SELECT RegionName, LocX, LocY, SizeX, SizeY, UUID, serverIP, serverPort, serverHttpPort FROM regions WHERE (LocX DIV 256)=? AND (LocY DIV 256)=? LIMIT 20");
             if ($stmt) {
                 $stmt->bind_param('ii', $gx, $gy);
                 $stmt->execute();
@@ -179,14 +190,14 @@ if ($action === 'search') {
                         'regionName' => $row['RegionName'],
                         'gridX' => (int)($row['LocX'] / 256),
                         'gridY' => (int)($row['LocY'] / 256),
-                        'isOnline' => true
+                        'isOnline' => region_is_online((string)$row['serverIP'], region_status_port($row))
                     ];
                 }
                 $stmt->close();
             }
         } else {
             $like = '%' . $query . '%';
-            $stmt = $mysqli->prepare("SELECT RegionName, LocX, LocY, SizeX, SizeY, UUID FROM regions WHERE RegionName LIKE ? ORDER BY RegionName ASC LIMIT 50");
+            $stmt = $mysqli->prepare("SELECT RegionName, LocX, LocY, SizeX, SizeY, UUID, serverIP, serverPort, serverHttpPort FROM regions WHERE RegionName LIKE ? ORDER BY RegionName ASC LIMIT 50");
             if ($stmt) {
                 $stmt->bind_param('s', $like);
                 $stmt->execute();
@@ -197,7 +208,7 @@ if ($action === 'search') {
                         'regionName' => $row['RegionName'],
                         'gridX' => (int)($row['LocX'] / 256),
                         'gridY' => (int)($row['LocY'] / 256),
-                        'isOnline' => true
+                        'isOnline' => region_is_online((string)$row['serverIP'], region_status_port($row))
                     ];
                 }
                 $stmt->close();
@@ -264,8 +275,8 @@ if ($action === 'regions') {
     }
 
     // SizeX and SizeY are required to prevent VarRegions from appearing as 256m
-    $sql = "SELECT RegionName, LocX, LocY, SizeX, SizeY, UUID FROM regions";
-    
+    $sql = "SELECT RegionName, LocX, LocY, SizeX, SizeY, UUID, serverIP, serverPort, serverHttpPort FROM regions";
+
     if ($result = $mysqli->query($sql)) {
         while ($row = $result->fetch_assoc()) {
             // Convert coordinate meters into grid units (meters / 256)
@@ -277,7 +288,7 @@ if ($action === 'regions') {
                 // Ensure size defaults to 256 if the DB columns are 0 or NULL
                 'sizeX'      => (int)($row['SizeX'] > 0 ? $row['SizeX'] : 256),
                 'sizeY'      => (int)($row['SizeY'] > 0 ? $row['SizeY'] : 256),
-                'isOnline'   => true,
+                'isOnline'   => region_is_online((string)$row['serverIP'], region_status_port($row)),
                 'ownerName'  => $ownerNameByRegion[$row['UUID']] ?? '—',
                 'teleportLink' => "secondlife://" . rawurlencode($row['RegionName']) . "/128/128/25"
             ];
