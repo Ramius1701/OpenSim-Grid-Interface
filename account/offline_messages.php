@@ -159,8 +159,45 @@ if (!$con) {
 <div class="container-fluid mt-4 mb-4">
   <div class="row">
 
-    <!-- Left column: info card -->
+    <!-- Left column: account navigation (matches account/_account_profile.php's sidebar) + info card -->
     <div class="col-md-3">
+      <div class="card mb-3">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="bi bi-person-circle me-1"></i> My Account</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <a class="btn btn-sm btn-outline-secondary" href="account/inworld.php">
+              <i class="bi bi-person-badge me-1"></i> In-world Profile
+            </a>
+            <a class="btn btn-sm btn-outline-secondary" href="account/favorites.php">
+              <i class="bi bi-star me-1"></i> Favorites
+            </a>
+            <a class="btn btn-sm btn-outline-secondary" href="account/friends.php">
+              <i class="bi bi-people me-1"></i> Friends
+            </a>
+            <a class="btn btn-sm btn-outline-secondary" href="account/groups.php">
+              <i class="bi bi-collection me-1"></i> Groups
+            </a>
+            <a class="btn btn-sm btn-outline-secondary" href="account/regions.php">
+              <i class="bi bi-geo-alt me-1"></i> My Regions
+            </a>
+            <a class="btn btn-sm btn-outline-secondary" href="account/partner.php">
+              <i class="bi bi-heart me-1"></i> Partner
+            </a>
+            <a class="btn btn-sm btn-outline-secondary" href="account/firstlife.php">
+              <i class="bi bi-person-lines-fill me-1"></i> First Life
+            </a>
+            <a class="btn btn-sm btn-outline-secondary" href="account/account.php">
+              <i class="bi bi-shield-lock me-1"></i> Account &amp; Security
+            </a>
+            <a class="btn btn-sm btn-primary" href="account/offline_messages.php">
+              <i class="bi bi-mailbox me-1"></i> Offline Messages
+            </a>
+          </div>
+        </div>
+      </div>
+
       <div class="card mb-3">
         <div class="card-header">
           <h5 class="mb-0">

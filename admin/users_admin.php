@@ -292,6 +292,25 @@ if ($con) {
         mysqli_stmt_close($stmt);
     }
     $totalUsers = count($users);
+
+    // Real count against the same filters, not capped by the LIMIT 300
+    // display cap above - so the "showing N of M" notice below is accurate
+    // even when a search/filter narrows the result set.
+    $totalUsersMatching = $totalUsers;
+    $sqlCount = "SELECT COUNT(*)
+            FROM UserAccounts ua
+            LEFT JOIN (SELECT DISTINCT UserID FROM Presence) p ON p.UserID = ua.PrincipalID
+            $whereSql";
+    if ($stmtCount = mysqli_prepare($con, $sqlCount)) {
+        if ($types !== '') {
+            mysqli_stmt_bind_param($stmtCount, $types, ...$params);
+        }
+        if (mysqli_stmt_execute($stmtCount)) {
+            mysqli_stmt_bind_result($stmtCount, $totalUsersMatching);
+            mysqli_stmt_fetch($stmtCount);
+        }
+        mysqli_stmt_close($stmtCount);
+    }
 }
 
 // Load Edit User if requested
@@ -327,6 +346,11 @@ if ($con && $editUUID !== '') {
                         <li><strong>Today:</strong> <?php echo date('Y-m-d'); ?></li>
                         <li><strong>Users loaded:</strong> <?php echo isset($users) && is_array($users) ? count($users) : (isset($totalUsers) ? (int)$totalUsers : 0); ?></li>
                     </ul>
+                    <?php if (isset($totalUsersMatching) && $totalUsersMatching > $totalUsers): ?>
+                    <div class="alert alert-warning py-2 px-2 mb-3">
+                        Showing the most recent <?php echo (int)$totalUsers; ?> of <?php echo (int)$totalUsersMatching; ?> matching users below.
+                    </div>
+                    <?php endif; ?>
                     <div class="alert alert-info py-2 px-2 mb-3">
                         <strong>Tip:</strong> Use the filters below to narrow results (name, UUID, online only).
                     </div>
