@@ -256,8 +256,8 @@ $res = $stmt->get_result();
             } else if ($tab === 'discover' && isset($row['locX'])) {
                 $gridX = $row['locX'] > 100000 ? $row['locX']/256 : $row['locX'];
                 $gridY = $row['locY'] > 100000 ? $row['locY']/256 : $row['locY'];
-                $mapUrl = "http://" . (defined('GRID_URI')?GRID_URI:$_SERVER['HTTP_HOST']) . ":8002/map-1-".intval($gridX)."-".intval($gridY)."-objects.jpg";
-                $bgStyle .= " background-image: url('$mapUrl');";
+                $mapUrl = "maps/map-tile.php?x=" . intval($gridX) . "&y=" . intval($gridY) . "&z=1";
+                $bgStyle .= " background-image: url('".htmlspecialchars($mapUrl)."');";
             }
 
             $landing = $row['landingpoint'] ?? '';
