@@ -217,9 +217,9 @@ $catKey = ($category === 'all') ? 'all' : (int)$category;
                             <div class="col-md-4">
                                 <?php if (!empty($classified['snapshotuuid']) && $classified['snapshotuuid'] !== '00000000-0000-0000-0000-000000000000'): ?>
                                 <div class="text-center mb-3">
-                                    <img src="<?php echo GRID_ASSETS_SERVER . $classified['snapshotuuid']; ?>" 
-                                         class="img-fluid rounded" 
-                                         alt="Listing image"
+                                    <img src="<?php echo GRID_ASSETS_SERVER . $classified['snapshotuuid']; ?>"
+                                         class="img-fluid rounded"
+                                         alt="Snapshot for classified listing: <?php echo htmlspecialchars($classified['name']); ?>"
                                          style="max-height: 200px;"
                                          onerror="this.onerror=null;this.src='<?php echo ASSET_FEHLT; ?>';">
                                 </div>
@@ -277,9 +277,9 @@ $catKey = ($category === 'all') ? 'all' : (int)$category;
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="card h-100">
                                     <?php if (!empty($row['snapshotuuid']) && $row['snapshotuuid'] !== '00000000-0000-0000-0000-000000000000'): ?>
-                                    <img src="<?php echo GRID_ASSETS_SERVER . $row['snapshotuuid']; ?>" 
-                                         class="card-img-top" 
-                                         alt="Listing image"
+                                    <img src="<?php echo GRID_ASSETS_SERVER . $row['snapshotuuid']; ?>"
+                                         class="card-img-top"
+                                         alt="Snapshot for classified listing: <?php echo htmlspecialchars($row['name']); ?>"
                                          style="height: 150px; object-fit: cover;"
                                          onerror="this.onerror=null;this.src='<?php echo ASSET_FEHLT; ?>';">
                                     <?php endif; ?>

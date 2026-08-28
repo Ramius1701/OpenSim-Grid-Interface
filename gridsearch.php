@@ -529,7 +529,7 @@ if (!empty($results)) {
                                     <?php if ($user['profileImage'] && $user['profileImage'] != '00000000-0000-0000-0000-000000000000'): ?>
                                     <img src="<?php echo $gridAssetsBase . $user['profileImage']; ?>"
                                          class="card-img-top"
-                                         alt="Profile picture"
+                                         alt="Profile picture for <?php echo htmlspecialchars($user['FirstName'] . ' ' . $user['LastName']); ?>"
                                          style="height: 100px; object-fit: cover;"
                                          onerror="this.src='<?php echo $assetFallback; ?>';">
                                     <?php endif; ?>
@@ -615,7 +615,7 @@ if (!empty($results)) {
                                     <?php if ($place['snapshotuuid'] && $place['snapshotuuid'] != '00000000-0000-0000-0000-000000000000'): ?>
                                     <img src="<?php echo $gridAssetsBase . $place['snapshotuuid']; ?>"
                                          class="card-img-top"
-                                         alt="Place image"
+                                         alt="Snapshot for place: <?php echo htmlspecialchars($place['name']); ?>"
                                          style="height: 100px; object-fit: cover;"
                                          onerror="this.src='<?php echo $assetFallback; ?>';">
                                     <?php endif; ?>
@@ -656,7 +656,7 @@ if (!empty($results)) {
                                     <?php if ($classified['snapshotuuid'] && $classified['snapshotuuid'] != '00000000-0000-0000-0000-000000000000'): ?>
                                     <img src="<?php echo $gridAssetsBase . $classified['snapshotuuid']; ?>"
                                          class="card-img-top"
-                                         alt="Ad image"
+                                         alt="Snapshot for classified listing: <?php echo htmlspecialchars($classified['name']); ?>"
                                          style="height: 100px; object-fit: cover;"
                                          onerror="this.src='<?php echo $assetFallback; ?>';">
                                     <?php endif; ?>

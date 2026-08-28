@@ -1922,7 +1922,7 @@ if ($conn && $UID !== '') {
                                                 <div class="ratio ratio-1x1 mb-2">
                                                     <?php if (!empty($profileImageUUID) && $profileImageUUID !== '00000000-0000-0000-0000-000000000000'): ?>
                                                         <img src="<?php echo h(GRID_ASSETS_SERVER . $profileImageUUID); ?>"
-                                                             class="img-fluid rounded border" alt="Profile picture">
+                                                             class="img-fluid rounded border" alt="Your current profile picture">
                                                     <?php else: ?>
                                                         <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20120%20120%27%3E%3Crect%20width%3D%27120%27%20height%3D%27120%27%20fill%3D%27%23e9ecef%27/%3E%3Ccircle%20cx%3D%2760%27%20cy%3D%2746%27%20r%3D%2720%27%20fill%3D%27%23ced4da%27/%3E%3Crect%20x%3D%2724%27%20y%3D%2768%27%20width%3D%2772%27%20height%3D%2732%27%20rx%3D%2716%27%20fill%3D%27%23ced4da%27/%3E%3Ctext%20x%3D%2750%25%27%20y%3D%2792%25%27%20dominant-baseline%3D%27middle%27%20text-anchor%3D%27middle%27%20font-size%3D%2710%27%20fill%3D%27%23868e96%27%3ENo%20profile%20image%3C/text%3E%3C/svg%3E"
                                                              class="img-fluid rounded border" alt="Profile picture placeholder">
@@ -2479,12 +2479,12 @@ if ($conn && $UID !== '') {
                                                 <div class="mb-3">
                                                     <label for="password" class="form-label">New password</label>
                                                     <input id="password" name="password" type="password"
-                                                           class="form-control" minlength="8" maxlength="14" required>
+                                                           class="form-control" minlength="8" required>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="confirm_password" class="form-label">Confirm password</label>
                                                     <input id="confirm_password" name="confirm_password" type="password"
-                                                           class="form-control" minlength="8" maxlength="14" required>
+                                                           class="form-control" minlength="8" required>
                                                 </div>
                                                 <button class="btn btn-primary w-100" type="submit">
                                                     Update Password
@@ -2624,7 +2624,7 @@ if ($conn && $UID !== '') {
                                                 <div class="ratio ratio-1x1 mb-2">
                                                     <?php if (!empty($profileImageUUID) && $profileImageUUID !== '00000000-0000-0000-0000-000000000000'): ?>
                                                         <img src="<?php echo h(GRID_ASSETS_SERVER . $profileImageUUID); ?>"
-                                                             class="img-fluid rounded border" alt="Profile picture">
+                                                             class="img-fluid rounded border" alt="Your current profile picture">
                                                     <?php else: ?>
                                                         <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20120%20120%27%3E%3Crect%20width%3D%27120%27%20height%3D%27120%27%20fill%3D%27%23e9ecef%27/%3E%3Ccircle%20cx%3D%2760%27%20cy%3D%2746%27%20r%3D%2720%27%20fill%3D%27%23ced4da%27/%3E%3Crect%20x%3D%2724%27%20y%3D%2768%27%20width%3D%2772%27%20height%3D%2732%27%20rx%3D%2716%27%20fill%3D%27%23ced4da%27/%3E%3Ctext%20x%3D%2750%25%27%20y%3D%2792%25%27%20dominant-baseline%3D%27middle%27%20text-anchor%3D%27middle%27%20font-size%3D%2710%27%20fill%3D%27%23868e96%27%3ENo%20profile%20image%3C/text%3E%3C/svg%3E"
                                                              class="img-fluid rounded border" alt="Profile picture placeholder">

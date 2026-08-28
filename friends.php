@@ -394,7 +394,7 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
                                         <?php if (!empty($user['profileImage']) && $user['profileImage'] !== '00000000-0000-0000-0000-000000000000'): ?>
                                         <img src="<?php echo GRID_ASSETS_SERVER . $user['profileImage']; ?>"
                                              class="card-img-top"
-                                             alt="Profile image"
+                                             alt="Profile picture for <?php echo htmlspecialchars(($user['FirstName'] ?? '') . ' ' . ($user['LastName'] ?? '')); ?>"
                                              style="height: 120px; object-fit: cover;"
                                              onerror="this.onerror=null;this.src='<?php echo ASSET_FEHLT; ?>';">
                                         <?php endif; ?>

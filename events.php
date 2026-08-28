@@ -260,6 +260,17 @@ include_once __DIR__ . '/include/header.php';
         .cal-title { margin: 1rem 0; }
         .cal-cell { height: 100px; }
     }
+
+    /* Phone widths: the 7-column grid stays (a calendar needs all 7 days
+       visible), but cells get tighter still at 992px's 100px height, so
+       trim padding/font sizes further rather than letting event pills
+       overflow or get unreadably cramped. */
+    @media (max-width: 576px) {
+        .cal-cell { height: 76px; padding: 0.35rem; }
+        .cal-day { font-size: 0.85rem; margin-bottom: 0.2rem; }
+        .cal-dow { padding: 0.5rem 0.25rem; font-size: 0.7rem; }
+        .cal-event { font-size: 0.65rem; padding: 2px 4px; gap: 3px; }
+    }
 </style>
 
 <section class="page-hero">

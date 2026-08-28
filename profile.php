@@ -400,9 +400,9 @@ if ($firstName && $lastName && !$userId) {
                                         <?php if ($profile['profileImage'] && $profile['profileImage'] != '00000000-0000-0000-0000-000000000000'): ?>
                                         <div class="text-center mb-4">
                                             <h6>Profile picture:</h6>
-                                            <img src="<?php echo GRID_ASSETS_SERVER . $profile['profileImage']; ?>" 
-                                                 class="img-fluid rounded" 
-                                                 alt="Profile picture"
+                                            <img src="<?php echo GRID_ASSETS_SERVER . $profile['profileImage']; ?>"
+                                                 class="img-fluid rounded"
+                                                 alt="Profile picture for <?php echo htmlspecialchars($profile['FirstName'] . ' ' . $profile['LastName']); ?>"
                                                  style="max-height: 250px;"
                                                  onerror="this.onerror=null;this.src='<?php echo ASSET_FEHLT; ?>';">
                                         </div>
@@ -676,9 +676,9 @@ if ($firstName && $lastName && !$userId) {
                             <div class="col-md-6 col-lg-4 mb-3">
                                 <div class="card">
                                     <?php if ($user['profileImage'] && $user['profileImage'] != '00000000-0000-0000-0000-000000000000'): ?>
-                                    <img src="<?php echo GRID_ASSETS_SERVER . $user['profileImage']; ?>" 
-                                         class="card-img-top" 
-                                         alt="Profile picture"
+                                    <img src="<?php echo GRID_ASSETS_SERVER . $user['profileImage']; ?>"
+                                         class="card-img-top"
+                                         alt="Profile picture for <?php echo htmlspecialchars($user['FirstName'] . ' ' . $user['LastName']); ?>"
                                          style="height: 150px; object-fit: cover;"
                                          onerror="this.onerror=null;this.src='<?php echo ASSET_FEHLT; ?>';">
                                     <?php endif; ?>

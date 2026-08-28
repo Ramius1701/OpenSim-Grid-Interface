@@ -274,7 +274,7 @@ $ticketClosedCount = $ticketTotalCount - $ticketOpenCount;
                                     <td><span class="badge text-bg-<?php echo h($badge); ?>"><?php echo h($allowedStatuses[$status] ?? $status); ?></span></td>
                                     <td class="small text-body-secondary"><?php echo h($t['created_at']); ?></td>
                                     <td class="text-end">
-                                        <a class="btn btn-sm btn-outline-primary" href="?view=<?php echo (int)$t['id']; ?>">
+                                        <a class="btn btn-sm btn-outline-primary" href="?view=<?php echo (int)$t['id']; ?>" title="View ticket" aria-label="View ticket #<?php echo (int)$t['id']; ?>">
                                             <i class="bi bi-eye"></i>
                                         </a>
 

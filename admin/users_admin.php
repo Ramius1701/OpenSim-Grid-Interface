@@ -562,7 +562,7 @@ if ($con && $editUUID !== '') {
                                         <?php if($isOnline): ?><span class="badge bg-success-subtle text-success ms-1">Online</span><?php endif; ?>
                                     </td>
                                     <td class="text-end pe-4">
-                                        <a href="admin/users_admin.php?edit=<?php echo urlencode($u['PrincipalID']); ?>" class="btn btn-sm btn-outline-secondary">
+                                        <a href="admin/users_admin.php?edit=<?php echo urlencode($u['PrincipalID']); ?>" class="btn btn-sm btn-outline-secondary" title="Edit user" aria-label="Edit <?php echo u_h($u['FirstName'].' '.$u['LastName']); ?>">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                     </td>
