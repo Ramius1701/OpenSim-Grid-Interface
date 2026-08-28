@@ -5,6 +5,7 @@
 $title = 'Grid Map';
 
 require_once __DIR__ . '/../include/config.php';   // loads env.php for you
+require_once __DIR__ . '/../include/region_status.php';
 
 /* ---------- 1.  DB ---------- */
 $dbHost = $DB['host']    ?? $DB['server'] ?? (defined('DB_SERVER')   ? DB_SERVER   : '127.0.0.1');
@@ -79,6 +80,9 @@ $colSrvURI = $find('ServerURI','serverURI','serverUrl','serverURL','server_uri')
 $colSizeX  = $find('SizeX','sizeX','sizex');
 $colSizeY  = $find('SizeY','sizeY','sizey');
 $colType   = $find('RegionType','regionType','ProductType','productType','Type','type');
+$colSrvIP       = $find('serverIP','ServerIP');
+$colSrvPort     = $find('serverPort','ServerPort');
+$colSrvHttpPort = $find('serverHttpPort','ServerHttpPort');
 
 /* ---------- 6.  WINDOW BOUNDS + FETCH ---------- */
 $startX = $cx - intdiv($w, 2); $endX = $startX + $w - 1;
@@ -93,6 +97,9 @@ $fields = [
     'sizeX'      => $colSizeX  ? "`$colSizeX`"  : '256',
     'sizeY'      => $colSizeY  ? "`$colSizeY`"  : '256',
     'regionType' => $colType   ? "`$colType`"   : "''",
+    'serverIP'       => $colSrvIP       ? "`$colSrvIP`"       : "''",
+    'serverPort'     => $colSrvPort     ? "`$colSrvPort`"     : '0',
+    'serverHttpPort' => $colSrvHttpPort ? "`$colSrvHttpPort`" : '0',
 ];
 $select = 'SELECT '.implode(', ', array_map(
     fn($expr, $alias) => "$expr AS `$alias`", $fields, array_keys($fields)))
@@ -101,6 +108,15 @@ $select = 'SELECT '.implode(', ', array_map(
 $stmt = $pdo->prepare($select);
 $stmt->execute([':x1'=>$startX*256, ':x2'=>$endX*256, ':y1'=>$startY*256, ':y2'=>$endY*256]);
 $rows = $stmt->fetchAll();
+
+// Live reachability check (same helper welcome.php/gridstatus.php/the world
+// map use) - region "type" colors below are about size/product tier, not
+// whether the simulator is actually up, so this is a separate signal.
+$onlineTargets = [];
+foreach ($rows as $i => $r) {
+    $onlineTargets[$i] = ['host' => (string)$r['serverIP'], 'port' => region_status_port($r)];
+}
+$onlineByRow = regions_online_map($onlineTargets);
 
 /* ---------- 7.  NORMALISE & CLASSIFY ---------- */
 $grid = []; $focusUUID = null;
@@ -115,7 +131,7 @@ function classify(array $r): string {
     return ((int)$r['sizeX']>256||(int)$r['sizeY']>256) ? 'var' : 'standard';
 }
 
-foreach ($rows as $r) {
+foreach ($rows as $i => $r) {
     $gx = (int)($r['locX'] / 256);
     $gy = (int)($r['locY'] / 256);
     $sx = max(256, (int)$r['sizeX']);
@@ -123,11 +139,13 @@ foreach ($rows as $r) {
     $tx = max(1, intdiv($sx, 256));
     $ty = max(1, intdiv($sy, 256));
     $type = classify($r);
+    $online = $onlineByRow[$i] ?? false;
 
     for ($dy=0; $dy<$ty; $dy++) for ($dx=0; $dx<$tx; $dx++) {
         $grid[$gx+$dx][$gy+$dy] = [
             'name'=>$r['regionName'],
             'uuid'=>$r['uuid'],
+            'online'=>$online,
             'sx'=>$sx,'sy'=>$sy,
             'type'=>$type,
             'root'=>!$dx&&!$dy
@@ -175,6 +193,10 @@ require_once __DIR__ . '/../include/header.php';
   .map-tile.center{outline:2px solid currentColor;outline-offset:-2px;transform:scale(1.06);z-index:2}
   .map-tile.focus-region{box-shadow:0 0 0 2px <?=$C_CENTER?> inset;border-color:<?=$C_CENTER?>}
   .map-tile:hover{box-shadow:0 0 0 1px rgba(255,255,255,.6)}
+  /* Dimmed = region row exists but its simulator isn't reachable right now
+     (live port check, not just "registered at some point") */
+  .map-tile.offline{opacity:.4}
+  .map-tile.offline:hover{opacity:.7}
 </style>
 
 <div class="container-fluid mt-4 mb-4">
@@ -266,6 +288,7 @@ require_once __DIR__ . '/../include/header.php';
           <div class="item"><span class="swatch" style="background:<?=$C_VAR?>"></span> Variable</div>
           <div class="item"><span class="swatch" style="background:<?=$C_FREE?>"></span> Free</div>
           <div class="item"><span class="swatch" style="background:<?=$C_CENTER?>"></span> Grid Center</div>
+          <div class="item"><span class="swatch" style="background:<?=$C_STANDARD?>;opacity:.4"></span> Offline (dimmed)</div>
         </div>
       </div></div>
     </div><!-- /col-md-3 -->
@@ -291,15 +314,17 @@ for ($y=$endY; $y>=$startY; $y--) {
         'var'=>$C_VAR,'standard'=>$C_STANDARD,$isGridC=>$C_CENTER,
         default=>$C_STANDARD
       };
-      $title = "($x,$y) • {$cell['name']} • {$cell['sx']}×{$cell['sy']}";
+      $statusLabel = $cell['online'] ? 'Online' : 'Offline';
+      $title = "($x,$y) • {$cell['name']} • {$cell['sx']}×{$cell['sy']} • {$statusLabel}";
       $tp    = $HG ? hop($HG,$cell['name']) : slapp($cell['name']);
-      $cls   = 'map-tile'.($isCenter?' center':'').($focusUUID&&$cell['uuid']===$focusUUID?' focus-region':'');
+      $cls   = 'map-tile'.($isCenter?' center':'').($focusUUID&&$cell['uuid']===$focusUUID?' focus-region':'').($cell['online']?'':' offline');
       echo '<a class="'.htmlspecialchars($cls).'" href="'.htmlspecialchars($tp).'"'
           .' style="background:'.htmlspecialchars($bg).'"'
           .' data-region-name="'.htmlspecialchars($cell['name'],ENT_QUOTES).'"'
           .' data-coords="'.htmlspecialchars("$x,$y",ENT_QUOTES).'"'
           .' data-size="'.htmlspecialchars("{$cell['sx']}×{$cell['sy']}",ENT_QUOTES).'"'
           .' data-type="'.htmlspecialchars($cell['type'],ENT_QUOTES).'"'
+          .' data-online="'.($cell['online']?1:0).'"'
           .' data-teleport="'.htmlspecialchars($tp,ENT_QUOTES).'"'
           .' data-is-center="'.($isCenter?1:0).'"'
           .' title="'.htmlspecialchars($title,ENT_QUOTES).'"></a>';
@@ -329,10 +354,12 @@ document.addEventListener('DOMContentLoaded',()=>{
     const size =tile.dataset.size||'';
     const type =tile.dataset.type||'';
     const tp   =tile.dataset.teleport||'';
+    const online=tile.dataset.online;
     let html='<p><strong>'+name.escape()+'</strong></p>';
     if(coord) html+='<p>Grid coords: '+coord.escape()+'</p>';
     if(size)  html+='<p>Size: '+size.escape()+'</p>';
     if(type)  html+='<p>Type: '+type.escape()+'</p>';
+    if(online!==undefined) html+='<p>Status: '+(online==='1'?'🟢 Online':'⚪ Offline')+'</p>';
     //if(tp)    html+='<p class="mb-0"><a href="'+tp.escape()+'" target="_blank">Teleport / Open in viewer</a></p>';
     detailsBody.innerHTML=html;
     detailsHint.textContent='Hover another tile to inspect a different region.';
