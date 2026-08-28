@@ -28,6 +28,34 @@ function mapdata_table_exists(mysqli $mysqli, string $table): bool {
     return ($res && $res->num_rows > 0);
 }
 
+// Consumes a mysqli_result of RegionName/LocX/LocY/UUID/serverIP/serverPort/
+// serverHttpPort rows and returns the search-result shape, with isOnline
+// resolved via a single concurrent regions_online_map() batch rather than
+// one live connection attempt per row.
+function map_data_rows_with_online_status(mysqli_result $res): array {
+    $rows = [];
+    $targets = [];
+    $i = 0;
+    while ($row = $res->fetch_assoc()) {
+        $key = $i++;
+        $rows[$key] = $row;
+        $targets[$key] = ['host' => (string)$row['serverIP'], 'port' => region_status_port($row)];
+    }
+    $onlineMap = regions_online_map($targets);
+
+    $out = [];
+    foreach ($rows as $key => $row) {
+        $out[] = [
+            'uuid' => $row['UUID'],
+            'regionName' => $row['RegionName'],
+            'gridX' => (int)($row['LocX'] / 256),
+            'gridY' => (int)($row['LocY'] / 256),
+            'isOnline' => $onlineMap[$key] ?? false
+        ];
+    }
+    return $out;
+}
+
 
 
 $action = isset($_GET['action']) ? (string)$_GET['action'] : 'stats';
@@ -99,13 +127,12 @@ if ($action === 'stats') {
     }
     if ($stats['onlineRegions'] <= 0) {
         if ($res = $mysqli->query("SELECT serverIP, serverPort, serverHttpPort FROM regions")) {
-            $onlineCount = 0;
+            $targets = [];
+            $i = 0;
             while ($row = $res->fetch_assoc()) {
-                if (region_is_online((string)$row['serverIP'], region_status_port($row))) {
-                    $onlineCount++;
-                }
+                $targets[$i++] = ['host' => (string)$row['serverIP'], 'port' => region_status_port($row)];
             }
-            $stats['onlineRegions'] = $onlineCount;
+            $stats['onlineRegions'] = count(array_filter(regions_online_map($targets)));
         }
     }
 
@@ -184,15 +211,7 @@ if ($action === 'search') {
                 $stmt->bind_param('ii', $gx, $gy);
                 $stmt->execute();
                 $res = $stmt->get_result();
-                while ($row = $res->fetch_assoc()) {
-                    $results[] = [
-                        'uuid' => $row['UUID'],
-                        'regionName' => $row['RegionName'],
-                        'gridX' => (int)($row['LocX'] / 256),
-                        'gridY' => (int)($row['LocY'] / 256),
-                        'isOnline' => region_is_online((string)$row['serverIP'], region_status_port($row))
-                    ];
-                }
+                $results = array_merge($results, map_data_rows_with_online_status($res));
                 $stmt->close();
             }
         } else {
@@ -202,15 +221,7 @@ if ($action === 'search') {
                 $stmt->bind_param('s', $like);
                 $stmt->execute();
                 $res = $stmt->get_result();
-                while ($row = $res->fetch_assoc()) {
-                    $results[] = [
-                        'uuid' => $row['UUID'],
-                        'regionName' => $row['RegionName'],
-                        'gridX' => (int)($row['LocX'] / 256),
-                        'gridY' => (int)($row['LocY'] / 256),
-                        'isOnline' => region_is_online((string)$row['serverIP'], region_status_port($row))
-                    ];
-                }
+                $results = array_merge($results, map_data_rows_with_online_status($res));
                 $stmt->close();
             }
         }
@@ -278,7 +289,17 @@ if ($action === 'regions') {
     $sql = "SELECT RegionName, LocX, LocY, SizeX, SizeY, UUID, serverIP, serverPort, serverHttpPort FROM regions";
 
     if ($result = $mysqli->query($sql)) {
+        $rows = [];
+        $targets = [];
+        $i = 0;
         while ($row = $result->fetch_assoc()) {
+            $key = $i++;
+            $rows[$key] = $row;
+            $targets[$key] = ['host' => (string)$row['serverIP'], 'port' => region_status_port($row)];
+        }
+        $onlineMap = regions_online_map($targets);
+
+        foreach ($rows as $key => $row) {
             // Convert coordinate meters into grid units (meters / 256)
             $regions[] = [
                 'uuid'       => $row['UUID'],
@@ -288,7 +309,7 @@ if ($action === 'regions') {
                 // Ensure size defaults to 256 if the DB columns are 0 or NULL
                 'sizeX'      => (int)($row['SizeX'] > 0 ? $row['SizeX'] : 256),
                 'sizeY'      => (int)($row['SizeY'] > 0 ? $row['SizeY'] : 256),
-                'isOnline'   => region_is_online((string)$row['serverIP'], region_status_port($row)),
+                'isOnline'   => $onlineMap[$key] ?? false,
                 'ownerName'  => $ownerNameByRegion[$row['UUID']] ?? '—',
                 'teleportLink' => "secondlife://" . rawurlencode($row['RegionName']) . "/128/128/25"
             ];

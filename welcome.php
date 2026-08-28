@@ -219,15 +219,27 @@ require_once __DIR__ . "/include/region_status.php";
         } elseif($r=mysqli_query($con, "SELECT COUNT(*) FROM Presence")) {
             $stats['online'] = mysqli_fetch_row($r)[0];
         }
-        $onlineCount = 0;
-        if ($r = mysqli_query($con, "SELECT serverIP, serverPort, serverHttpPort FROM regions")) {
+        // Fetched once here and reused by the Recent Regions list below,
+        // so the (concurrent, but not free) live port check only runs once
+        // per page load instead of twice.
+        $onlineRegionRows = [];
+        if ($r = mysqli_query($con, "SELECT regionName, serverIP, serverPort, serverHttpPort FROM regions ORDER BY last_seen DESC")) {
+            $regionTargets = [];
+            $regionRowsByKey = [];
+            $i = 0;
             while ($row = mysqli_fetch_assoc($r)) {
-                if (region_is_online((string)$row['serverIP'], region_status_port($row))) {
-                    $onlineCount++;
+                $key = $i++;
+                $regionTargets[$key] = ['host' => (string)$row['serverIP'], 'port' => region_status_port($row)];
+                $regionRowsByKey[$key] = $row;
+            }
+            $onlineMap = regions_online_map($regionTargets);
+            foreach ($onlineMap as $key => $isOnline) {
+                if ($isOnline) {
+                    $onlineRegionRows[] = $regionRowsByKey[$key];
                 }
             }
         }
-        $stats['regions'] = $onlineCount;
+        $stats['regions'] = count($onlineRegionRows);
 
         // Var / Single region counts (requires regions.sizeX/sizeY)
         $hasSizeX = false; $hasSizeY = false;
@@ -352,23 +364,13 @@ require_once __DIR__ . "/include/region_status.php";
     <h3 class="section-title"><i class="bi bi-geo-alt-fill"></i> Recent Regions</h3>
     <div class="regions-list">
         <?php
-        $con = null;
         try {
-            $con = db();
-            if ($con) {
-                $sql = "SELECT regionName, serverIP, serverPort, serverHttpPort FROM regions ORDER BY last_seen DESC LIMIT 20";
-                $res = mysqli_query($con, $sql);
-                $onlineRows = [];
-                if ($res) {
-                    while ($row = mysqli_fetch_assoc($res)) {
-                        if (region_is_online((string)$row['serverIP'], region_status_port($row))) {
-                            $onlineRows[] = $row;
-                            if (count($onlineRows) >= 10) break;
-                        }
-                    }
-                }
-                if (!empty($onlineRows)) {
-                    foreach ($onlineRows as $row) {
+            // Reuses the live port check already run once in the Grid
+            // Statistics block above, instead of checking every region a
+            // second time for this list.
+            $onlineRows = array_slice($onlineRegionRows ?? [], 0, 10);
+            if (!empty($onlineRows)) {
+                foreach ($onlineRows as $row) {
                         // In-viewer splash page context: populates the "Start Location" box before login
                         if (!empty($IS_VIEWER)) {
                             $url = "secondlife://" . rawurlencode($row['regionName']) . "/110/128/22";
@@ -390,14 +392,9 @@ require_once __DIR__ . "/include/region_status.php";
                         </div>
                         <?php
                     }
-                } else { echo '<div class="text-muted p-3">No active regions found.</div>'; }
-            }
+            } else { echo '<div class="text-muted p-3">No active regions found.</div>'; }
         } catch (Exception $e) {
             // Silently swallow errors or add log if desired
-        } finally {
-            if (!empty($con) && $con instanceof mysqli) {
-                mysqli_close($con);
-            }
         }
         ?>
     </div>
