@@ -202,6 +202,10 @@ require_once __DIR__ . '/../include/header.php';
 <div class="container-fluid mt-4 mb-4">
   <div class="row">
     <div class="col-md-3">
+      <div class="card mb-3"><div class="card-body py-2 d-flex gap-2 flex-wrap">
+        <a href="/maps/" class="btn btn-sm btn-outline-secondary flex-fill" title="Satellite-style map - pan, zoom, and search visually"><i class="bi bi-globe me-1"></i>World Map</a>
+        <a href="/gridstatus.php" class="btn btn-sm btn-outline-secondary flex-fill"><i class="bi bi-activity me-1"></i>Grid Status</a>
+      </div></div>
       <div class="card mb-3"><div class="card-header"><h5 class="mb-0"><i class="bi bi-map me-1"></i> Grid Map</h5></div><div class="card-body">
         <form class="map-controls" method="get" action="<?=htmlspecialchars($_SERVER['PHP_SELF'])?>" id="mapForm">
           <!-- hidden fields carry the current values unless a button overrides them -->

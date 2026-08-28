@@ -451,9 +451,6 @@ if ($isLoggedIn) {
                             <small style="opacity:.75">Available balance: FC$ <?php echo number_format($myBalance['balance'] ?? 0, 0, ',', '.'); ?></small>
                         </div>
                         <div class="card-body">
-                            <div class="alert alert-info">
-                                <i class="bi bi-info-circle"></i> This page is functional but needs the backend API implementation to complete money transfers.
-                            </div>
                             <button class="btn btn-success" onclick="showSendMoneyModal()">
                                 <i class="bi bi-send"></i> Open Send Money Form
                             </button>

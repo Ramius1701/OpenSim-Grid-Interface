@@ -38,6 +38,7 @@
 
 .cp-map-btn{
   appearance: none;
+  display: inline-block;
   border: 1px solid var(--card-border-color, rgba(0,0,0,.2));
   background: color-mix(in srgb, var(--primary-color, #000), transparent 94%);
   color: inherit;
@@ -46,6 +47,7 @@
   cursor: pointer;
   font-weight: 600;
   line-height: 1;
+  text-decoration: none;
 }
 .cp-map-btn:hover{ background: color-mix(in srgb, var(--primary-color, #000), transparent 90%); }
 .cp-map-btn:active{ transform: translateY(1px); }

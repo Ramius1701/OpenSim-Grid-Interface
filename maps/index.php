@@ -60,6 +60,8 @@ $mapBody = sprintf(
                 </div>
             </div>
             <div class="cp-map-actions">
+                <a href="/maps/gridmap.php" class="cp-map-btn" title="Tile-grid view - browse and teleport by region">Grid Map</a>
+                <a href="/gridstatus.php" class="cp-map-btn">Grid Status</a>
                 <button type="button" class="cp-map-btn" id="cpMapResetBtn">Reset View</button>
             </div>
         </div>

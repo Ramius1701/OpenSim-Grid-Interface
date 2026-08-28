@@ -211,6 +211,7 @@ if (!$lastUpdatedUnix) { $lastUpdatedUnix = time(); }
                 <div class="card-body">
                     <div class="d-grid gap-2">
                         <a href="maps/gridmap.php" class="btn btn-theme-outline"><i class="bi bi-map"></i> View Grid Map</a>
+                        <a href="/maps/" class="btn btn-theme-outline"><i class="bi bi-globe"></i> View World Map</a>
                         <a href="gridlist.php" class="btn btn-theme-outline"><i class="bi bi-list"></i> Grid Directory</a>
                         <a href="gridsearch.php" class="btn btn-theme-outline"><i class="bi bi-search"></i> Search Grid</a>
                         <a href="gridstatusrss.php" class="btn btn-theme-outline"><i class="bi bi-rss"></i> RSS Feed</a>
