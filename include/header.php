@@ -378,6 +378,7 @@ require_once __DIR__ . '/nav_notifications.php';
                             </a>
                         </li>
                             <li><a class="dropdown-item" href="admin/analytics.php"><i class="bi bi-graph-up"></i> Grid Analytics</a></li>
+                            <li><a class="dropdown-item" href="admin/dashboard/index.php"><i class="bi bi-bar-chart-line"></i> Statistics Dashboard</a></li>
                             <li><a class="dropdown-item" href="admin/users_admin.php"><i class="bi bi-person-gear"></i> Users Admin</a></li>
                             <li><a class="dropdown-item" href="admin/regions_admin.php"><i class="bi bi-geo-alt"></i> Regions Admin</a></li>
                             <li><a class="dropdown-item" href="admin/groups_admin.php"><i class="bi bi-people-fill"></i> Groups Admin</a></li>

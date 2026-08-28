@@ -65,7 +65,7 @@ if (!in_array($queryType, $allowedTypes, true)) {
 $mysqli = @mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
 if ($mysqli === false) {
     http_response_code(500);
-    echo 'Datenbankverbindung fehlgeschlagen.';
+    echo 'Database connection failed.';
     exit;
 }
 

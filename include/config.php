@@ -124,7 +124,7 @@ define('REMOTEADMIN_PORT', 8002); // Port des RemoteAdmin-Servers / Port of the 
 
 // Website addresses
 define('BASE_URL', 'http://casperia.ddns.net'); // Basis-URL der Webseite / Base URL of the website
-define('SITE_NAME', 'Casperia Prime'); // Name des Grids / Name of the grid
+define('SITE_NAME', 'Casperia Prime'); // Name of the grid
 
 define('HEADER_FILE', 'header.php');
 define('FOOTER_FILE', 'footer.php');
@@ -133,14 +133,14 @@ define('FOOTER_FILE', 'footer.php');
 define('BANKER_UUID', '00000000-0000-0000-0000-000000000000'); // UUID des Bankers / UUID of the banker
 
 // Verification methods
-define('VERIFICATION_METHOD', 'email'); // 'email' oder 'uuid' / 'email' or 'uuid'
+define('VERIFICATION_METHOD', 'email'); // 'email' or 'uuid'
 
 // Asset images
-define('ASSETPFAD', 'cache/'); // Pfad zum Asset-Cache / Path to the asset cache
+define('ASSETPFAD', 'cache/'); // Path to the asset cache
 define('ASSET_FEHLT', 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 200 200%22><rect width=%22200%22 height=%22200%22 fill=%22%23e9ecef%22/><circle cx=%22100%22 cy=%2278%22 r=%2234%22 fill=%22%23adb5bd%22/><path d=%22M35 172c0-46 30-70 65-70s65 24 65 70%22 fill=%22%23adb5bd%22/></svg>'); // Default image for missing assets - inline SVG so it can never 404. All quotes percent-encoded (%22) so this value is safe inside any surrounding HTML attribute or JS string context.
-define('GRID_PORT', ':8002'); // Port für Grid-Dienste / Port for grid services
-define('GRID_ASSETS', ':8003/assets/'); // Pfad für Grid-Assets / Path for grid assets
-define('GRID_ASSETS_SERVER', BASE_URL . GRID_ASSETS); // URL des Asset-Servers / URL of the asset server
+define('GRID_PORT', ':8002'); // Port for grid services
+define('GRID_ASSETS', ':8003/assets/'); // Path for grid assets
+define('GRID_ASSETS_SERVER', BASE_URL . GRID_ASSETS); // URL of the asset server
 
 // URL of the new Robust-side TexturePngService endpoint (see
 // opensim-enhanced/TexturePngService.ini.example) - decodes a JPEG2000
@@ -149,12 +149,12 @@ define('GRID_ASSETS_SERVER', BASE_URL . GRID_ASSETS); // URL des Asset-Servers /
 define('TEXTURE_PNG_SERVICE_URL', BASE_URL . ':8003/texture_png');
 
 // Guide
-define('GRIDLIST_FILE', 'include/gridlist.csv'); // Datei für die Grid-Liste / File for the grid list
-define('GRIDLIST_VIEW', 'json'); // 'json', 'database' oder 'grid' / 'json', 'database', or 'grid'
+define('GRIDLIST_FILE', 'include/gridlist.csv'); // File for the grid list
+define('GRIDLIST_VIEW', 'json'); // 'json', 'database', or 'grid'
 
 // Daily updates
-define('SHOW_DAILY_UPDATE', true); // Ein- oder ausschalten / Enable or disable
-define('DAILY_UPDATE_TYPE', 'rss'); // 'text' oder 'rss' / 'text' or 'rss'
+define('SHOW_DAILY_UPDATE', true); // Enable or disable
+define('DAILY_UPDATE_TYPE', 'rss'); // 'text' or 'rss'
 define('DAILYTEXT', 'Welcome to our OpenSimulator Grid! This is a sample daily message.'); // Tagesaktueller Text / Daily text
 //define('RSS_FEED_URL', BASE_URL . '/osviewer/include/rss-feed.php?format=html'); // URL des RSS-Feeds / URL of the RSS feed
 define('RSS_FEED_URL', '/include/rss-feed.php?format=html'); // URL des RSS-Feeds / URL of the RSS feed
@@ -320,7 +320,7 @@ $colorSchemes = array(
 
 // Display color buttons
 define('SHOW_COLOR_BUTTONS', true); // Show color buttons (true/false) / Show color buttons (true/false)
-// Farbschema auswählen / Select color scheme (validated; supports ?scheme=, cookie, and viewer UA default)
+// Select color scheme (validated; supports ?scheme=, cookie, and viewer UA default)
 $__defaultScheme = 'nordic';
 
 // If this is the in-viewer browser (splash), force a stable default scheme unless explicitly overridden
@@ -374,53 +374,53 @@ define('ACCENT_COLOR', isset($currentColorScheme['accent'])
     ? $currentColorScheme['accent'] 
     : HEADER_COLOR);
 
-define('FONT_FAMILY_STATS', 'Arial, Verdana, sans-serif'); // Schriftart für Statistiken / Font for statistics
-define('FONT_FAMILY', 'Pacifico, normal, serif'); // Schriftart für die Webseite / Font for the website
+define('FONT_FAMILY_STATS', 'Arial, Verdana, sans-serif'); // Font for statistics
+define('FONT_FAMILY', 'Pacifico, normal, serif'); // Font for the website
 
 // Font sizes
-define('BASE_FONT_SIZE', '26px'); // Standardgröße für Text / Default text size
-define('TITLE_FONT_SIZE', '48px'); // Größe für Überschriften / Size for headings
-define('STATS_FONT_SIZE', '14px'); // Größe für Statistik-Text / Size for statistics text
+define('BASE_FONT_SIZE', '26px'); // Default text size
+define('TITLE_FONT_SIZE', '48px'); // Size for headings
+define('STATS_FONT_SIZE', '14px'); // Size for statistics text
 
 // Links
-define('LINK_COLOR', '#3A3A3A'); // Standard Link-Farbe / Default link color
-define('LINK_HOVER_COLOR', 'red'); // Link-Farbe beim Hover / Link color on hover
+define('LINK_COLOR', '#3A3A3A'); // Default link color
+define('LINK_HOVER_COLOR', 'red'); // Link color on hover
 
 // Background and foreground images
-define('BACKGROUND_IMAGE', 'pics/transparent.png'); // Hintergrundbild / Background image
-define('FOREGROUND_IMAGE', 'pics/transparent.png'); // Logo oder Vordergrundbild / Logo or foreground image
-define('BACKGROUND_OPACITY', 1.0); // Transparenz des Hintergrunds / Background opacity
-define('FOREGROUND_OPACITY', 1.0); // Transparenz des Logos / Logo opacity
+define('BACKGROUND_IMAGE', 'pics/transparent.png'); // Background image
+define('FOREGROUND_IMAGE', 'pics/transparent.png'); // Logo or foreground image
+define('BACKGROUND_OPACITY', 1.0); // Background opacity
+define('FOREGROUND_OPACITY', 1.0); // Logo opacity
 
 // Display options
-define('LOGO_ON', 'OFF'); // Show logo: ON / OFF / Show logo: ON / OFF
-define('TEXT_ON', 'ON'); // Show welcome text: ON / OFF / Show welcome text: ON / OFF
-define('LOGO_PATH', 'include/Metavers150.png'); // Pfad zum Logo / Path to the logo
-define('LOGO_WIDTH', '50%'); // Logo-Breite / Logo width
-define('LOGO_HEIGHT', '25%'); // Logo-Höhe / Logo height
-define('GUIDE_DATA', 'DATA'); // DATA/JSON guide / Show DATA/JSON guide
+define('LOGO_ON', 'OFF'); // Show logo: ON / OFF
+define('TEXT_ON', 'ON'); // Show welcome text: ON / OFF
+define('LOGO_PATH', 'include/Metavers150.png'); // Path to the logo
+define('LOGO_WIDTH', '50%'); // Logo width
+define('LOGO_HEIGHT', '25%'); // Logo height
+define('GUIDE_DATA', 'DATA'); // Show DATA/JSON guide
 
 // Welcome text
-define('LOGO_FONT', 'Lobster'); // Schriftart des Logos / Font for the logo
-define('PRIMARY_COLOR_LOGO', '#00FFFF'); // Allgemeine Schriftfarbe / General text color
-define('WELCOME_TEXT', '<p> &nbsp; Welcome to ' . SITE_NAME . '</p>'); // Begrüßungstext / Welcome text
-define('WELCOME_TEXT_WIDTH', '50%');  // Standardbreite / Default width
-define('WELCOME_TEXT_HEIGHT', 'auto');  // Standardhöhe / Default height
-define('WELCOME_TEXT_COLOR', PRIMARY_COLOR_LOGO);  // Farbe des Textes / Text color
-define('WELCOME_TEXT_ALIGN', 'left');  // Zentriert, links oder rechts / Centered, left, or right
-define('WELCOME_TEXT_FONT_SIZE', '24px');  // Schriftgröße des Textes / Text font size
+define('LOGO_FONT', 'Lobster'); // Font for the logo
+define('PRIMARY_COLOR_LOGO', '#00FFFF'); // General text color
+define('WELCOME_TEXT', '<p> &nbsp; Welcome to ' . SITE_NAME . '</p>'); // Welcome text
+define('WELCOME_TEXT_WIDTH', '50%');  // Default width
+define('WELCOME_TEXT_HEIGHT', 'auto');  // Default height
+define('WELCOME_TEXT_COLOR', PRIMARY_COLOR_LOGO);  // Text color
+define('WELCOME_TEXT_ALIGN', 'left');  // Centered, left, or right
+define('WELCOME_TEXT_FONT_SIZE', '24px');  // Text font size
 
 // Image display settings
-define('SLIDESHOW_FOLDER', './images'); // Verzeichnis für die Bilder / Directory for images
-define('IMAGE_SIZE', 'width:100%;height:100%'); // Größe der Bilder / Size of images
-define('SLIDESHOW_DELAY', 9000); // Zeit zwischen Bildern (in ms) / Time between images (in ms)
+define('SLIDESHOW_FOLDER', './images'); // Directory for images
+define('IMAGE_SIZE', 'width:100%;height:100%'); // Size of images
+define('SLIDESHOW_DELAY', 9000); // Time between images (in ms)
 
 // Settings for maptiles
-define('FREI_COLOR', '#0088FF'); // Farbe für freie Koordinaten / Color for free coordinates
-define('BESCHLAGT_COLOR', '#55C155'); // Farbe für SingleRegion / Color for SingleRegion
-define('VARREGION_COLOR', '#006400'); // Farbe für VarRegion / Color for VarRegion
-define('CENTER_COLOR', '#FF0000'); // Farbe für Zentrum / Color for center
-define('TILE_SIZE', '25px'); // Größe der Farbfelder / Size of color fields
+define('FREI_COLOR', '#0088FF'); // Color for free coordinates
+define('BESCHLAGT_COLOR', '#55C155'); // Color for SingleRegion
+define('VARREGION_COLOR', '#006400'); // Color for VarRegion
+define('CENTER_COLOR', '#FF0000'); // Color for center
+define('TILE_SIZE', '25px'); // Size of color fields
 
 // Center of the grid
 define('CONF_CENTER_COORD_X', 1000); // X coordinate of the center
@@ -433,7 +433,7 @@ define('MAPS_Y', 32); // Number of tiles in Y direction
 define('MOTD', 'Static'); // Oder 'Static' / Or 'Static'
 
 // Static MOTD (only relevant if MOTD is set to 'Static')
-define('MOTD_STATIC_MESSAGE', 'Welcome to our Grid! Please follow our rules.'); // Statische Nachricht / Static message
+define('MOTD_STATIC_MESSAGE', 'Welcome to our Grid! Please follow our rules.'); // Static message
 define('MOTD_STATIC_TYPE', 'system'); // Typ der Nachricht / Type of message
 define('MOTD_STATIC_URL_TOS', BASE_URL . '/include/tos.php'); // URL zur TOS-Seite / URL to the TOS page
 define('MOTD_STATIC_URL_DMCA', BASE_URL . '/include/dmca.php'); // URL zur DMCA-Seite / URL to the DMCA page

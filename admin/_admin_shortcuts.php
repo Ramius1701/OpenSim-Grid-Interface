@@ -5,4 +5,6 @@
         <a href="/admin/tickets_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-life-preserver me-1"></i>Tickets</a>
         <a href="/admin/users_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-people me-1"></i>Users</a>
         <a href="/admin/regions_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-map me-1"></i>Regions</a>
-        <a href="/admin/groups_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-collection me-1"></i>Groups</a></div>
+        <a href="/admin/groups_admin.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-collection me-1"></i>Groups</a>
+        <a href="/admin/analytics.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-graph-up me-1"></i>Analytics</a>
+        <a href="/admin/dashboard/index.php" class="btn btn-sm btn-outline-primary mb-1 me-1"><i class="bi bi-bar-chart-line me-1"></i>Dashboard</a></div>

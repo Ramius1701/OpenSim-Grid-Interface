@@ -1,59 +1,49 @@
 <?php
 require_once 'env.php';
 
-// RemoteAdmin
 // RemoteAdmin configuration
-// RemoteAdmin configuration
-define('REMOTEADMIN_URL', 'localhost'); // URL des RemoteAdmin-Servers / URL of the RemoteAdmin server
-define('REMOTEADMIN_PORT', 8002); // Port des RemoteAdmin-Servers / Port of the RemoteAdmin server
+define('REMOTEADMIN_URL', 'localhost'); // URL of the RemoteAdmin server
+define('REMOTEADMIN_PORT', 8002); // Port of the RemoteAdmin server
 
-// Seitenadressen
 // Website addresses
-define('BASE_URL', 'http://yourdomain.com'); // Basis-URL der Webseite / Base URL of the website
-define('SITE_NAME', 'Dein Grid Name'); // Name des Grids / Name of the grid
+define('BASE_URL', 'http://yourdomain.com'); // Base URL of the website
+define('SITE_NAME', 'Your Grid Name'); // Name of the grid
 
-// Konfigurationsoptionen Standard Template:
 // Template configuration options:
 // "headerBlanc.php", "headerST.php", "headerW3.php", "headerBT5.php", "headerFoundation.php", "headerMaterialize.php", "headerTailwind.php",  "headerPrimer.php", "headerTachyons.php", "headerSpectre.php", "headerTent.php"
-define('HEADER_FILE', 'headerBlanc.php'); // Ändere diesen Wert, um die verschiedenen Template-Header-Dateien zu laden. / Change this value to load different template header files.
+define('HEADER_FILE', 'headerBlanc.php'); // Change this value to load different template header files.
 
-// Konfigurationsoption für den Banker
 // Banker configuration option
-define('BANKER_UUID', '00000000-0000-0000-0000-000000000000'); // UUID des Bankers / UUID of the banker
+define('BANKER_UUID', '00000000-0000-0000-0000-000000000000'); // UUID of the banker
 
-// Verifizierungsfunktionen
 // Verification methods
-define('VERIFICATION_METHOD', 'email'); // 'email' oder 'uuid' / 'email' or 'uuid'
+define('VERIFICATION_METHOD', 'email'); // 'email' or 'uuid'
 
-// Asset Bilder
 // Asset images
-define('ASSETPFAD', 'cache/'); // Pfad zum Asset-Cache / Path to the asset cache
-define('ASSET_FEHLT', ASSETPFAD . '00000000-0000-0000-0000-000000000002'); // Standardbild für fehlende Assets / Default image for missing assets
-define('GRID_PORT', ':8002'); // Port für Grid-Dienste / Port for grid services
-define('GRID_ASSETS', ':8003/assets/'); // Pfad für Grid-Assets / Path for grid assets
-define('GRID_ASSETS_SERVER', BASE_URL . 'GRID_ASSETS'); // URL des Asset-Servers / URL of the asset server
+define('ASSETPFAD', 'cache/'); // Path to the asset cache
+define('ASSET_FEHLT', ASSETPFAD . '00000000-0000-0000-0000-000000000002'); // Default image for missing assets
+define('GRID_PORT', ':8002'); // Port for grid services
+define('GRID_ASSETS', ':8003/assets/'); // Path for grid assets
+define('GRID_ASSETS_SERVER', BASE_URL . 'GRID_ASSETS'); // URL of the asset server
 
 // Guide
-define('GRIDLIST_FILE', 'include/gridlist.csv'); // Datei für die Grid-Liste / File for the grid list
-define('GRIDLIST_VIEW', 'json'); // 'json', 'database' oder 'grid' / 'json', 'database', or 'grid'
+define('GRIDLIST_FILE', 'include/gridlist.csv'); // File for the grid list
+define('GRIDLIST_VIEW', 'json'); // 'json', 'database', or 'grid'
 
-// Tagesmeldungen
 // Daily updates
-define('SHOW_DAILY_UPDATE', true); // Ein- oder ausschalten / Enable or disable
-define('DAILY_UPDATE_TYPE', 'rss'); // 'text' oder 'rss' / 'text' or 'rss'
-define('DAILYTEXT', 'This is a daily message configured in config.php.'); // Tagesaktueller Text / Daily text
-define('RSS_FEED_URL', BASE_URL . '/oswebinterface/include/rss-feed.php'); // URL des RSS-Feeds / URL of the RSS feed
-define('FEED_CACHE_PATH', __DIR__.'/feed_cache.html'); // Cache-Dateipfad / Cache file path
-define('FEED_CACHE_MAX_AGE', 3600); // Cache max. 60 Minuten alt / Cache max. 60 minutes old
-define('CALENDAR_TITLE', 'Event Calendar'); // Titel des Event-Kalenders / Title of the event calendar
+define('SHOW_DAILY_UPDATE', true); // Enable or disable
+define('DAILY_UPDATE_TYPE', 'rss'); // 'text' or 'rss'
+define('DAILYTEXT', 'This is a daily message configured in config.php.'); // Daily text
+define('RSS_FEED_URL', BASE_URL . '/oswebinterface/include/rss-feed.php'); // URL of the RSS feed
+define('FEED_CACHE_PATH', __DIR__.'/feed_cache.html'); // Cache file path
+define('FEED_CACHE_MAX_AGE', 3600); // Cache max. 60 minutes old
+define('CALENDAR_TITLE', 'Event Calendar'); // Title of the event calendar
 
 // Media
-define('MEDIA_SERVER', 'http://localhost:8500/stream'); // URL des Media-Servers / URL of the media server
-define('MEDIA_SERVER_STATUS', 'http://localhost:8500/status-json.xsl'); // Status-URL des Media-Servers / Status URL of the media server
+define('MEDIA_SERVER', 'http://localhost:8500/stream'); // URL of the media server
+define('MEDIA_SERVER_STATUS', 'http://localhost:8500/status-json.xsl'); // Status URL of the media server
 
 // Passwords (must be changed!)
-// Passwords (must be changed!)
-// To change the passwords, you can use paswd_generator.php located in the /include directory.
 // To change the passwords, you can use paswd_generator.php located in the /include directory.
 $registration_passwords_register = ["VpOM2bHFc6gdqUim", "zMemu5UJuro60nYJ", "cD3pc5JidIYMkTFT", "FBJpMfLHnVXNAncy", "1vyekSHvL3bYDNhT"];
 $registration_passwords_reset = ["eYUzmLO3lWDoEUZA", "ufFG8zJZvOuj6KzM", "tjwggl9ts3o6fCUs", "FYKn70uhJRFy6pum", "jEXqiYewLl6iPTCT"];
@@ -67,9 +57,8 @@ $registration_passwords_avatarpicker = ["EugW3d9jU5EPlPqq", "H2sHVvuDf8AMYF6t", 
 $registration_passwords_economy = ["5MvFSN7kbQ3ydFUl", "EvNywokrdO8NfaAc", "G47u0ppMSyOHEptB", "1cUgVgExxukp8zua", "YRNlhyr5OMObr2na"];
 $registration_passwords_events = ["LvRBVZOGY65deOpS", "FWVBcqNPKUecDK7b", "2JJzb1kv7aQQM9kp", "636pCKpPZSqvDYBP", "aqYicdJdnrnV4Vvw"];
 
-// Farben der Webseite
 // Website colors
-$colorSchemes = array(    
+$colorSchemes = array(
     'grayscale1' => array('header' => '#333333', 'footer' => '#333333', 'secondary' => '#666666', 'primary' => '#E0E0E0'),
     'grayscale2' => array('header' => '#4F4F4F', 'footer' => '#4F4F4F', 'secondary' => '#A0A0A0', 'primary' => '#FFFFFF'),
     'grayscale3' => array('header' => '#2B2B2B', 'footer' => '#2B2B2B', 'secondary' => '#858585', 'primary' => '#D9D9D9'),
@@ -77,7 +66,7 @@ $colorSchemes = array(
     'coralReef' => array('header' => '#FF7F50', 'footer' => '#FF7F50', 'secondary' => '#FFD700', 'primary' => '#8B0000'),
     'purpleHaze' => array('header' => '#8A2BE2', 'footer' => '#8A2BE2', 'secondary' => '#DA70D6', 'primary' => '#4B0082'),
     'sunshineMeadow' => array('header' => '#FFD700', 'footer' => '#FFD700', 'secondary' => '#F0E68C', 'primary' => '#556B2F'),
-    'autumnLeaves' => array('header' => '#FF4500', 'footer' => '#FF4500', 'secondary' => '#FFD700', 'primary' => '#8B4513'),    
+    'autumnLeaves' => array('header' => '#FF4500', 'footer' => '#FF4500', 'secondary' => '#FFD700', 'primary' => '#8B4513'),
     'coolCyan' => array('header' => '#00CED1', 'footer' => '#00CED1', 'secondary' => '#E0FFFF', 'primary' => '#20B2AA'),
     'deepPurple' => array('header' => '#9400D3', 'footer' => '#9400D3', 'secondary' => '#9932CC', 'primary' => '#8B008B'),
     'warmAmber' => array('header' => '#FFBF00', 'footer' => '#FFBF00', 'secondary' => '#FFD700', 'primary' => '#FF8C00'),
@@ -101,102 +90,88 @@ $colorSchemes = array(
     'burntOrange' => array('header' => '#FF7F50', 'footer' => '#FF7F50', 'secondary' => '#FFA07A', 'primary' => '#FF4500'),
     'standardcolor' => array('header' => '#cdb38b', 'footer' => '#eecfa1', 'secondary' => '#f5f5dc', 'primary' => '#4F4F4F')
 );
-// Die Farbschaltflächen habe ich eingefügt, damit man sich ein Gesamtbild der Farbschemata machen kann.
-// Please lasst eurer Kreativität freien Lauf und ändert die Farbschemata nach Belieben.
 // I added the color buttons to give an overview of the color schemes.
 // Feel free to unleash your creativity and modify the color schemes as you like.
-define('SHOW_COLOR_BUTTONS', false); // Farbschaltflächen show (true/false) / Show color buttons (true/false)
-define('INITIAL_COLOR_SCHEME', 'standardcolor'); // Farbschema auswählen / Select color scheme
+define('SHOW_COLOR_BUTTONS', false); // Show color buttons (true/false)
+define('INITIAL_COLOR_SCHEME', 'standardcolor'); // Select color scheme
 
-// Farben und Schriftart
 // Colors and fonts
 $currentColorScheme = $colorSchemes[INITIAL_COLOR_SCHEME];
-define('HEADER_COLOR', $currentColorScheme['header']);   // Header-Farbe / Header color
-define('FOOTER_COLOR', $currentColorScheme['footer']);   // Footer-Farbe / Footer color
-define('SECONDARY_COLOR', $currentColorScheme['secondary']);  // Sekundärfarbe / Secondary color
-define('PRIMARY_COLOR', $currentColorScheme['primary']); // Primäre Schriftfarbe / Primary text color
+define('HEADER_COLOR', $currentColorScheme['header']);   // Header color
+define('FOOTER_COLOR', $currentColorScheme['footer']);   // Footer color
+define('SECONDARY_COLOR', $currentColorScheme['secondary']);  // Secondary color
+define('PRIMARY_COLOR', $currentColorScheme['primary']); // Primary text color
 
-define('FONT_FAMILY_STATS', 'Arial, Verdana, sans-serif'); // Schriftart für Statistiken / Font for statistics
-define('FONT_FAMILY', 'Pacifico, normal, serif'); // Schriftart für die Webseite / Font for the website
+define('FONT_FAMILY_STATS', 'Arial, Verdana, sans-serif'); // Font for statistics
+define('FONT_FAMILY', 'Pacifico, normal, serif'); // Font for the website
 
-// Schriftgrößen
 // Font sizes
-define('BASE_FONT_SIZE', '26px'); // Standardgröße für Text / Default text size
-define('TITLE_FONT_SIZE', '48px'); // Größe für Überschriften / Size for headings
-define('STATS_FONT_SIZE', '14px'); // Größe für Statistik-Text / Size for statistics text
+define('BASE_FONT_SIZE', '26px'); // Default text size
+define('TITLE_FONT_SIZE', '48px'); // Size for headings
+define('STATS_FONT_SIZE', '14px'); // Size for statistics text
 
 // Links
-define('LINK_COLOR', '#3A3A3A'); // Standard Link-Farbe / Default link color
-define('LINK_HOVER_COLOR', 'red'); // Link-Farbe beim Hover / Link color on hover
+define('LINK_COLOR', '#3A3A3A'); // Default link color
+define('LINK_HOVER_COLOR', 'red'); // Link color on hover
 
-// Hintergrund- und Vordergrundbilder
 // Background and foreground images
-define('BACKGROUND_IMAGE', 'pics/transparent.png'); // Hintergrundbild / Background image
-define('FOREGROUND_IMAGE', 'pics/transparent.png'); // Logo oder Vordergrundbild / Logo or foreground image
-define('BACKGROUND_OPACITY', 1.0); // Transparenz des Hintergrunds / Background opacity
-define('FOREGROUND_OPACITY', 1.0); // Transparenz des Logos / Logo opacity
+define('BACKGROUND_IMAGE', 'pics/transparent.png'); // Background image
+define('FOREGROUND_IMAGE', 'pics/transparent.png'); // Logo or foreground image
+define('BACKGROUND_OPACITY', 1.0); // Background opacity
+define('FOREGROUND_OPACITY', 1.0); // Logo opacity
 
-// Anzeigeoptionen
 // Display options
-define('LOGO_ON', 'OFF'); // Logo show: ON / OFF / Show logo: ON / OFF
-define('TEXT_ON', 'ON'); // Begrüßungstext show: ON / OFF / Show welcome text: ON / OFF
-define('LOGO_PATH', 'include/Metavers150.png'); // Pfad zum Logo / Path to the logo
-define('LOGO_WIDTH', '50%'); // Logo-Breite / Logo width
-define('LOGO_HEIGHT', '25%'); // Logo-Höhe / Logo height
-define('GUIDE_DATA', 'DATA'); // DATA/JSON guide show / Show DATA/JSON guide
+define('LOGO_ON', 'OFF'); // Show logo: ON / OFF
+define('TEXT_ON', 'ON'); // Show welcome text: ON / OFF
+define('LOGO_PATH', 'include/Metavers150.png'); // Path to the logo
+define('LOGO_WIDTH', '50%'); // Logo width
+define('LOGO_HEIGHT', '25%'); // Logo height
+define('GUIDE_DATA', 'DATA'); // Show DATA/JSON guide
 
-// Begrüßungstext
 // Welcome text
-define('LOGO_FONT', 'Lobster'); // Schriftart des Logos / Font for the logo
-define('PRIMARY_COLOR_LOGO', '#00FFFF'); // Allgemeine Schriftfarbe / General text color
-define('WELCOME_TEXT', '<p> &nbsp; Welcome im ' . SITE_NAME . '</p>'); // Begrüßungstext / Welcome text
-define('WELCOME_TEXT_WIDTH', '50%');  // Standardbreite / Default width
-define('WELCOME_TEXT_HEIGHT', 'auto');  // Standardhöhe / Default height
-define('WELCOME_TEXT_COLOR', PRIMARY_COLOR_LOGO);  // Farbe des Textes / Text color
-define('WELCOME_TEXT_ALIGN', 'left');  // Zentriert, links oder rechts / Centered, left, or right
-define('WELCOME_TEXT_FONT_SIZE', '24px');  // Schriftgröße des Textes / Text font size
+define('LOGO_FONT', 'Lobster'); // Font for the logo
+define('PRIMARY_COLOR_LOGO', '#00FFFF'); // General text color
+define('WELCOME_TEXT', '<p> &nbsp; Welcome to ' . SITE_NAME . '</p>'); // Welcome text
+define('WELCOME_TEXT_WIDTH', '50%');  // Default width
+define('WELCOME_TEXT_HEIGHT', 'auto');  // Default height
+define('WELCOME_TEXT_COLOR', PRIMARY_COLOR_LOGO);  // Text color
+define('WELCOME_TEXT_ALIGN', 'left');  // Centered, left, or right
+define('WELCOME_TEXT_FONT_SIZE', '24px');  // Text font size
 
-// Bildanzeige-Einstellungen
 // Image display settings
-define('SLIDESHOW_FOLDER', './images'); // Verzeichnis für die Bilder / Directory for images
-define('IMAGE_SIZE', 'width:100%;height:100%'); // Größe der Bilder / Size of images
-define('SLIDESHOW_DELAY', 9000); // Zeit zwischen Bildern (in ms) / Time between images (in ms)
+define('SLIDESHOW_FOLDER', './images'); // Directory for images
+define('IMAGE_SIZE', 'width:100%;height:100%'); // Size of images
+define('SLIDESHOW_DELAY', 9000); // Time between images (in ms)
 
-// Einstellungen für Maptiles
 // Settings for maptiles
-define('FREI_COLOR', '#0088FF'); // Farbe für freie Koordinaten / Color for free coordinates
-define('BESCHLAGT_COLOR', '#55C155'); // Farbe für SingleRegion / Color for SingleRegion
-define('VARREGION_COLOR', '#006400'); // Farbe für VarRegion / Color for VarRegion
-define('CENTER_COLOR', '#FF0000'); // Farbe für Zentrum / Color for center
-define('TILE_SIZE', '25px'); // Größe der Farbfelder / Size of color fields
+define('FREI_COLOR', '#0088FF'); // Color for free coordinates
+define('BESCHLAGT_COLOR', '#55C155'); // Color for SingleRegion
+define('VARREGION_COLOR', '#006400'); // Color for VarRegion
+define('CENTER_COLOR', '#FF0000'); // Color for center
+define('TILE_SIZE', '25px'); // Size of color fields
 
-// Zentrum des Grids
 // Center of the grid
-define('CONF_CENTER_COORD_X', 3000); // X-KOORDINATE DES ZENTRUMS / X coordinate of the center
-define('CONF_CENTER_COORD_Y', 3000); // Y-KOORDINATE DES ZENTRUMS / Y coordinate of the center
+define('CONF_CENTER_COORD_X', 3000); // X coordinate of the center
+define('CONF_CENTER_COORD_Y', 3000); // Y coordinate of the center
 
-define('MAPS_X', 32); // Anzahl der Kacheln in X-Richtung / Number of tiles in X direction
-define('MAPS_Y', 32); // Anzahl der Kacheln in Y-Richtung / Number of tiles in Y direction
+define('MAPS_X', 32); // Number of tiles in X direction
+define('MAPS_Y', 32); // Number of tiles in Y direction
 
-// MOTD-Einstellung: 'Dyn' für dynamisch, 'Static' für statisch
 // MOTD setting: 'Dyn' for dynamic, 'Static' for static
-define('MOTD', 'Dyn'); // Oder 'Static' / Or 'Static'
+define('MOTD', 'Dyn'); // Or 'Static'
 
-// Statische MOTD (nur relevant, wenn MOTD auf 'Static' gesetzt ist)
 // Static MOTD (only relevant if MOTD is set to 'Static')
-define('MOTD_STATIC_MESSAGE', 'Welcome auf im Grid! Please beachte unsere Regeln.'); // Statische Nachricht / Static message
-define('MOTD_STATIC_TYPE', 'system'); // Typ der Nachricht / Type of message
-define('MOTD_STATIC_URL_TOS', BASE_URL . '/include/tos.php'); // URL zur TOS-Seite / URL to the TOS page
-define('MOTD_STATIC_URL_DMCA', BASE_URL . '/include/dmca.php'); // URL zur DMCA-Seite / URL to the DMCA page
+define('MOTD_STATIC_MESSAGE', 'Welcome to the grid! Please review our rules.'); // Static message
+define('MOTD_STATIC_TYPE', 'system'); // Type of message
+define('MOTD_STATIC_URL_TOS', BASE_URL . '/include/tos.php'); // URL to the TOS page
+define('MOTD_STATIC_URL_DMCA', BASE_URL . '/include/dmca.php'); // URL to the DMCA page
 
-// Definiere verschiedene RSS-Feed-URLs getrennt durch Komma.
 // Define different RSS feed URLs separated by commas.
 $feed_urls = [
-    'http://opensimulator.org/viewgit/?a=rss-log&p=opensim', // Standard-Feed / Default feed
+    'http://opensimulator.org/viewgit/?a=rss-log&p=opensim', // Default feed
     'https://www.hypergridbusiness.com/feed'
 ];
 
-// Maximale Anzahl der Einträge pro Feed
 // Maximum number of entries per feed
 $max_entries = 50;
 ?>

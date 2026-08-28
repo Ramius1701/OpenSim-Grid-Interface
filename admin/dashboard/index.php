@@ -14,26 +14,26 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 include_once 'ssinc.php';
-// SStats - Statistiksoftware für OpenSimulator-Server
+// Statistics dashboard for the OpenSimulator grid database
 
-// Zusätzliche Sicherheitsheader
+// Additional security headers
 header('X-Frame-Options: SAMEORIGIN');
 header('X-Content-Type-Options: nosniff');
 header('X-XSS-Protection: 1; mode=block');
 
-// CSRF-Basisschutz für POST-Formulare (falls später genutzt)
+// Basic CSRF protection for POST forms (in case one is added later)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
 		http_response_code(403);
-		exit('Ungültiges CSRF-Token.');
+		exit('Invalid CSRF token.');
 	}
 }
 
-// Regionen laden
+// Load regions
 $sql_regions = 'SELECT uuid, regionName, locX, locY, sizeX, sizeY, serverIP, serverPort FROM regions ORDER BY regionName';
 $regions = $pdo->query($sql_regions)->fetchAll(PDO::FETCH_ASSOC);
 
-// Online-User (Presence, falls leer: keine online)
+// Online users (Presence, empty if nobody's online)
 // Windowed to the last 5 minutes, matching admin/analytics.php's
 // convention - without this, a Presence row OpenSim never cleaned up
 // after an ungraceful disconnect would show that user as "online"
@@ -50,351 +50,353 @@ WHERE p.LastSeen >= (NOW() - INTERVAL 300 SECOND)
 ORDER BY p.LastSeen DESC";
 $online = $pdo->query($sql_online)->fetchAll(PDO::FETCH_ASSOC);
 
-// GridUser mit Status (Online/Offline)
+// GridUser with status (Online/Offline)
 $sql_griduser = 'SELECT gu.UserID, gu.LastRegionID, gu.Login, gu.Logout, gu.Online, ua.FirstName, ua.LastName
 FROM GridUser gu
 LEFT JOIN UserAccounts ua ON gu.UserID = ua.PrincipalID';
 $gridusers = $pdo->query($sql_griduser)->fetchAll(PDO::FETCH_ASSOC);
 
 
-// MuteList laden
+// Load MuteList
 $sql_mute = 'SELECT m.AgentID, m.MuteID, m.MuteName, m.MuteType, ua.FirstName, ua.LastName FROM MuteList m LEFT JOIN UserAccounts ua ON m.MuteID = ua.PrincipalID';
 $mutelist = $pdo->query($sql_mute)->fetchAll(PDO::FETCH_ASSOC);
 
 
-// Gruppen laden
+// Load groups
 $sql_groups = 'SELECT * FROM os_groups_groups ORDER BY Name ASC, Charter ASC';
 $groups = $pdo->query($sql_groups)->fetchAll(PDO::FETCH_ASSOC);
 
-// Benutzerinformationen laden
+// Load user information
 $sql_userinfo = 'SELECT * FROM userinfo ORDER BY simip ASC, avatar ASC, serverurl DESC';
 $userinfo = $pdo->query($sql_userinfo)->fetchAll(PDO::FETCH_ASSOC);
 
+$title = "Statistics Dashboard";
+require_once __DIR__ . '/../../include/header.php';
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-	<title>OpenSimulator Statistik</title>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-	<style>
-		html,body,h1,h2,h3,h4,h5 {font-family: "Roboto", sans-serif}
-		.w3-table-all {font-size: 12px;}
-		.w3-container {margin-bottom: 32px;}
-		.w3-sidebar {z-index: 3;width:250px;top:0;left:0;}
-		.w3-bar-block .w3-bar-item {padding:16px}
-		.w3-main {margin-left:250px;}
-		th {cursor:pointer;}
-		th.sorted-asc:after {content: " \25B2";}
-		th.sorted-desc:after {content: " \25BC";}
-		@media (max-width:600px) {
-			.w3-sidebar {display:none;}
-			.w3-main {margin-left:0;}
-		}
-	</style>
-</head>
-<body class="w3-light-grey">
+<style>
+	.stats-table th { cursor: pointer; user-select: none; }
+	.stats-table th.sorted-asc:after { content: " \25B2"; }
+	.stats-table th.sorted-desc:after { content: " \25BC"; }
+	.stats-table td, .stats-table th { font-size: 0.85rem; }
+</style>
 
-<!-- Sidebar -->
-<nav class="w3-sidebar w3-bar-block w3-collapse w3-large w3-blue-grey w3-animate-left" id="mySidebar">
-	<a class="w3-bar-item w3-button w3-hover-teal w3-center w3-padding-32" href="#">
-		<i class="fa fa-bar-chart fa-3x w3-margin-bottom" aria-hidden="true"></i><br>
-	</a>
-	<a class="w3-bar-item w3-button w3-hover-teal" href="#regionen"><i class="fa fa-map fa-fw w3-margin-right"></i>Regionen</a>
-    <a class="w3-bar-item w3-button w3-hover-teal" href="#gruppen"><i class="fa fa-users fa-fw w3-margin-right"></i>Gruppen</a>
-	<a class="w3-bar-item w3-button w3-hover-teal" href="#online"><i class="fas fa-user-alt fa-fw w3-margin-right"></i>Online</a>
-    <a class="w3-bar-item w3-button w3-hover-teal" href="#userinfo"><i class="fas fa-user-friends fa-fw w3-margin-right"></i>Benutzerinfo</a>
-	<a class="w3-bar-item w3-button w3-hover-teal" href="#griduser"><i class="fa fa-address-book fa-fw w3-margin-right"></i>GridUser</a>
-	<a class="w3-bar-item w3-button w3-hover-teal" href="#mutelist"><i class="fa fa-volume-off fa-fw w3-margin-right"></i>MuteList</a>
-</nav>
-
-<!-- Topbar -->
-<header class="w3-bar w3-top w3-blue-grey w3-large" style="z-index:4">
-	<button class="w3-bar-item w3-button w3-hide-large w3-hover-none w3-hover-text-light-grey" onclick="w3_open();"><i class="fa fa-bars"></i> Menü</button>
-	<span class="w3-bar-item w3-right">OpenSimulator Statistik Dashboard</span>
-</header>
-
-<div class="w3-main" style="margin-left:250px;margin-top:43px;">
-	<div class="w3-container w3-padding-16">
-		<h1 class="w3-xxlarge">OpenSimulator Region Statistik</h1>
-		<p>Live-Statistiken zu Regionen und Benutzern</p>
+<section class="page-hero">
+	<div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+		<div>
+			<h1><i class="bi bi-bar-chart-line me-2"></i> Statistics Dashboard</h1>
+			<p class="mb-0">Live statistics for regions and users, read directly from the grid database.</p>
+		</div>
 	</div>
+</section>
 
+<div class="container-fluid mt-4 mb-4">
+	<div class="row">
+		<div class="col-md-3">
 
-	<!-- Regionen Übersicht -->
-	<div class="w3-container w3-white w3-card-4 w3-margin-bottom" id="regionen">
-		<h2 class="w3-text-grey w3-padding-16"><i class="fa fa-map fa-fw w3-margin-right w3-xxlarge w3-text-teal"></i>Regionen im Grid</h2>
-		<div class="w3-responsive">
-			<table class="w3-table-all w3-hoverable">
-				<thead>
-					<tr class="w3-teal">
-						<th>Name</th>
-						<th>UUID</th>
-						<th>Position</th>
-						<th>Größe</th>
-						<th>Server-IP</th>
-						<th>Port</th>
-					</tr>
-				</thead>
-								<tbody>
-								<?php if (empty($regions)): ?>
-									<tr><td colspan="6" class="w3-center">Zur Zeit sind keine Regionen im Grid.</td></tr>
-								<?php else: ?>
-									<?php foreach ($regions as $region): ?>
-										<tr>
-												<td><?= htmlspecialchars($region['regionName']) ?></td>
-												<td><?= htmlspecialchars($region['uuid']) ?></td>
-												<td><?= htmlspecialchars($region['locX']) ?>, <?= htmlspecialchars($region['locY']) ?></td>
-												<td><?= htmlspecialchars($region['sizeX']) ?> x <?= htmlspecialchars($region['sizeY']) ?></td>
-												<td><?= htmlspecialchars($region['serverIP']) ?></td>
-												<td><?= htmlspecialchars($region['serverPort']) ?></td>
-										</tr>
-									<?php endforeach; ?>
-								<?php endif; ?>
-								</tbody>
-			</table>
+			<div class="card mb-3">
+				<div class="card-header">
+					<h5 class="mb-0"><i class="bi bi-info-circle me-1"></i> Jump to section</h5>
+				</div>
+				<div class="card-body small">
+					<div class="list-group list-group-flush mb-3">
+						<a href="#regions" class="list-group-item list-group-item-action"><i class="bi bi-map me-1"></i> Regions (<?php echo count($regions); ?>)</a>
+						<a href="#groups" class="list-group-item list-group-item-action"><i class="bi bi-people me-1"></i> Groups (<?php echo count($groups); ?>)</a>
+						<a href="#online" class="list-group-item list-group-item-action"><i class="bi bi-person-check me-1"></i> Online members (<?php echo count($online); ?>)</a>
+						<a href="#userinfo" class="list-group-item list-group-item-action"><i class="bi bi-person-lines-fill me-1"></i> User information (<?php echo count($userinfo); ?>)</a>
+						<a href="#griduser" class="list-group-item list-group-item-action"><i class="bi bi-person-vcard me-1"></i> GridUser (<?php echo count($gridusers); ?>)</a>
+						<a href="#mutelist" class="list-group-item list-group-item-action"><i class="bi bi-volume-mute me-1"></i> MuteList (<?php echo count($mutelist); ?>)</a>
+					</div>
+					<div class="alert alert-info py-2 px-2 mb-3">
+						<strong>Tip:</strong> click a column header in any table below to sort by that column.
+					</div>
+					<details>
+						<?php include __DIR__ . '/../_admin_shortcuts.php'; ?>
+					</details>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-md-9">
+
+			<div class="card mb-3" id="regions">
+				<div class="card-header">
+					<h5 class="mb-0"><i class="bi bi-map me-1"></i> Regions in grid</h5>
+				</div>
+				<div class="card-body">
+					<div class="table-responsive">
+						<table class="table table-sm table-striped align-middle stats-table">
+							<thead>
+								<tr>
+									<th>Name</th>
+									<th>UUID</th>
+									<th>Position</th>
+									<th>Size</th>
+									<th>Server IP</th>
+									<th>Port</th>
+								</tr>
+							</thead>
+							<tbody>
+							<?php if (empty($regions)): ?>
+								<tr><td colspan="6" class="text-center">There are currently no regions in the grid.</td></tr>
+							<?php else: ?>
+								<?php foreach ($regions as $region): ?>
+									<tr>
+										<td><?= htmlspecialchars($region['regionName']) ?></td>
+										<td class="small"><?= htmlspecialchars($region['uuid']) ?></td>
+										<td><?= htmlspecialchars($region['locX']) ?>, <?= htmlspecialchars($region['locY']) ?></td>
+										<td><?= htmlspecialchars($region['sizeX']) ?> x <?= htmlspecialchars($region['sizeY']) ?></td>
+										<td><?= htmlspecialchars($region['serverIP']) ?></td>
+										<td><?= htmlspecialchars($region['serverPort']) ?></td>
+									</tr>
+								<?php endforeach; ?>
+							<?php endif; ?>
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</div>
 
-	<!-- Gruppen Übersicht -->
-	<div class="w3-container w3-white w3-card-4 w3-margin-bottom" id="gruppen">
-	  <h2 class="w3-text-grey w3-padding-16"><i class="fas fa-users fa-fw w3-margin-right w3-xxlarge w3-text-teal"></i>Gruppen im Grid</h2>
-	  <div class="w3-responsive">
-		<?php if (empty($groups)): ?>
-		  <div class="w3-panel w3-pale-yellow w3-border w3-margin-bottom">Zur Zeit sind keine Gruppen im Grid.</div>
-		<?php else: ?>
-		<table class="w3-table-all w3-hoverable">
-		  <thead>
-			<tr class="w3-teal">
-			  <th>Name</th>
-			  <th>Gruppenbeschreibung (Charter)</th>
-			  <th>Gründer (FounderID)</th>
-			  <th>Location</th>
-			  <th>InsigniaID</th>
-			  <th>Mitgliedsbeitrag</th>
-			  <th>Offen</th>
-			</tr>
-		  </thead>
-		  <tbody>
-		  <?php foreach ($groups as $group): ?>
-			<tr>
-			  <td><?= htmlspecialchars($group['Name']) ?></td>
-			  <td><?= htmlspecialchars($group['Charter']) ?></td>
-			  <td><?= htmlspecialchars($group['FounderID']) ?></td>
-			  <td><?= htmlspecialchars($group['Location']) ?></td>
-			  <td><?= htmlspecialchars($group['InsigniaID']) ?></td>
-			  <td><?= htmlspecialchars($group['MembershipFee']) ?></td>
-			  <td><?= htmlspecialchars($group['OpenEnrollment']) ?></td>
-			</tr>
-		  <?php endforeach; ?>
-		  </tbody>
-		</table>
-		<?php endif; ?>
-	  </div>
-	</div>
+			<div class="card mb-3" id="groups">
+				<div class="card-header">
+					<h5 class="mb-0"><i class="bi bi-people me-1"></i> Groups in grid</h5>
+				</div>
+				<div class="card-body">
+					<?php if (empty($groups)): ?>
+						<div class="alert alert-warning mb-0">There are currently no groups in the grid.</div>
+					<?php else: ?>
+					<div class="table-responsive">
+						<table class="table table-sm table-striped align-middle stats-table">
+							<thead>
+								<tr>
+									<th>Name</th>
+									<th>Charter</th>
+									<th>Founder (FounderID)</th>
+									<th>Location</th>
+									<th>InsigniaID</th>
+									<th>Membership fee</th>
+									<th>Open</th>
+								</tr>
+							</thead>
+							<tbody>
+							<?php foreach ($groups as $group): ?>
+								<tr>
+									<td><?= htmlspecialchars($group['Name']) ?></td>
+									<td><?= htmlspecialchars($group['Charter']) ?></td>
+									<td class="small"><?= htmlspecialchars($group['FounderID']) ?></td>
+									<td><?= htmlspecialchars($group['Location']) ?></td>
+									<td class="small"><?= htmlspecialchars($group['InsigniaID']) ?></td>
+									<td><?= htmlspecialchars($group['MembershipFee']) ?></td>
+									<td><?= htmlspecialchars($group['OpenEnrollment']) ?></td>
+								</tr>
+							<?php endforeach; ?>
+							</tbody>
+						</table>
+					</div>
+					<?php endif; ?>
+				</div>
+			</div>
 
-	<!-- Online-User Übersicht -->
-	<div class="w3-container w3-white w3-card-4 w3-margin-bottom" id="online">
-		<h2 class="w3-text-grey w3-padding-16"><i class="fas fa-user-alt fa-fw w3-margin-right w3-xxlarge w3-text-teal"></i>Online-Mitglieder</h2>
-		<div class="w3-responsive">
-			<?php if (empty($online)): ?>
-				<div class="w3-panel w3-pale-yellow w3-border">Zur Zeit befindet sich kein Mitglied im Grid.</div>
-			<?php else: ?>
-			<table class="w3-table-all w3-hoverable">
-				<thead>
-					<tr class="w3-teal">
-						<th>Name</th>
-						<th>UserID</th>
-						<th>Region</th>
-						<th>Region-Name</th>
-						<th>Letzte Aktivität</th>
-					</tr>
-				</thead>
-				<tbody>
-				<?php foreach ($online as $user): ?>
-					<tr>
-						<td>
-						<?php
-						$name = trim(($user['FirstName'] ?? '') . ' ' . ($user['LastName'] ?? ''));
-						if ($name === '' && !empty($user['UserID'])) {
-							// Suche in GridUser nach UserID
-							$gridName = '';
-							foreach ($gridusers as $gu) {
-								if (isset($gu['UserID'])) {
-									$parts = explode(';', $gu['UserID']);
-									if ($parts[0] === $user['UserID'] && isset($parts[2])) {
-										$gridName = $parts[2];
-										break;
-									}
-								}
-							}
-							echo htmlspecialchars($gridName !== '' ? $gridName : $user['UserID']);
-						} else {
-							echo htmlspecialchars($name);
-						}
-						?>
-						</td>
-						<td><?= htmlspecialchars($user['UserID']) ?></td>
-						<td><?= htmlspecialchars($user['RegionID']) ?></td>
-						<td><?= htmlspecialchars($user['regionName']) ?></td>
-						<td><?= htmlspecialchars($user['LastSeen']) ?></td>
-					</tr>
-				<?php endforeach; ?>
-				</tbody>
-			</table>
-			<?php endif; ?>
-		</div>
-	</div>
-
-	<!-- Benutzerinformationen Übersicht -->
-	<div class="w3-container w3-white w3-card-4 w3-margin-bottom" id="userinfo">
-	  <h2 class="w3-text-grey w3-padding-16"><i class="fas fa-user-friends fa-fw w3-margin-right w3-xxlarge w3-text-teal"></i>Benutzerinformationen</h2>
-	  <div class="w3-responsive">
-		<?php if (empty($userinfo)): ?>
-		  <div class="w3-panel w3-pale-yellow w3-border w3-margin-bottom">Zur Zeit sind keine Benutzerinformationen im Grid.</div>
-		<?php else: ?>
-		<table class="w3-table-all w3-hoverable">
-		  <thead>
-			<tr class="w3-teal">
-			  <th>Avatar</th>
-			  <th>Server-URL</th>
-			</tr>
-		  </thead>
-		  <tbody>
-		  <?php foreach ($userinfo as $info): ?>
-			<tr>
-			  <td><?= htmlspecialchars($info['avatar']) ?></td>
-			  <td><?= htmlspecialchars($info['serverurl']) ?></td>
-			</tr>
-		  <?php endforeach; ?>
-		  </tbody>
-		</table>
-		<?php endif; ?>
-	  </div>
-	</div>
-
-	<!-- GridUser Übersicht -->
-	<div class="w3-container w3-white w3-card-4 w3-margin-bottom" id="griduser">
-		<h2 class="w3-text-grey w3-padding-16"><i class="fa fa-address-book fa-fw w3-margin-right w3-xxlarge w3-text-teal"></i>Alle GridUser</h2>
-		<div class="w3-responsive">
-			<table class="w3-table-all w3-hoverable">
-				<thead>
-					<tr class="w3-teal">
-						<th>Status</th>
-						<th>Name</th>
-						<th>Benutzerkennung</th>
-						<th>Heimatadresse</th>
-						<th>Vollständiger Name</th>
-						<th>Letzte Region</th>
-						<th>Login</th>
-						<th>Logout</th>
-					</tr>
-				</thead>
-				<tbody>
-								<?php if (empty($gridusers)): ?>
-									<tr><td colspan="8" class="w3-center">Zur Zeit gibt es keine GridUser im Grid.</td></tr>
-								<?php else: ?>
-									<?php foreach ($gridusers as $user): ?>
-										<?php
-											$kennung = $heimat = $vollname = '';
-											if (!empty($user['UserID'])) {
-												$parts = explode(';', $user['UserID']);
-												$kennung = $parts[0] ?? '';
-												$heimat = $parts[1] ?? '';
-												$vollname = $parts[2] ?? '';
+			<div class="card mb-3" id="online">
+				<div class="card-header">
+					<h5 class="mb-0"><i class="bi bi-person-check me-1"></i> Online members</h5>
+				</div>
+				<div class="card-body">
+					<?php if (empty($online)): ?>
+						<div class="alert alert-warning mb-0">Nobody is currently in the grid.</div>
+					<?php else: ?>
+					<div class="table-responsive">
+						<table class="table table-sm table-striped align-middle stats-table">
+							<thead>
+								<tr>
+									<th>Name</th>
+									<th>UserID</th>
+									<th>Region</th>
+									<th>Region name</th>
+									<th>Last activity</th>
+								</tr>
+							</thead>
+							<tbody>
+							<?php foreach ($online as $user): ?>
+								<tr>
+									<td>
+									<?php
+									$name = trim(($user['FirstName'] ?? '') . ' ' . ($user['LastName'] ?? ''));
+									if ($name === '' && !empty($user['UserID'])) {
+										// Look up the name in GridUser by UserID
+										$gridName = '';
+										foreach ($gridusers as $gu) {
+											if (isset($gu['UserID'])) {
+												$parts = explode(';', $gu['UserID']);
+												if ($parts[0] === $user['UserID'] && isset($parts[2])) {
+													$gridName = $parts[2];
+													break;
+												}
 											}
-										?>
-										<tr>
-												<td style="text-align:center;">
-													<?php 
-													$isOnline = false;
-													$originalOnline = isset($user['Online']) ? $user['Online'] : '';
-													if (isset($user['Online'])) {
-														$val = strtolower(trim((string)$user['Online']));
-														$onlineValues = ['1', 'true', 'yes', 'y'];
-														$isOnline = in_array($val, $onlineValues, true);
-														// Auch numerisch prüfen (z.B. int 1)
-														if (!$isOnline && is_numeric($user['Online'])) {
-															$isOnline = ((int)$user['Online']) === 1;
-														}
-													}
-													?>
-													<?php if ($isOnline): ?>
-														<span title="Online (DB: <?=htmlspecialchars($originalOnline)?>)" style="color:green;font-weight:bold;">Online</span>
-													<?php else: ?>
-														<span title="Offline (DB: <?=htmlspecialchars($originalOnline)?>)" style="color:red;font-weight:bold;">Offline</span>
-													<?php endif; ?>
-												</td>
-												<td><?= htmlspecialchars(($user['FirstName'] ?? '') . ' ' . ($user['LastName'] ?? '')) ?></td>
-												<td><?= htmlspecialchars($kennung) ?></td>
-												<td><?= htmlspecialchars($heimat) ?></td>
-												<td><?= htmlspecialchars($vollname) ?></td>
-												<td><?= htmlspecialchars($user['LastRegionID']) ?></td>
-												<td><?= htmlspecialchars($user['Login']) ?></td>
-												<td><?= htmlspecialchars($user['Logout']) ?></td>
-										</tr>
-									<?php endforeach; ?>
-								<?php endif; ?>
-				</tbody>
-			</table>
-		</div>
-		</div>
+										}
+										echo htmlspecialchars($gridName !== '' ? $gridName : $user['UserID']);
+									} else {
+										echo htmlspecialchars($name);
+									}
+									?>
+									</td>
+									<td class="small"><?= htmlspecialchars($user['UserID']) ?></td>
+									<td class="small"><?= htmlspecialchars($user['RegionID']) ?></td>
+									<td><?= htmlspecialchars($user['regionName']) ?></td>
+									<td><?= htmlspecialchars($user['LastSeen']) ?></td>
+								</tr>
+							<?php endforeach; ?>
+							</tbody>
+						</table>
+					</div>
+					<?php endif; ?>
+				</div>
+			</div>
 
-		<!-- MuteList Übersicht -->
-		<div class="w3-container w3-white w3-card-4 w3-margin-bottom" id="mutelist">
-			<h2 class="w3-text-grey w3-padding-16"><i class="fa fa-volume-off fa-fw w3-margin-right w3-xxlarge w3-text-teal"></i>Stummgeschaltete Nutzer (MuteList)</h2>
-	  <div class="w3-responsive">
-		<?php if (empty($mutelist)): ?>
-		  <div class="w3-panel w3-pale-yellow w3-border w3-margin-bottom">Im Grid ist zur Zeit niemand stummgeschaltet.</div>
-		<?php else: ?>
-		<table class="w3-table-all w3-hoverable">
-		  <thead>
-			<tr class="w3-teal">
-			  <th>Stummschaltender (AgentID)</th>
-			  <th>Stummgeschaltet (MuteID)</th>
-			  <th>Name</th>
-			  <th>MuteName</th>
-			  <th>MuteType</th>
-			</tr>
-		  </thead>
-		  <tbody>
-		  <?php foreach ($mutelist as $mute): ?>
-			<tr>
-			  <td><?= htmlspecialchars($mute['AgentID']) ?></td>
-			  <td><?= htmlspecialchars($mute['MuteID']) ?></td>
-			  <td><?= htmlspecialchars(trim(($mute['FirstName'] ?? '') . ' ' . ($mute['LastName'] ?? ''))) ?></td>
-			  <td><?= htmlspecialchars($mute['MuteName']) ?></td>
-			  <td><?= htmlspecialchars($mute['MuteType']) ?></td>
-			</tr>
-		  <?php endforeach; ?>
-		  </tbody>
-		</table>
-		<?php endif; ?>
-	  </div>
+			<div class="card mb-3" id="userinfo">
+				<div class="card-header">
+					<h5 class="mb-0"><i class="bi bi-person-lines-fill me-1"></i> User information</h5>
+				</div>
+				<div class="card-body">
+					<?php if (empty($userinfo)): ?>
+						<div class="alert alert-warning mb-0">There is currently no user information in the grid.</div>
+					<?php else: ?>
+					<div class="table-responsive">
+						<table class="table table-sm table-striped align-middle stats-table">
+							<thead>
+								<tr>
+									<th>Avatar</th>
+									<th>Server URL</th>
+								</tr>
+							</thead>
+							<tbody>
+							<?php foreach ($userinfo as $info): ?>
+								<tr>
+									<td><?= htmlspecialchars($info['avatar']) ?></td>
+									<td><?= htmlspecialchars($info['serverurl']) ?></td>
+								</tr>
+							<?php endforeach; ?>
+							</tbody>
+						</table>
+					</div>
+					<?php endif; ?>
+				</div>
+			</div>
+
+			<div class="card mb-3" id="griduser">
+				<div class="card-header">
+					<h5 class="mb-0"><i class="bi bi-person-vcard me-1"></i> All GridUser records</h5>
+				</div>
+				<div class="card-body">
+					<div class="table-responsive">
+						<table class="table table-sm table-striped align-middle stats-table">
+							<thead>
+								<tr>
+									<th>Status</th>
+									<th>Name</th>
+									<th>User ID</th>
+									<th>Home address</th>
+									<th>Full name</th>
+									<th>Last region</th>
+									<th>Login</th>
+									<th>Logout</th>
+								</tr>
+							</thead>
+							<tbody>
+							<?php if (empty($gridusers)): ?>
+								<tr><td colspan="8" class="text-center">There are currently no GridUser records in the grid.</td></tr>
+							<?php else: ?>
+								<?php foreach ($gridusers as $user): ?>
+									<?php
+										$userId = $home = $fullName = '';
+										if (!empty($user['UserID'])) {
+											$parts = explode(';', $user['UserID']);
+											$userId = $parts[0] ?? '';
+											$home = $parts[1] ?? '';
+											$fullName = $parts[2] ?? '';
+										}
+									?>
+									<tr>
+										<td class="text-center">
+											<?php
+											$isOnline = false;
+											$originalOnline = isset($user['Online']) ? $user['Online'] : '';
+											if (isset($user['Online'])) {
+												$val = strtolower(trim((string)$user['Online']));
+												$onlineValues = ['1', 'true', 'yes', 'y'];
+												$isOnline = in_array($val, $onlineValues, true);
+												// Also check numerically (e.g. int 1)
+												if (!$isOnline && is_numeric($user['Online'])) {
+													$isOnline = ((int)$user['Online']) === 1;
+												}
+											}
+											?>
+											<?php if ($isOnline): ?>
+												<span class="badge bg-success" title="Online (DB: <?=htmlspecialchars($originalOnline)?>)">Online</span>
+											<?php else: ?>
+												<span class="badge bg-secondary" title="Offline (DB: <?=htmlspecialchars($originalOnline)?>)">Offline</span>
+											<?php endif; ?>
+										</td>
+										<td><?= htmlspecialchars(($user['FirstName'] ?? '') . ' ' . ($user['LastName'] ?? '')) ?></td>
+										<td class="small"><?= htmlspecialchars($userId) ?></td>
+										<td class="small"><?= htmlspecialchars($home) ?></td>
+										<td><?= htmlspecialchars($fullName) ?></td>
+										<td class="small"><?= htmlspecialchars($user['LastRegionID']) ?></td>
+										<td class="small"><?= htmlspecialchars($user['Login']) ?></td>
+										<td class="small"><?= htmlspecialchars($user['Logout']) ?></td>
+									</tr>
+								<?php endforeach; ?>
+							<?php endif; ?>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+
+			<div class="card mb-3" id="mutelist">
+				<div class="card-header">
+					<h5 class="mb-0"><i class="bi bi-volume-mute me-1"></i> Muted users (MuteList)</h5>
+				</div>
+				<div class="card-body">
+					<?php if (empty($mutelist)): ?>
+						<div class="alert alert-warning mb-0">Nobody in the grid is currently muted.</div>
+					<?php else: ?>
+					<div class="table-responsive">
+						<table class="table table-sm table-striped align-middle stats-table">
+							<thead>
+								<tr>
+									<th>Muted by (AgentID)</th>
+									<th>Muted (MuteID)</th>
+									<th>Name</th>
+									<th>MuteName</th>
+									<th>MuteType</th>
+								</tr>
+							</thead>
+							<tbody>
+							<?php foreach ($mutelist as $mute): ?>
+								<tr>
+									<td class="small"><?= htmlspecialchars($mute['AgentID']) ?></td>
+									<td class="small"><?= htmlspecialchars($mute['MuteID']) ?></td>
+									<td><?= htmlspecialchars(trim(($mute['FirstName'] ?? '') . ' ' . ($mute['LastName'] ?? ''))) ?></td>
+									<td><?= htmlspecialchars($mute['MuteName']) ?></td>
+									<td><?= htmlspecialchars($mute['MuteType']) ?></td>
+								</tr>
+							<?php endforeach; ?>
+							</tbody>
+						</table>
+					</div>
+					<?php endif; ?>
+				</div>
+			</div>
+
+		</div>
 	</div>
-
-</div>
-
-	<footer class="w3-container w3-teal w3-center w3-margin-top">
-			<p>OpenSimulator Statistiksoftware &copy; 2026</p>
-	</footer>
 </div>
 
 <script>
-function w3_open() {
-	document.getElementById("mySidebar").style.display = "block";
-}
-function w3_close() {
-	document.getElementById("mySidebar").style.display = "none";
-}
-
-// Tabellen sortierbar machen
+// Make tables sortable by clicking a column header
 document.addEventListener('DOMContentLoaded', function() {
-	document.querySelectorAll('table.w3-table-all').forEach(function(table) {
+	document.querySelectorAll('table.stats-table').forEach(function(table) {
 		let headers = table.querySelectorAll('th');
 		headers.forEach(function(th, idx) {
 			th.addEventListener('click', function() {
@@ -405,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				rows.sort(function(a, b) {
 					let va = a.children[idx].textContent.trim().toLowerCase();
 					let vb = b.children[idx].textContent.trim().toLowerCase();
-					// Versuche numerisch zu sortieren, falls möglich
+					// Try to sort numerically where possible
 					let na = parseFloat(va.replace(/,/g, '.'));
 					let nb = parseFloat(vb.replace(/,/g, '.'));
 					if (!isNaN(na) && !isNaN(nb)) {
@@ -421,5 +423,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-</body>
-</html>
+<?php
+require_once __DIR__ . '/../../include/' . FOOTER_FILE;

@@ -3,11 +3,11 @@ $title = "GridStatusRSS";
 require_once 'include/config.php';
 include_once 'include/' . HEADER_FILE;
 
-// Cache-Dateipfad
+// Cache file path
 $feedcache_path = __DIR__.'/feed_cache.html';
-$feedcache_max_age = 1800; // Cache max. 30 Minuten alt
+$feedcache_max_age = 1800; // Cache max. 30 minutes old
 
-// Prüfen, ob Cache neu geladen werden muss
+// Check whether the cache needs to be reloaded
 if (!file_exists($feedcache_path) or filemtime($feedcache_path) < (time() - $feedcache_max_age)) {
     $output = '';
 
@@ -18,7 +18,7 @@ if (!file_exists($feedcache_path) or filemtime($feedcache_path) < (time() - $fee
     ]);
 
     foreach ($feed_urls as $feed_url) {
-        // Feed abrufen
+        // Fetch feed
         $xml = @simplexml_load_string(file_get_contents($feed_url, false, $feedContext));
 
         if (!$xml) {
