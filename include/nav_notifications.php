@@ -69,20 +69,26 @@ if ($wsdb = @ws_db()) {
         $stmt->execute([$userId]);
         $nav_userOpenTicketsCount = (int)$stmt->fetchColumn();
 
-        // 5) Open tickets grid-wide (for admin menu badge)
-        // We don't check $showAdminAnalyticsLink here; the Admin menu markup
-        // already hides this from non-admins.
-        $nav_adminOpenTicketsCount = (int)$wsdb->query(
-            "SELECT COUNT(*) FROM ws_tickets WHERE status IN ('open','in_progress')"
-        )->fetchColumn();
+        // 5) Open tickets grid-wide (for the admin menu badge only - see the
+        // $showAdminAnalyticsLink check below before this is added to the
+        // account menu's total badge; header.php's own Admin dropdown badge
+        // is separately gated by the same variable).
+        if (!empty($showAdminAnalyticsLink)) {
+            $nav_adminOpenTicketsCount = (int)$wsdb->query(
+                "SELECT COUNT(*) FROM ws_tickets WHERE status IN ('open','in_progress')"
+            )->fetchColumn();
+        }
     } catch (Throwable $e) {
         // leave defaults 0
     }
 }
 
-// Total global badge for the account menu
+// Total badge for the account menu: the user's own notifications, plus
+// grid-wide open tickets only when they're actually an admin (otherwise
+// $nav_adminOpenTicketsCount stays 0 from the guard above).
 $nav_totalNotificationCount =
     $nav_unreadMessagesCount +
     $nav_offlineMessagesCount +
     $nav_pendingFriendRequestsCount +
-    $nav_adminOpenTicketsCount; // admin tickets only counted for admins
+    $nav_userOpenTicketsCount +
+    $nav_adminOpenTicketsCount;

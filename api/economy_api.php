@@ -58,6 +58,26 @@ function update_balance(mysqli $con, string $userId, int $delta): int {
     return get_balance($con, $userId);
 }
 
+// Ensure a balances row exists, then read it with a row lock held for the
+// rest of the current transaction - required so two concurrent transfers
+// from the same sender can't both read the same (sufficient) balance
+// before either commits and both go through, taking the balance negative.
+// Must be called after mysqli_begin_transaction().
+function get_balance_locked(mysqli $con, string $userId): int {
+    $uid = mysqli_real_escape_string($con, $userId);
+    mysqli_query(
+        $con,
+        "INSERT INTO balances (user, balance, status, type)
+         VALUES ('$uid', 0, NULL, 0)
+         ON DUPLICATE KEY UPDATE balance = balance"
+    );
+    $res = mysqli_query($con, "SELECT balance FROM balances WHERE user = '$uid' LIMIT 1 FOR UPDATE");
+    if ($res && $row = mysqli_fetch_assoc($res)) {
+        return (int)$row['balance'];
+    }
+    return 0;
+}
+
 // Parse JSON / fallback
 $raw  = file_get_contents('php://input');
 $data = json_decode($raw, true);
@@ -96,12 +116,6 @@ if ($receiverId === $currentUserId) {
     e_respond(false, 'You cannot send money to yourself.');
 }
 
-// Check sender balance
-$senderBalance = get_balance($con, $currentUserId);
-if ($senderBalance < $amount) {
-    e_respond(false, 'Insufficient funds.');
-}
-
 $description = trim((string)$descIn);
 if ($description === '') {
     $description = 'Web transfer';
@@ -113,6 +127,17 @@ if (strlen($description) > 255) {
 mysqli_begin_transaction($con);
 
 try {
+    // Balance check happens *inside* the transaction, against a row-locked
+    // read (FOR UPDATE) - not the earlier unlocked get_balance() call this
+    // used to use. A concurrent transfer from the same sender now blocks on
+    // this lock until this transaction commits/rolls back, instead of both
+    // reading the same starting balance and both going through.
+    $senderBalance = get_balance_locked($con, $currentUserId);
+    if ($senderBalance < $amount) {
+        mysqli_rollback($con);
+        e_respond(false, 'Insufficient funds.');
+    }
+
     // Deduct & credit
     $newSenderBalance   = update_balance($con, $currentUserId, -$amount);
     $newReceiverBalance = update_balance($con, $receiverId, $amount);
