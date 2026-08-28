@@ -116,19 +116,42 @@ if (!$forceNoEdit && isset($_GET['edit'])) {
 // Load regions list
 $regions      = [];
 $totalRegions = 0;
+$q            = trim((string)($_GET['q'] ?? ''));
 
 if ($con) {
-    $sql    = "SELECT uuid, regionName, locX, locY, sizeX, sizeY, owner_uuid
+    if ($q !== '') {
+        $sql = "SELECT uuid, regionName, locX, locY, sizeX, sizeY, owner_uuid
+               FROM regions
+               WHERE regionName LIKE ? OR owner_uuid LIKE ?
+               ORDER BY locX, locY";
+        $like = '%' . $q . '%';
+        if ($stmt = mysqli_prepare($con, $sql)) {
+            mysqli_stmt_bind_param($stmt, 'ss', $like, $like);
+            if (mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+                while ($row = mysqli_fetch_assoc($result)) {
+                    $regions[] = $row;
+                }
+            } else {
+                $dbError = 'Failed to query regions table.';
+            }
+            mysqli_stmt_close($stmt);
+        } else {
+            $dbError = 'Failed to prepare regions query.';
+        }
+    } else {
+        $sql    = "SELECT uuid, regionName, locX, locY, sizeX, sizeY, owner_uuid
                FROM regions
                ORDER BY locX, locY";
-    $result = mysqli_query($con, $sql);
-    if ($result) {
-        while ($row = mysqli_fetch_assoc($result)) {
-            $regions[] = $row;
+        $result = mysqli_query($con, $sql);
+        if ($result) {
+            while ($row = mysqli_fetch_assoc($result)) {
+                $regions[] = $row;
+            }
+            mysqli_free_result($result);
+        } else {
+            $dbError = 'Failed to query regions table.';
         }
-        mysqli_free_result($result);
-    } else {
-        $dbError = 'Failed to query regions table.';
     }
 
     $totalRegions = count($regions);
@@ -178,6 +201,22 @@ if ($editRegion) {
 <div class="container-fluid mt-4 mb-4">
     <div class="row">
         <div class="col-md-3">
+
+            <div class="card mb-3">
+                <div class="card-header fw-bold py-3"><i class="bi bi-funnel me-1"></i> Filters</div>
+                <div class="card-body">
+                    <form method="get">
+                        <div class="mb-3">
+                            <label class="form-label small text-body-secondary text-uppercase fw-bold">Search</label>
+                            <input type="text" name="q" class="form-control" value="<?php echo s_h($q); ?>" placeholder="Region name or owner UUID...">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Apply Filter</button>
+                        <?php if ($q !== ''): ?>
+                            <a href="admin/regions_admin.php" class="btn btn-outline-secondary w-100 mt-2">Clear</a>
+                        <?php endif; ?>
+                    </form>
+                </div>
+            </div>
 
             <div class="card mb-3">
                 <div class="card-header">
