@@ -111,9 +111,6 @@ if ($__setupComplete) {
                         <a href="welcome.php" class="btn btn-success btn-lg">
                             <i class="bi bi-house-fill"></i> Go to Homepage
                         </a>
-                        <a href="welcomesplashpage_modern.php" class="btn btn-primary btn-lg">
-                            <i class="bi bi-star-fill"></i> Try Modern Interface
-                        </a>
                     </div>
                     
                 <?php else: ?>
@@ -218,7 +215,6 @@ chmod 755 cache</div>
                         <ul class="mb-0">
                             <li>Make sure your web server has read/write permissions to the cache directory</li>
                             <li>For security, ensure your database user has only necessary permissions</li>
-                            <li>The new modern interface is available at <code>*_modern.php</code> files</li>
                             <li>Test database connectivity after configuration</li>
                         </ul>
                     </div>
@@ -241,7 +237,7 @@ MapTileURL = "${Const|BaseURL}:${Const|PublicPort}/oswebinterface/maps/gridmap.p
 SearchURL = "${Const|BaseURL}:${Const|PublicPort}/oswebinterface/gridsearch.php"
 DestinationGuide = "${Const|BaseURL}/oswebinterface/guide.php"
 AvatarPicker = "${Const|BaseURL}/oswebinterface/avatarpicker.php"
-welcome = ${Const|BaseURL}/oswebinterface/welcomesplashpage.php
+welcome = ${Const|BaseURL}/oswebinterface/welcome.php
 about = ${Const|BaseURL}/oswebinterface/about.php
 register = ${Const|BaseURL}/oswebinterface/register.php
 help = ${Const|BaseURL}/oswebinterface/help.php</div>

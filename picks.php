@@ -260,7 +260,7 @@ $userId = isset($_GET['user']) ? $_GET['user'] : '';
                                 
                                 <!-- Show on map -->
                                 <div class="d-grid mt-2">
-                                    <a href="gridmap.php?region=<?php echo urlencode($pick['simname']); ?>" 
+                                    <a href="maps/gridmap.php?region=<?php echo urlencode($pick['simname']); ?>" 
                                        class="btn btn-info">
                                         <i class="bi bi-map"></i> View on map
                                     </a>

@@ -197,7 +197,7 @@ if (!$lastUpdatedUnix) { $lastUpdatedUnix = time(); }
     <h1><i class="bi bi-activity me-2"></i> <?php echo SITE_NAME; ?> Grid Status</h1>
     <p class="mb-0">Live snapshot of OpenSimulator grid statistics and service health.</p>
 
-    <div class="mt-2 small text-white-50"><i class="bi bi-clock me-1"></i> Last updated: <span id="lastUpdatedLabel" data-ts="<?php echo (int)$lastUpdatedUnix; ?>"><?php echo htmlspecialchars($stats['lastUpdated'] ?? 'N/A'); ?></span><?php if ($useCache): ?><span class="badge bg-secondary ms-2">cached</span><?php endif; ?></div>
+    <div class="mt-2 small text-white-50"><i class="bi bi-clock me-1"></i> Last updated: <span id="lastUpdatedLabel" data-ts="<?php echo (int)$lastUpdatedUnix; ?>"><?php echo htmlspecialchars($stats['lastUpdated'] ?? 'N/A'); ?></span> <span id="lastUpdatedAgo"></span><?php if ($useCache): ?><span class="badge bg-secondary ms-2">cached</span><?php endif; ?></div>
 </section>
 
 <div class="container-fluid mt-4 mb-4">
@@ -209,7 +209,7 @@ if (!$lastUpdatedUnix) { $lastUpdatedUnix = time(); }
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="gridmap.php" class="btn btn-theme-outline"><i class="bi bi-map"></i> View Grid Map</a>
+                        <a href="maps/gridmap.php" class="btn btn-theme-outline"><i class="bi bi-map"></i> View Grid Map</a>
                         <a href="gridlist.php" class="btn btn-theme-outline"><i class="bi bi-list"></i> Grid Directory</a>
                         <a href="gridsearch.php" class="btn btn-theme-outline"><i class="bi bi-search"></i> Search Grid</a>
                         <a href="gridstatusrss.php" class="btn btn-theme-outline"><i class="bi bi-rss"></i> RSS Feed</a>
@@ -428,7 +428,7 @@ if (!$lastUpdatedUnix) { $lastUpdatedUnix = time(); }
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const stampEl = document.getElementById('lastUpdatedText');
+    const stampEl = document.getElementById('lastUpdatedLabel');
     const agoEl = document.getElementById('lastUpdatedAgo');
     if (!stampEl || !agoEl) return;
 

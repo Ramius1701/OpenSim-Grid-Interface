@@ -233,7 +233,7 @@ $catKey = ($category === 'all') ? 'all' : (int)$category;
                                 </div>
 
                                 <div class="d-grid mt-2">
-                                    <a href="gridmap.php?region=<?php echo urlencode($classified['simname']); ?>" 
+                                    <a href="maps/gridmap.php?region=<?php echo urlencode($classified['simname']); ?>" 
                                        class="btn btn-info">
                                         <i class="bi bi-map"></i> Show on map
                                     </a>

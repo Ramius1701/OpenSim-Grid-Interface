@@ -585,7 +585,7 @@ if (!empty($results)) {
                                                class="btn btn-success btn-sm">
                                                 <i class="bi bi-rocket-takeoff"></i> Teleport
                                             </a>
-                                            <a href="gridmap.php?region=<?php echo urlencode($region['regionName']); ?>"
+                                            <a href="maps/gridmap.php?region=<?php echo urlencode($region['regionName']); ?>"
                                                class="btn btn-outline-info btn-sm">
                                                 <i class="bi bi-map"></i> Show on Map
                                             </a>
