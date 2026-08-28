@@ -201,7 +201,6 @@ if ($isLoggedIn) {
 </div>
 <div class="col-md-9">
             <div class="content-card shadow-sm p-3 p-md-4">
-                <!-- CASPERIA_SUPPORT_TICKETS_PADDING_FIX_V4 -->
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <div>
                         <h1 class="mb-1"><i class="bi bi-life-preserver me-2"></i> Support</h1>

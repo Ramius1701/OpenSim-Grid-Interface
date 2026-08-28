@@ -542,25 +542,25 @@ if ($robustOk) {
             <form method="POST">
                 <div class="row mb-3">
                     <div class="col">
-                        <label class="fw-bold">First Name</label>
-                        <input type="text" name="firstName" class="form-control" required>
+                        <label class="fw-bold" for="reg_firstName">First Name</label>
+                        <input type="text" id="reg_firstName" name="firstName" class="form-control" value="<?php echo htmlspecialchars($fname ?? ''); ?>" required>
                     </div>
                     <div class="col">
-                        <label class="fw-bold">Last Name</label>
-                        <input type="text" name="lastName" class="form-control" required>
+                        <label class="fw-bold" for="reg_lastName">Last Name</label>
+                        <input type="text" id="reg_lastName" name="lastName" class="form-control" value="<?php echo htmlspecialchars($lname ?? ''); ?>" required>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="fw-bold">Email</label>
-                    <input type="email" name="email" class="form-control" required>
+                    <label class="fw-bold" for="reg_email">Email</label>
+                    <input type="email" id="reg_email" name="email" class="form-control" value="<?php echo htmlspecialchars($email ?? ''); ?>" required>
                 </div>
                 <div class="mb-3">
-                    <label class="fw-bold">Password</label>
-                    <input type="password" name="password" class="form-control" required>
+                    <label class="fw-bold" for="reg_password">Password</label>
+                    <input type="password" id="reg_password" name="password" class="form-control" required>
                 </div>
                 <div class="mb-3">
-                    <label class="fw-bold">Confirm Password</label>
-                    <input type="password" name="password_confirm" class="form-control" required>
+                    <label class="fw-bold" for="reg_password_confirm">Confirm Password</label>
+                    <input type="password" id="reg_password_confirm" name="password_confirm" class="form-control" required>
                 </div>
                 <button type="submit" name="step1" class="btn btn-primary w-100">Next</button>
             </form>
@@ -612,8 +612,8 @@ if ($robustOk) {
             
             <form method="POST">
                 <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" required>
-                    <label class="form-check-label">I agree to the Terms of Service.</label>
+                    <input class="form-check-input" type="checkbox" id="reg_agree_tos" required>
+                    <label class="form-check-label" for="reg_agree_tos">I agree to the <a href="tos.php" target="_blank">Terms of Service</a>.</label>
                 </div>
                 <button type="submit" name="step3" class="btn btn-success w-100">Create Account</button>
             </form>

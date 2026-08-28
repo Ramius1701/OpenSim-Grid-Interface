@@ -232,7 +232,7 @@ require_once __DIR__ . '/../include/header.php';
             </div>
           </label>
 
-          <!-- Width --><!--
+          <!-- Width -->
           <label>Width
             <div class="input-group input-group-sm">
               <button class="btn btn-outline-secondary" type="submit"
@@ -241,9 +241,9 @@ require_once __DIR__ . '/../include/header.php';
               <button class="btn btn-outline-secondary" type="submit"
                 onclick="this.form.w.value=<?=$w+4?>">+</button>
             </div>
-          </label>-->
+          </label>
 
-          <!-- Height --><!--
+          <!-- Height -->
           <label>Height
             <div class="input-group input-group-sm">
               <button class="btn btn-outline-secondary" type="submit"
@@ -252,9 +252,9 @@ require_once __DIR__ . '/../include/header.php';
               <button class="btn btn-outline-secondary" type="submit"
                 onclick="this.form.h.value=<?=$h+4?>">+</button>
             </div>
-          </label>-->
+          </label>
 
-          <!-- Preset sizes --><!--
+          <!-- Preset sizes -->
           <div class="btn-group btn-group-sm w-100">
             <button class="btn btn-outline-primary" type="submit"
               onclick="this.form.w.value=32;this.form.h.value=32">32×32</button>
@@ -262,7 +262,7 @@ require_once __DIR__ . '/../include/header.php';
               onclick="this.form.w.value=64;this.form.h.value=64">64×64</button>
             <button class="btn btn-outline-primary" type="submit"
               onclick="this.form.w.value=128;this.form.h.value=128">128×128</button>
-          </div>-->
+          </div>
 
           <!-- Reset -->
           <a class="btn btn-sm btn-secondary w-100" href="<?=htmlspecialchars($_SERVER['PHP_SELF'])?>">Reset view</a>

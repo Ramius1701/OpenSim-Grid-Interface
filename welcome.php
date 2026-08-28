@@ -85,7 +85,6 @@ require_once __DIR__ . "/include/region_status.php";
         text-align: left;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         transition: transform 0.3s ease, opacity 0.6s ease;
-        opacity: 0; transform: translateY(20px);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -199,8 +198,8 @@ require_once __DIR__ . "/include/region_status.php";
         <?php endif; ?>
 
         <div class="mt-4 d-flex gap-3 justify-content-center">
-            <a href="register.php" class="btn btn-lg btn-outline-primary rounded-pill px-5 fw-bold shadow">Join Now</a>
-            <a href="login.php" class="btn btn-lg btn-outline-primary rounded-pill px-5 fw-bold shadow">Login</a>
+            <a href="register.php" class="btn btn-theme btn-lg rounded-pill px-5 fw-bold shadow">Join Now</a>
+            <a href="login.php" class="btn btn-theme-outline btn-lg rounded-pill px-5 fw-bold shadow">Login</a>
         </div>
     </div>
 </div>
@@ -413,8 +412,17 @@ require_once __DIR__ . "/include/region_status.php";
             }, <?php echo (int)(defined('SLIDESHOW_DELAY') ? SLIDESHOW_DELAY : 5000); ?>);
         }
         
-        // Animations (IntersectionObserver is missing in some embedded viewers)
+        // Fade-in-on-scroll is progressive enhancement only - stat-card is
+        // fully visible by default in CSS, so if this script never runs at
+        // all (blocked, CSP, slow embedded-viewer load), the stats still
+        // show immediately instead of staying permanently blank.
         if ('IntersectionObserver' in window) {
+            document.querySelectorAll('.stat-card').forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+            });
+
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
@@ -424,15 +432,7 @@ require_once __DIR__ . "/include/region_status.php";
                 });
             });
 
-            document.querySelectorAll('.stat-card').forEach((card, index) => {
-                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
-                observer.observe(card);
-            });
-        } else {
-            document.querySelectorAll('.stat-card').forEach((card) => {
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            });
+            document.querySelectorAll('.stat-card').forEach((card) => observer.observe(card));
         }
     });
 </script>
