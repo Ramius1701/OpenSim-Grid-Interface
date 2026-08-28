@@ -53,7 +53,7 @@ if ($con && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 mysqli_stmt_bind_param($stmt, 'ss', $owner, $uuid);
                 if (mysqli_stmt_execute($stmt)) {
                     $affected = mysqli_stmt_affected_rows($stmt);
-                    if ($affected >= 0) {
+                    if ($affected > 0) {
                         $statusMessage = 'Owner updated.';
                         $statusClass   = 'success';
                     } else {

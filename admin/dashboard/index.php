@@ -1,11 +1,10 @@
 <?php
-include_once 'ssinc.php';
-// SStats - Statistiksoftware für OpenSimulator-Server
-
-// Zusätzliche Sicherheitsheader
-header('X-Frame-Options: SAMEORIGIN');
-header('X-Content-Type-Options: nosniff');
-header('X-XSS-Protection: 1; mode=block');
+// Hardened cookie params must be set before the FIRST session_start() of the
+// request - ssinc.php (included below) pulls in include/auth.php, which
+// starts a session with PHP's defaults if nothing has started one yet. That
+// used to happen first, silently making this block's session_start() call a
+// no-op (session_status() was already PHP_SESSION_ACTIVE by the time it
+// ran), so cookie_httponly/cookie_secure/cookie_samesite were never applied.
 if (session_status() === PHP_SESSION_NONE) {
 	session_start([
 		'cookie_httponly' => true,
@@ -13,6 +12,14 @@ if (session_status() === PHP_SESSION_NONE) {
 		'cookie_samesite' => 'Strict',
 	]);
 }
+
+include_once 'ssinc.php';
+// SStats - Statistiksoftware für OpenSimulator-Server
+
+// Zusätzliche Sicherheitsheader
+header('X-Frame-Options: SAMEORIGIN');
+header('X-Content-Type-Options: nosniff');
+header('X-XSS-Protection: 1; mode=block');
 
 // CSRF-Basisschutz für POST-Formulare (falls später genutzt)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -27,11 +34,20 @@ $sql_regions = 'SELECT uuid, regionName, locX, locY, sizeX, sizeY, serverIP, ser
 $regions = $pdo->query($sql_regions)->fetchAll(PDO::FETCH_ASSOC);
 
 // Online-User (Presence, falls leer: keine online)
-$sql_online = 'SELECT p.UserID, ua.FirstName, ua.LastName, p.RegionID, r.regionName, p.LastSeen
+// Windowed to the last 5 minutes, matching admin/analytics.php's
+// convention - without this, a Presence row OpenSim never cleaned up
+// after an ungraceful disconnect would show that user as "online"
+// indefinitely. LastSeen is a real TIMESTAMP column, not a raw unix int -
+// comparing it against UNIX_TIMESTAMP()-N (as admin/analytics.php used to,
+// also now fixed) silently coerces the timestamp to a string and very
+// nearly always evaluates true, regardless of actual recency. Compare
+// against another TIMESTAMP/DATETIME expression instead.
+$sql_online = "SELECT p.UserID, ua.FirstName, ua.LastName, p.RegionID, r.regionName, p.LastSeen
 FROM Presence p
 LEFT JOIN UserAccounts ua ON p.UserID = ua.PrincipalID
 LEFT JOIN regions r ON p.RegionID = r.uuid
-ORDER BY p.LastSeen DESC';
+WHERE p.LastSeen >= (NOW() - INTERVAL 300 SECOND)
+ORDER BY p.LastSeen DESC";
 $online = $pdo->query($sql_online)->fetchAll(PDO::FETCH_ASSOC);
 
 // GridUser mit Status (Online/Offline)

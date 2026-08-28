@@ -192,7 +192,7 @@ if ($res = mysqli_query($db, "SELECT COUNT(*) AS c FROM regions")) {
 if ($res = mysqli_query($db, "
     SELECT COUNT(DISTINCT RegionID) AS c
     FROM Presence
-    WHERE LastSeen >= UNIX_TIMESTAMP(NOW()) - 300
+    WHERE LastSeen >= (NOW() - INTERVAL 300 SECOND)
 ")) {
     if ($row = mysqli_fetch_assoc($res)) {
         $regionsWithUsers = (int)$row['c'];
@@ -208,7 +208,7 @@ if ($res = mysqli_query($db, "
 if ($res = mysqli_query($db, "
     SELECT COUNT(DISTINCT UserID) AS online_users
     FROM Presence
-    WHERE LastSeen >= UNIX_TIMESTAMP(NOW()) - 300
+    WHERE LastSeen >= (NOW() - INTERVAL 300 SECOND)
 ")) {
     if ($row = mysqli_fetch_assoc($res)) {
         $onlineUsers = (int)$row['online_users'];
@@ -307,7 +307,7 @@ if ($res = mysqli_query($db, "
         ua.LastName
     FROM Presence p
     LEFT JOIN UserAccounts ua ON ua.PrincipalID = p.UserID
-    WHERE p.LastSeen >= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 7 DAY))
+    WHERE p.LastSeen >= DATE_SUB(NOW(), INTERVAL 7 DAY)
     GROUP BY p.UserID
     ORDER BY presence_count DESC
     LIMIT 10
@@ -327,7 +327,7 @@ if ($res = mysqli_query($db, "
         r.regionName
     FROM Presence p
     LEFT JOIN regions r ON r.uuid = p.RegionID
-    WHERE p.LastSeen >= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 7 DAY))
+    WHERE p.LastSeen >= DATE_SUB(NOW(), INTERVAL 7 DAY)
     GROUP BY p.RegionID
     ORDER BY visit_count DESC
     LIMIT 10
@@ -362,7 +362,7 @@ if ($res = mysqli_query($db, "
 if ($res = mysqli_query($db, "
     SELECT COUNT(DISTINCT UserID) AS c
     FROM Presence
-    WHERE LastSeen >= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 DAY))
+    WHERE LastSeen >= DATE_SUB(NOW(), INTERVAL 1 DAY)
 ")) {
     if ($row = mysqli_fetch_assoc($res)) {
         $active24h = (int)$row['c'];
@@ -373,7 +373,7 @@ if ($res = mysqli_query($db, "
 if ($res = mysqli_query($db, "
     SELECT COUNT(DISTINCT UserID) AS c
     FROM Presence
-    WHERE LastSeen >= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 7 DAY))
+    WHERE LastSeen >= DATE_SUB(NOW(), INTERVAL 7 DAY)
 ")) {
     if ($row = mysqli_fetch_assoc($res)) {
         $active7d = (int)$row['c'];

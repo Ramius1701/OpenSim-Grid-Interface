@@ -155,7 +155,10 @@ if ($action === 'stats') {
                     while ($c = $cr->fetch_assoc()) { $cols[strtolower($c['Field'])] = true; }
                 }
                 if (isset($cols['lastseen'])) {
-                    $q = "SELECT COUNT(DISTINCT UserID) FROM {$pt} WHERE LastSeen >= (UNIX_TIMESTAMP() - 600)";
+                    // LastSeen is a real TIMESTAMP column - comparing it
+                    // against UNIX_TIMESTAMP()-N silently coerces it to a
+                    // string and very nearly always evaluates true.
+                    $q = "SELECT COUNT(DISTINCT UserID) FROM {$pt} WHERE LastSeen >= (NOW() - INTERVAL 600 SECOND)";
                 } else {
                     $q = "SELECT COUNT(DISTINCT UserID) FROM {$pt}";
                 }

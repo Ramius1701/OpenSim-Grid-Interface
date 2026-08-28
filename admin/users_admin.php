@@ -254,7 +254,10 @@ $totalUsers  = 0;
 if ($con) {
     // Stats
     if ($res = @mysqli_query($con, "SELECT COUNT(*) FROM UserAccounts")) { $row = mysqli_fetch_row($res); $stats['total_users'] = (int)$row[0]; }
-    if ($res = @mysqli_query($con, "SELECT COUNT(DISTINCT UserID) FROM Presence")) { $row = mysqli_fetch_row($res); $stats['online'] = (int)$row[0]; }
+    // Windowed to the last 5 minutes, matching admin/analytics.php - a
+    // Presence row OpenSim never cleaned up after an ungraceful disconnect
+    // would otherwise show that user as "online" indefinitely.
+    if ($res = @mysqli_query($con, "SELECT COUNT(DISTINCT UserID) FROM Presence WHERE LastSeen >= (NOW() - INTERVAL 300 SECOND)")) { $row = mysqli_fetch_row($res); $stats['online'] = (int)$row[0]; }
     if ($res = @mysqli_query($con, "SELECT COUNT(*) FROM GridUser WHERE Login >= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 DAY))")) { $row = mysqli_fetch_row($res); $stats['active_24h'] = (int)$row[0]; }
 
     // Build Query
