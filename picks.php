@@ -431,7 +431,7 @@ $userId = isset($_GET['user']) ? $_GET['user'] : '';
                                         <div class="mt-auto">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <small class="text-muted">
-                                                    📍 <?php echo htmlspecialchars(explode(' ', $row['simname'])[0]); ?>
+                                                    <i class="bi bi-geo-alt"></i> <?php echo htmlspecialchars(explode(' ', $row['simname'])[0]); ?>
                                                 </small>
                                                 <?php if (!$userId): ?>
                                                 <small class="text-muted">

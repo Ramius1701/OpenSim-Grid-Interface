@@ -587,7 +587,7 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
                                                 <p class="text-muted small">Online since: <?php echo date('H:i', $loginTs); ?></p>
                                             <?php endif; ?>
                                             <?php if (!empty($friend['Position'])): ?>
-                                                <p class="text-muted small">📍 Position: <?php echo htmlspecialchars($friend['Position']); ?></p>
+                                                <p class="text-muted small"><i class="bi bi-geo-alt"></i> Position: <?php echo htmlspecialchars($friend['Position']); ?></p>
                                             <?php endif; ?>
 
                                             <div class="d-grid gap-2">
