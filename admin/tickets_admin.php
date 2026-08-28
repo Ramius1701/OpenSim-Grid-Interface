@@ -131,6 +131,15 @@ $tickets = $wsdb->query(
      LIMIT 500"
 )->fetchAll();
 
+// Sidebar counts computed separately against the full table, not from the
+// (possibly truncated) $tickets list above - LIMIT 500 there is just a
+// display cap, it shouldn't also silently cap what these say.
+$ticketTotalCount = (int)$wsdb->query("SELECT COUNT(*) FROM ws_tickets")->fetchColumn();
+$ticketOpenCount = (int)$wsdb->query(
+    "SELECT COUNT(*) FROM ws_tickets WHERE LOWER(TRIM(status)) NOT IN ('closed', 'resolved')"
+)->fetchColumn();
+$ticketClosedCount = $ticketTotalCount - $ticketOpenCount;
+
 ?>
 
 <section class="page-hero">
@@ -148,22 +157,16 @@ $tickets = $wsdb->query(
                 </div>
                 <div class="card-body small">
                     <div class="mb-2 text-muted">Support tickets submitted via the site.</div>
-                    <?php
-                        $openCount = 0;
-                        $closedCount = 0;
-                        if (isset($tickets) && is_array($tickets)) {
-                            foreach ($tickets as $t) {
-                                $st = strtolower(trim((string)($t['status'] ?? 'open')));
-                                if ($st === 'closed' || $st === 'resolved') $closedCount++;
-                                else $openCount++;
-                            }
-                        }
-                    ?>
                     <ul class="list-unstyled mb-3">
-                        <li><strong>Open:</strong> <?php echo (int)$openCount; ?></li>
-                        <li><strong>Closed/Resolved:</strong> <?php echo (int)$closedCount; ?></li>
-                        <li><strong>Total loaded:</strong> <?php echo isset($tickets) && is_array($tickets) ? count($tickets) : 0; ?></li>
+                        <li><strong>Open:</strong> <?php echo $ticketOpenCount; ?></li>
+                        <li><strong>Closed/Resolved:</strong> <?php echo $ticketClosedCount; ?></li>
+                        <li><strong>Total:</strong> <?php echo $ticketTotalCount; ?></li>
                     </ul>
+                    <?php if ($ticketTotalCount > count($tickets)): ?>
+                    <div class="alert alert-warning py-2 px-2 mb-3">
+                        Showing the most recent <?php echo count($tickets); ?> of <?php echo $ticketTotalCount; ?> tickets below.
+                    </div>
+                    <?php endif; ?>
                     <div class="alert alert-info py-2 px-2 mb-3">
                         <strong>Tip:</strong> If tickets look empty, verify the <code>ws_tickets</code> table exists and your DB connection is configured.
                     </div>
