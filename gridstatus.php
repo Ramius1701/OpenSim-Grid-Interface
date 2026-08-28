@@ -1,6 +1,7 @@
 <?php
 $title = "Grid Status";
 include_once 'include/header.php';
+require_once __DIR__ . '/include/region_status.php';
 ?>
 
 <style>
@@ -68,7 +69,7 @@ $stats = [
   'totalUsers' => 'N/A', 'totalRegions' => 'N/A',
   'varRegions' => 'N/A', 'singleRegions' => 'N/A', 'totalAccounts' => 'N/A',
   'activeUsers' => 'N/A', 'totalGridAccounts' => 'N/A', 'dbUptimeStr' => 'N/A',
-  'activeRegions' => 'N/A',
+  'activeRegions' => 'N/A', 'onlineRegions' => 'N/A',
   'newAccounts7d' => 'N/A', 'uniqueLogins24h' => 'N/A', 'mostActiveRegionName' => 'N/A',
   'mostActiveRegionUsers'=> 'N/A', 'totalWorldAreaKm2' => 'N/A', 'avgRegionSize' => 'N/A',
   'lastUpdated' => date('Y-m-d H:i')
@@ -112,6 +113,20 @@ if (!$useCache && $CHECK_DB_STATUS) {
                     $row = mysqli_fetch_assoc($res);
                     $stats[$key] = safe_int($row['c']);
                 } else { $stats[$key] = 'N/A'; }
+            }
+
+            // Regions actually reachable right now (live port check), not
+            // just rows present in the regions table. See
+            // include/region_status.php for why regions.last_seen can't be
+            // used for this on this grid - it doesn't update on an ongoing
+            // heartbeat, only at region registration/startup.
+            if ($res = mysqli_query($con, "SELECT `serverIP`, `serverPort`, `serverHttpPort` FROM `regions`")) {
+                $targets = [];
+                $i = 0;
+                while ($row = mysqli_fetch_assoc($res)) {
+                    $targets[$i++] = ['host' => (string)$row['serverIP'], 'port' => region_status_port($row)];
+                }
+                $stats['onlineRegions'] = count(array_filter(regions_online_map($targets)));
             }
 
             // Uptime
@@ -255,7 +270,17 @@ if (!$lastUpdatedUnix) { $lastUpdatedUnix = time(); }
                                 <div class="flex-shrink-0"><i class="bi bi-geo-alt-fill text-primary" style="font-size: 2rem;"></i></div>
                                 <div class="flex-grow-1 ms-3">
                                     <div class="fw-bold fs-4"><?php echo n($stats['totalRegions']); ?></div>
-                                    <div class="text-muted small">Regions</div>
+                                    <div class="text-muted small">Total Regions</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 col-lg-4">
+                            <div class="d-flex align-items-center p-3 theme-stat-box">
+                                <div class="flex-shrink-0"><i class="bi bi-broadcast text-primary" style="font-size: 2rem;"></i></div>
+                                <div class="flex-grow-1 ms-3">
+                                    <div class="fw-bold fs-4"><?php echo n($stats['onlineRegions']); ?></div>
+                                    <div class="text-muted small">Regions Online</div>
                                 </div>
                             </div>
                         </div>
