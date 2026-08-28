@@ -237,10 +237,12 @@ function ws_bootstrap_schema(PDO $pdo): void {
     $pdo->exec("CREATE INDEX IF NOT EXISTS idx_ws_hub_teleport_log_region_created ON ws_hub_teleport_log (region, created_at)");
 }
 
-function ws_table_exists(PDO $pdo, string $table): bool {
-    $st = $pdo->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name = ?");
-    $st->execute([$table]);
-    return (bool)$st->fetchColumn();
+if (!function_exists('ws_table_exists')) {
+    function ws_table_exists(PDO $pdo, string $table): bool {
+        $st = $pdo->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name = ?");
+        $st->execute([$table]);
+        return (bool)$st->fetchColumn();
+    }
 }
 
 function ws_column_exists(PDO $pdo, string $table, string $column): bool {

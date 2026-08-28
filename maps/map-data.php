@@ -21,7 +21,7 @@ if ($mysqli->connect_error) {
     die(json_encode(['success' => false, 'error' => 'Connect Error: ' . $mysqli->connect_error]));
 }
 
-function ws_table_exists(mysqli $mysqli, string $table): bool {
+function mapdata_table_exists(mysqli $mysqli, string $table): bool {
     $tableEsc = $mysqli->real_escape_string($table);
     $res = $mysqli->query("SHOW TABLES LIKE '{$tableEsc}'");
     return ($res && $res->num_rows > 0);
@@ -223,8 +223,8 @@ if ($action === 'regions') {
     // Best-effort owner lookup via estates (common Robust schema)
     $ownerNameByRegion = [];
     try {
-        $hasEstateMap = ws_table_exists($mysqli, 'estate_map') && ws_table_exists($mysqli, 'estate_settings');
-        $hasUserAccounts = ws_table_exists($mysqli, 'UserAccounts');
+        $hasEstateMap = mapdata_table_exists($mysqli, 'estate_map') && mapdata_table_exists($mysqli, 'estate_settings');
+        $hasUserAccounts = mapdata_table_exists($mysqli, 'UserAccounts');
 
         if ($hasEstateMap && $hasUserAccounts) {
             $ownerByUuid = [];
