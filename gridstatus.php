@@ -6,26 +6,16 @@ require_once __DIR__ . '/include/region_status.php';
 ?>
 
 <style>
-/* --- SURGICAL THEME OVERRIDES --- */
-/* Maps standard Bootstrap classes to your Theme Engine variables without breaking layout */
+/* .card, .card-header, and .text-muted used to be redefined here too -
+   all three were either byte-identical to include/theme.css's own
+   rules, or missing the !important theme.css already has on the same
+   property (meaning theme.css was already winning the cascade and this
+   copy did nothing). Removed as dead duplication.
 
-/* 1. Page Hero (Added to match other pages) */
-/* 2. Card overrides */
-.card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--card-border-color) !important;
-    color: var(--primary-color);
-}
+   Everything below is genuinely page-specific - none of it exists in
+   theme.css. */
 
-/* 3. Header overrides - replaces bg-primary/success/info with Gradient */
-.card-header {
-    background-color: var(--header-color) !important;
-    background-image: none !important;
-    color: var(--header-text-color) !important;
-    border-bottom: 1px solid var(--card-border-color) !important;
-}
-
-/* 4. Stat Box overrides - replaces bg-light */
+/* Stat Box overrides - replaces bg-light */
 .theme-stat-box {
     background-color: color-mix(in srgb, var(--card-bg), var(--primary-color) 5%) !important;
     border: 1px solid var(--card-border-color) !important;
@@ -37,8 +27,6 @@ require_once __DIR__ . '/include/region_status.php';
     border-color: var(--accent-color);
 }
 
-/* 5. Text Colors */
-.text-muted { color: color-mix(in srgb, var(--primary-color), transparent 40%) !important; }
 .fw-bold { color: var(--primary-color); }
 
 /* Status Dots */

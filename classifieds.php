@@ -73,38 +73,16 @@ $catKey = ($category === 'all') ? 'all' : (int)$category;
 ?>
 
 <style>
-/* --- THEME ENGINE INJECTION --- */
-/* This block forces the layout to adapt to the selected theme without changing HTML structure */
-
-/* 2. Card Overrides */
-.card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--card-border-color) !important;
-    color: var(--primary-color);
-}
-.card-header {
-    background-color: var(--header-color) !important;
-    background-image: none !important;
-    color: var(--header-text-color) !important;
-    border-bottom: 1px solid var(--card-border-color) !important;
-}
-.form-control::placeholder { color: color-mix(in srgb, var(--primary-color), transparent 50%); }
-
-/* 4. Fix for "bg-light" items (like the stats footer) */
-.bg-light {
-    background-color: color-mix(in srgb, var(--card-bg), var(--primary-color) 5%) !important;
-    color: var(--primary-color) !important;
-}
-
-/* 5. Image & Interactive Styling */
-.img-fluid { 
+/* .card, .card-header, .form-control::placeholder, .bg-light, and
+   .btn-outline-primary used to be redefined here too - all five were
+   either byte-identical to include/theme.css's own rules, or missing
+   the !important theme.css already has on the same property (meaning
+   theme.css was already winning the cascade and this copy did nothing).
+   Removed as dead duplication. .img-fluid stays: theme.css only sets a
+   placeholder background on .card-img-top, not plain .img-fluid, so
+   this one is genuinely page-specific. */
+.img-fluid {
     background-color: black; /* Placeholder bg for transparent images */
-}
-.btn-outline-primary {
-    color: var(--accent-color); border-color: var(--accent-color);
-}
-.btn-outline-primary:hover {
-    background-color: var(--accent-color); color: white;
 }
 </style>
 

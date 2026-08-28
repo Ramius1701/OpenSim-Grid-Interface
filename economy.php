@@ -138,30 +138,19 @@ if ($isLoggedIn) {
 ?>
 
 <style>
-/* --- THEME ENGINE INJECTION --- */
+/* .card, .card-header, .table, .table-striped, and .table td/th used to
+   be redefined here too - all were either byte-identical to
+   include/theme.css's own rules, or missing the !important theme.css
+   already has on the same property (meaning theme.css was already
+   winning the cascade and this copy did nothing). Removed as dead
+   duplication.
 
-/* 2. Card Overrides */
-.card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--card-border-color) !important;
-    color: var(--primary-color);
-}
-.card-header {
-    background-color: var(--header-color) !important;
-    background-image: none !important;
-    color: var(--header-text-color) !important;
-    border-bottom: 1px solid var(--card-border-color) !important;
-}
-
-/* 4. Table Overrides */
-.table { color: var(--primary-color); }
-.table-striped > tbody > tr:nth-of-type(odd) > * {
-    background-color: color-mix(in srgb, var(--primary-color), transparent 95%);
-    color: var(--primary-color);
-}
-.table td, .table th { border-color: color-mix(in srgb, var(--primary-color), transparent 90%); }
-
-/* 5. Inputs */
+   .form-control stays: unlike theme.css's version (which bases the
+   input background on --secondary-color, the page background),
+   this one deliberately bases it on --card-bg so inputs read as
+   "part of the card" rather than "part of the page" on this
+   form-heavy page. Neither side has !important here, so this is a
+   genuine, real override (source order decides), not an accident. */
 .form-control {
     background-color: color-mix(in srgb, var(--card-bg), var(--primary-color) 5%);
     color: var(--primary-color);
