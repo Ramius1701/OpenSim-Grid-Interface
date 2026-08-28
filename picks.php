@@ -288,7 +288,7 @@ $userId = isset($_GET['user']) ? $_GET['user'] : '';
                 <div class="card">
                     <div class="card-header">
                         <h5 class="mb-0"><i class="bi bi-star text-warning"></i> Top picks</h5>
-                        <p class="mb-0 text-muted">The most popular and featured places on our grid</p>
+                        <p class="mb-0" style="opacity:.75">The most popular and featured places on our grid</p>
                     </div>
                     <div class="card-body">
                         <?php

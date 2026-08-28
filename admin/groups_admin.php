@@ -534,7 +534,7 @@ if ($con && $editGroupId !== '') {
 
             <section class="mb-4">
                 <div class="card">
-                    <div class="card-header bg-white fw-bold py-3"><i class="bi bi-funnel me-1"></i> Filter groups</div>
+                    <div class="card-header fw-bold py-3"><i class="bi bi-funnel me-1"></i> Filter groups</div>
                     <div class="card-body">
                         <form method="get">
                             <div class="mb-3">

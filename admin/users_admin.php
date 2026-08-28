@@ -337,7 +337,7 @@ if ($con && $editUUID !== '') {
             </div>
 
             <div class="card border-0 shadow-sm mb-3">
-                <div class="card-header bg-white fw-bold py-3"><i class="bi bi-funnel me-1"></i> Filters</div>
+                <div class="card-header fw-bold py-3"><i class="bi bi-funnel me-1"></i> Filters</div>
                 <div class="card-body">
                     <form method="get">
                         <div class="mb-3">
@@ -499,7 +499,7 @@ if ($con && $editUUID !== '') {
             <?php endif; ?>
 
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white fw-bold py-3"><i class="bi bi-people me-1"></i> Users</div>
+                <div class="card-header fw-bold py-3"><i class="bi bi-people me-1"></i> Users</div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">

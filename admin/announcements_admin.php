@@ -197,7 +197,7 @@ $self = ann_h($self);
     <?php endif; ?>
 
     <div class="card mb-4">
-            <div class="card-header bg-white fw-bold py-3">
+            <div class="card-header fw-bold py-3">
                     <?php echo $isEditing ? 'Edit announcement' : 'Add new announcement'; ?>
                 </div>
                 <div class="card-body">
@@ -279,7 +279,7 @@ $self = ann_h($self);
             </div>
 
     <div class="card">
-            <div class="card-header bg-white fw-bold py-3">Existing announcements</div>
+            <div class="card-header fw-bold py-3">Existing announcements</div>
                 <div class="card-body">
 
                 <div class="table-responsive">

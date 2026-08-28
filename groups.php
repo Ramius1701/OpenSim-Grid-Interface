@@ -499,7 +499,7 @@ if (!empty($_SESSION['user']['principal_id'])) {
                                                         <i class="bi bi-megaphone"></i> 
                                                         <?php echo htmlspecialchars($notice['Subject']); ?>
                                                     </h6>
-                                                    <small class="text-muted">
+                                                    <small style="opacity:.75">
                                                         <?php echo date('d.m.Y H:i', $notice['TMStamp']); ?>
                                                     </small>
                                                 </div>
@@ -648,7 +648,7 @@ if (!empty($_SESSION['user']['principal_id'])) {
                 <div class="card">
                     <div class="card-header">
                         <h5 class="mb-0"><i class="bi bi-door-open"></i> Open groups</h5>
-                        <p class="mb-0 text-muted">Groups anyone can join</p>
+                        <p class="mb-0" style="opacity:.75">Groups anyone can join</p>
                     </div>
                     <div class="card-body">
                         <?php

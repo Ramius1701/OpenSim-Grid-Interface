@@ -508,7 +508,7 @@ mysqli_close($db);
                     </div>
                     <div class="display-6"><?= number_format($totalUsers) ?></div>
                   </div>
-                  <div class="small mt-2 text-white-50">
+                  <div class="small mt-2 text-muted">
                     +<?= number_format($newToday) ?> today · +<?= number_format($new7days) ?> / 7d
                   </div>
                 </div>
@@ -525,7 +525,7 @@ mysqli_close($db);
                     </div>
                     <div class="display-6"><?= number_format($totalRegions) ?></div>
                   </div>
-                  <div class="small mt-2 text-white-50">
+                  <div class="small mt-2 text-muted">
                     With users (5 min): <?= number_format($regionsWithUsers) ?>
                   </div>
                 </div>
@@ -542,7 +542,7 @@ mysqli_close($db);
                     </div>
                     <div class="display-6"><?= number_format($onlineUsers) ?></div>
                   </div>
-                  <div class="small mt-2 text-white-50">
+                  <div class="small mt-2 text-muted">
                     Active 24h: <?= number_format($active24h) ?> · 7d: <?= number_format($active7d) ?>
                   </div>
                 </div>
@@ -559,7 +559,7 @@ mysqli_close($db);
                     </div>
                     <div class="display-6"><?= number_format($totalTransactions, 0) ?></div>
                   </div>
-                  <div class="small mt-2 text-dark-50">
+                  <div class="small mt-2 text-muted">
                     Logged transactions total
                   </div>
                 </div>
@@ -576,7 +576,7 @@ mysqli_close($db);
             <h5 class="mb-0">
               <i class="bi bi-cash-stack me-1"></i> Recent transactions
             </h5>
-            <div class="small text-white-50 text-end">
+            <div class="small text-end" style="opacity:.75">
               Today: <?= number_format($txCountToday) ?> tx / <?= number_format($txVolumeToday, 0) ?><br>
               7d: <?= number_format($txCount7days) ?> tx / <?= number_format($txVolume7days, 0) ?>
             </div>

@@ -179,7 +179,7 @@ if ($action === 'delete' && isset($_GET['id'])) {
               <h5 class="mb-1">
                 <i class="bi bi-envelope me-1"></i> Messages
               </h5>
-              <div class="text-muted small">
+              <div class="small" style="opacity:.75">
                 Signed in as <?=h($currentUserName)?>
               </div>
             </div>

@@ -296,7 +296,7 @@ if ($isLoggedIn) {
                     <div class="card">
                         <div class="card-header">
                             <h4><i class="bi bi-person-circle"></i> My economy account</h4>
-                            <small class="text-white-50">Welcome, <?php echo htmlspecialchars($userName); ?></small>
+                            <small style="opacity:.75">Welcome, <?php echo htmlspecialchars($userName); ?></small>
                         </div>
                         <div class="card-body">
                             <?php
@@ -448,7 +448,7 @@ if ($isLoggedIn) {
                     <div class="card">
                         <div class="card-header">
                             <h4><i class="bi bi-send"></i> Send money</h4>
-                            <small class="text-white-50">Available balance: FC$ <?php echo number_format($myBalance['balance'] ?? 0, 0, ',', '.'); ?></small>
+                            <small style="opacity:.75">Available balance: FC$ <?php echo number_format($myBalance['balance'] ?? 0, 0, ',', '.'); ?></small>
                         </div>
                         <div class="card-body">
                             <div class="alert alert-info">
@@ -478,7 +478,7 @@ if ($isLoggedIn) {
                     <div class="card">
                         <div class="card-header">
                             <h4><i class="bi bi-list-ul"></i> My transactions</h4>
-                            <small class="text-white-50">Transaction history for <?php echo htmlspecialchars($userName); ?></small>
+                            <small style="opacity:.75">Transaction history for <?php echo htmlspecialchars($userName); ?></small>
                         </div>
                         <div class="card-body">
                             <?php
@@ -615,7 +615,7 @@ if ($isLoggedIn) {
                 <div class="card">
                     <div class="card-header">
                         <h4 class="mb-0"><i class="bi bi-bar-chart"></i> Economy statistics</h4>
-                        <small class="text-white-50">
+                        <small style="opacity:.75">
                             Latest logged transaction: <?php echo htmlspecialchars($latestTxText); ?>
                             <?php if ($daysAgo !== null): ?> (<?php echo (int)$daysAgo; ?> day<?php echo ((int)$daysAgo === 1 ? '' : 's'); ?> ago)<?php endif; ?>
                         </small>

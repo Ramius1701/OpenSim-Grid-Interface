@@ -185,7 +185,7 @@ if (!$con) {
               <h5 class="mb-1">
                 <i class="bi bi-envelope-slash me-1"></i> Offline Messages
               </h5>
-              <div class="text-muted small">
+              <div class="small" style="opacity:.75">
                 View and delete pending offline instant messages for your account.
               </div>
             </div>

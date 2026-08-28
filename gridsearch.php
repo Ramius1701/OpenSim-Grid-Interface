@@ -515,7 +515,7 @@ if (!empty($results)) {
             <div class="card mt-3">
                 <div class="card-header">
                     <h5 class="mb-0"><i class="bi bi-list-ul"></i> Results for "<?php echo htmlspecialchars($query); ?>"</h5>
-                    <small class="text-muted"><?php echo number_format($totalResults, 0, ',', '.'); ?> results found</small>
+                    <small style="opacity:.75"><?php echo number_format($totalResults, 0, ',', '.'); ?> results found</small>
                 </div>
                 <div class="card-body">
                     <!-- Users -->

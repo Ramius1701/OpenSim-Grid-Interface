@@ -251,7 +251,7 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
         <div class="col-md-3">
             <!-- Find friends / directory -->
             <div class="card">
-                <div class="card-header <?php echo $isLoggedIn ? 'primary' : 'info'; ?>">
+                <div class="card-header">
                     <h5><i class="bi bi-search"></i> <?php echo $isLoggedIn ? 'Find new friends' : 'User Directory'; ?></h5>
                 </div>
                 <div class="card-body">
@@ -351,9 +351,9 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
                     <div class="card-header">
                         <h4><i class="bi bi-person-plus"></i> Find new friends</h4>
                         <?php if ($isLoggedIn): ?>
-                            <small class="text-muted">Welcome, <?php echo htmlspecialchars($userName); ?></small>
+                            <small style="opacity:.75">Welcome, <?php echo htmlspecialchars($userName); ?></small>
                         <?php else: ?>
-                            <small class="text-muted">Browse the user directory</small>
+                            <small style="opacity:.75">Browse the user directory</small>
                         <?php endif; ?>
                     </div>
                     <div class="card-body">
@@ -480,7 +480,7 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
                     <div class="card">
                         <div class="card-header">
                             <h4><i class="bi bi-clock"></i> Friend requests</h4>
-                            <small class="text-muted">Welcome, <?php echo htmlspecialchars($userName); ?></small>
+                            <small style="opacity:.75">Welcome, <?php echo htmlspecialchars($userName); ?></small>
                         </div>
                         <div class="card-body">
                             <?php
@@ -555,7 +555,7 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
                     <div class="card">
                         <div class="card-header">
                             <h4><i class="bi bi-circle-fill text-success"></i> Online friends</h4>
-                            <small class="text-muted">Welcome, <?php echo htmlspecialchars($userName); ?></small>
+                            <small style="opacity:.75">Welcome, <?php echo htmlspecialchars($userName); ?></small>
                         </div>
                         <div class="card-body">
                             <?php
@@ -622,9 +622,9 @@ $stats = $isLoggedIn ? getFriendshipStats($con, $currentUserId) : null;
                         <div>
                             <h4><i class="bi bi-people"></i> <?php echo $isLoggedIn ? 'My friends' : 'User directory'; ?></h4>
                             <?php if ($isLoggedIn): ?>
-                                <small class="text-muted">Welcome, <?php echo htmlspecialchars($userName); ?></small>
+                                <small style="opacity:.75">Welcome, <?php echo htmlspecialchars($userName); ?></small>
                             <?php else: ?>
-                                <small class="text-muted">Browse the community directory</small>
+                                <small style="opacity:.75">Browse the community directory</small>
                             <?php endif; ?>
                         </div>
                         <?php if ($isLoggedIn && $stats): ?>
