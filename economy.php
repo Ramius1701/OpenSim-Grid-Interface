@@ -152,18 +152,6 @@ if ($isLoggedIn) {
     color: var(--header-text-color) !important;
     border-bottom: 1px solid var(--card-border-color) !important;
 }
-.card-header {
-    background-color: var(--header-color) !important;
-    background-image: none !important;
-    color: var(--header-text-color) !important;
-    border-bottom: 1px solid var(--card-border-color) !important;
-}
-.card-header {
-    background-color: var(--header-color) !important;
-    background-image: none !important;
-    color: var(--header-text-color) !important;
-    border-bottom: 1px solid var(--card-border-color) !important;
-}
 
 /* 4. Table Overrides */
 .table { color: var(--primary-color); }

@@ -267,7 +267,7 @@ $res = $stmt->get_result();
             $hopurl = "hop://" . ($_SERVER['HTTP_HOST']) . "/" . rawurlencode($rName) . "/{$x}/{$y}/{$z}";
         ?>
         <div class="col-md-6 col-lg-4 col-xl-3">
-            <div class="card h-100 shadow-sm border-0" style="transition: transform 0.2s;">
+            <div class="card destination-card h-100 shadow-sm border-0" style="transition: transform 0.2s;">
                 <div class="ratio ratio-16x9 position-relative overflow-hidden" 
                      style="background-size: cover; background-position: center; <?= $bgStyle ?>">
                     

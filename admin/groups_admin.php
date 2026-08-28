@@ -37,54 +37,6 @@ function ga_format_ts($ts): string {
 }
 
 /**
- * Helper: count group members from os_groups_membership
- */
-function ga_count_members(mysqli $con, string $groupId): int {
-    $sql = "SELECT COUNT(*) AS c FROM os_groups_membership WHERE GroupID = ?";
-    if (!$stmt = mysqli_prepare($con, $sql)) {
-        return 0;
-    }
-    mysqli_stmt_bind_param($stmt, 's', $groupId);
-    if (!mysqli_stmt_execute($stmt)) {
-        mysqli_stmt_close($stmt);
-        return 0;
-    }
-    $res = mysqli_stmt_get_result($stmt);
-    if (!$res) {
-        mysqli_stmt_close($stmt);
-        return 0;
-    }
-    $row = mysqli_fetch_assoc($res);
-    mysqli_free_result($res);
-    mysqli_stmt_close($stmt);
-    return (int)($row['c'] ?? 0);
-}
-
-/**
- * Helper: count group roles from os_groups_roles
- */
-function ga_count_roles(mysqli $con, string $groupId): int {
-    $sql = "SELECT COUNT(*) AS c FROM os_groups_roles WHERE GroupID = ?";
-    if (!$stmt = mysqli_prepare($con, $sql)) {
-        return 0;
-    }
-    mysqli_stmt_bind_param($stmt, 's', $groupId);
-    if (!mysqli_stmt_execute($stmt)) {
-        mysqli_stmt_close($stmt);
-        return 0;
-    }
-    $res = mysqli_stmt_get_result($stmt);
-    if (!$res) {
-        mysqli_stmt_close($stmt);
-        return 0;
-    }
-    $row = mysqli_fetch_assoc($res);
-    mysqli_free_result($res);
-    mysqli_stmt_close($stmt);
-    return (int)($row['c'] ?? 0);
-}
-
-/**
  * Helper: fetch a group's owner name (if possible).
  * All-zero UUID is treated as "Unknown or Hypergrid" and is read-only.
  */

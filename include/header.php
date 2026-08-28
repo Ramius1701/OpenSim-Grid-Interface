@@ -397,7 +397,7 @@ require_once __DIR__ . '/nav_notifications.php';
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="account/"><i class="bi bi-person-circle"></i> My Account</a></li>
-                                <a class="dropdown-item" href="events_manage.php"><i class="bi bi-pencil"></i> Edit Events</a>
+                                <li><a class="dropdown-item" href="events_manage.php"><i class="bi bi-pencil"></i> Edit Events</a></li>
                                 <?php if (casperia_feature_enabled('friends')): ?>
                                 <li>
                                     <a class="dropdown-item" href="account/friends.php">

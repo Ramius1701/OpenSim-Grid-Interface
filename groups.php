@@ -579,7 +579,7 @@ if (!empty($_SESSION['user']['principal_id'])) {
                 <!-- My groups -->
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-people"></i> My groups</h4>
+                        <h5 class="mb-0"><i class="bi bi-people"></i> My groups</h5>
                     </div>
                     <div class="card-body">
                         <?php
@@ -647,7 +647,7 @@ if (!empty($_SESSION['user']['principal_id'])) {
                 <!-- Open groups -->
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-door-open"></i> Open groups</h4>
+                        <h5 class="mb-0"><i class="bi bi-door-open"></i> Open groups</h5>
                         <p class="mb-0 text-muted">Groups anyone can join</p>
                     </div>
                     <div class="card-body">
@@ -721,7 +721,7 @@ if (!empty($_SESSION['user']['principal_id'])) {
                 <!-- Default group list -->
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="bi bi-people"></i> All groups</h4>
+                        <h5 class="mb-0"><i class="bi bi-people"></i> All groups</h5>
                         <?php if ($search): ?>
                         <span class="badge bg-info">
                             Search: "<?php echo htmlspecialchars($search); ?>"
