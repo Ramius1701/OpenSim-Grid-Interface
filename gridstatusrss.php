@@ -11,9 +11,15 @@ $feedcache_max_age = 1800; // Cache max. 30 Minuten alt
 if (!file_exists($feedcache_path) or filemtime($feedcache_path) < (time() - $feedcache_max_age)) {
     $output = '';
 
+    // Short timeout so one slow/unreachable feed can't hang the page for
+    // PHP's default 60s socket timeout - previously unbounded.
+    $feedContext = stream_context_create([
+        'http' => ['timeout' => 5, 'ignore_errors' => true],
+    ]);
+
     foreach ($feed_urls as $feed_url) {
         // Feed abrufen
-        $xml = @simplexml_load_string(file_get_contents($feed_url));
+        $xml = @simplexml_load_string(file_get_contents($feed_url, false, $feedContext));
 
         if (!$xml) {
             $output .= "<p>Error loading feeds: <strong>" . htmlspecialchars($feed_url) . "</strong></p>";
