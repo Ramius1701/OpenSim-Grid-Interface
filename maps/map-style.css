@@ -38,8 +38,8 @@
 
 .cp-map-btn{
   appearance: none;
-  border: 1px solid rgba(0,0,0,.2);
-  background: rgba(255,255,255,.06);
+  border: 1px solid var(--card-border-color, rgba(0,0,0,.2));
+  background: color-mix(in srgb, var(--primary-color, #000), transparent 94%);
   color: inherit;
   padding: 8px 12px;
   border-radius: 10px;
@@ -47,7 +47,7 @@
   font-weight: 600;
   line-height: 1;
 }
-.cp-map-btn:hover{ background: rgba(255,255,255,.10); }
+.cp-map-btn:hover{ background: color-mix(in srgb, var(--primary-color, #000), transparent 90%); }
 .cp-map-btn:active{ transform: translateY(1px); }
 
 .cp-map-btn-ghost{
@@ -64,20 +64,20 @@
 .cp-map-input{
   flex: 1 1 320px;
   min-width: 220px;
-  border: 1px solid rgba(0,0,0,.2);
-  background: rgba(255,255,255,.06);
+  border: 1px solid var(--card-border-color, rgba(0,0,0,.2));
+  background: color-mix(in srgb, var(--primary-color, #000), transparent 94%);
   color: inherit;
   padding: 10px 12px;
   border-radius: 10px;
   outline: none;
 }
 .cp-map-input:focus{
-  border-color: rgba(102,126,234,.7);
-  box-shadow: 0 0 0 3px rgba(102,126,234,.18);
+  border-color: var(--accent-color, rgba(102,126,234,.7));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color, #667eea), transparent 82%);
 }
 
 .cp-map-results{
-  border: 1px solid rgba(0,0,0,.15);
+  border: 1px solid var(--card-border-color, rgba(0,0,0,.15));
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 12px;
@@ -87,10 +87,10 @@
 .search-result-item{
   padding: 10px 12px;
   cursor: pointer;
-  border-top: 1px solid rgba(0,0,0,.08);
+  border-top: 1px solid var(--card-border-color, rgba(0,0,0,.08));
 }
 .search-result-item:hover{
-  background: rgba(255,255,255,.08);
+  background: color-mix(in srgb, var(--primary-color, #000), transparent 92%);
 }
 .search-result-item small{
   display:block;
@@ -99,10 +99,10 @@
 
 .cp-map-canvas{
   position: relative;
-  border: 1px solid rgba(0,0,0,.18);
+  border: 1px solid var(--card-border-color, rgba(0,0,0,.18));
   border-radius: 16px;
   overflow: hidden;
-  background: rgba(0,0,0,.02);
+  background: color-mix(in srgb, var(--primary-color, #000), transparent 98%);
   /* JS will set an explicit height. Provide a sane fallback. */
   height: 70vh;
   min-height: 520px;
@@ -196,8 +196,8 @@
 .leaflet-popup.region-popup-container .leaflet-popup-content-wrapper{
   padding: 0;
   border-radius: 14px;
-  background: var(--bs-card-bg, var(--bs-body-bg, #1a1d29));
-  border: 1px solid var(--bs-border-color, rgba(102, 126, 234, 0.35));
+  background: var(--card-bg, #1a1d29);
+  border: 1px solid var(--card-border-color, rgba(102, 126, 234, 0.35));
   overflow: hidden;
   box-shadow: 0 10px 28px rgba(0,0,0,.35);
 }
@@ -207,8 +207,8 @@
 }
 
 .leaflet-popup.region-popup-container .leaflet-popup-tip{
-  background: var(--bs-card-bg, var(--bs-body-bg, #1a1d29));
-  border: 1px solid var(--bs-border-color, rgba(102, 126, 234, 0.35));
+  background: var(--card-bg, #1a1d29);
+  border: 1px solid var(--card-border-color, rgba(102, 126, 234, 0.35));
 }
 
 .leaflet-popup.region-popup-container .leaflet-popup-close-button{
@@ -222,8 +222,8 @@
 
 .region-popup-header{
   background: linear-gradient(135deg,
-    var(--cp-popup-accent1, var(--bs-primary, #667eea)) 0%,
-    var(--cp-popup-accent2, var(--bs-secondary, #764ba2)) 100%);
+    var(--header-color, #667eea) 0%,
+    color-mix(in srgb, var(--header-color, #667eea), black 30%) 100%);
   padding: 14px 15px;
 }
 
@@ -231,16 +231,16 @@
   margin: 0;
   font-size: 1.15rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--header-text-color, #fff);
   text-shadow: 0 2px 4px rgba(0,0,0,.25);
 }
 
 .region-popup-header small{
   display: block;
   margin-top: 4px;
-  opacity: 0.92;
+  opacity: 0.85;
   font-size: 0.85rem;
-  color: rgba(255,255,255,.92);
+  color: var(--header-text-color, #fff);
 }
 
 .region-popup-body{
@@ -252,7 +252,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 8px 0;
-  border-bottom: 1px solid var(--bs-border-color, rgba(255,255,255,.10));
+  border-bottom: 1px solid var(--card-border-color, rgba(255,255,255,.10));
 }
 
 .region-info-row:last-child{
@@ -260,14 +260,14 @@
 }
 
 .region-info-row strong{
-  color: var(--bs-primary, #667eea);
+  color: var(--accent-color, #667eea);
 }
 
 /* Footer + button */
 .region-popup-footer{
   padding: 14px 15px;
-  background: var(--bs-card-cap-bg, rgba(0,0,0,.12));
-  border-top: 1px solid var(--bs-border-color, rgba(255,255,255,.08));
+  background: color-mix(in srgb, var(--card-bg, #000), var(--primary-color, #fff) 6%);
+  border-top: 1px solid var(--card-border-color, rgba(255,255,255,.08));
 }
 
 .btn-teleport{
@@ -275,10 +275,8 @@
   width: 100%;
   min-height: 42px;
   padding: 12px 16px;
-  background: linear-gradient(135deg,
-    var(--cp-popup-accent1, var(--bs-primary, #667eea)) 0%,
-    var(--cp-popup-accent2, var(--bs-secondary, #764ba2)) 100%);
-  color: var(--cp-popup-button-text, var(--bs-warning, #ffd700)) !important;
+  background: var(--accent-color, #667eea);
+  color: #fff !important;
   text-align: center;
   text-decoration: none;
   border-radius: 12px;
@@ -287,7 +285,7 @@
   letter-spacing: 0.5px;
   text-transform: uppercase;
   box-shadow: 0 6px 18px rgba(0,0,0,.25);
-  border: 2px solid rgba(255, 215, 0, 0.25);
+  border: 2px solid color-mix(in srgb, var(--accent-color, #667eea), white 25%);
 }
 
 .btn-teleport:hover{

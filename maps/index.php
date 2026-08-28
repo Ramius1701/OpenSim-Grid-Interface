@@ -81,6 +81,12 @@ $mapBody = sprintf(
             </div>
 
             <div id="mapStatus" class="cp-map-status" hidden></div>
+
+            <div class="cp-map-legend" id="cpMapLegend">
+                <div class="cp-map-legend-title">Legend</div>
+                <div class="cp-map-legend-item">🟢 Online region</div>
+                <div class="cp-map-legend-item">⚪ Offline region</div>
+            </div>
         </div>
 
         <div class="cp-map-debug" id="cpMapDebug" hidden></div>
