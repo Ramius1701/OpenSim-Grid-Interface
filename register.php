@@ -5,7 +5,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 $title = "Register Avatar";
-include_once 'include/header.php';
+require_once 'include/config.php';
+include_once 'include/' . HEADER_FILE;
 
 // SHARED DB CONNECTION
 $conn = db();

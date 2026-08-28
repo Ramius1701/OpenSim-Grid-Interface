@@ -1,6 +1,7 @@
 <?php
 $title = "Help";
-include_once 'include/header.php';
+require_once 'include/config.php';
+include_once 'include/' . HEADER_FILE;
 include_once 'include/viewer_context.php';
 
 if (!empty($IS_VIEWER)) {

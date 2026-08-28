@@ -1,6 +1,7 @@
 <?php
 $title = "Password Reset";
-include_once 'include/header.php';
+require_once 'include/config.php';
+include_once 'include/' . HEADER_FILE;
 require_once __DIR__ . '/include/security.php';
 
 // SHARED DB CONNECTION (UserAccounts/auth - core OpenSim data)

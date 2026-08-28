@@ -2,7 +2,8 @@
 if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
 
 $title = "Avatar Picker";
-include_once 'include/header.php';
+require_once 'include/config.php';
+include_once 'include/' . HEADER_FILE;
 
 // Enable error reporting
 error_reporting(E_ALL);

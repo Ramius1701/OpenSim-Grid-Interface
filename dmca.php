@@ -1,6 +1,7 @@
 <?php
 $title = "DMCA";
-include 'include/header.php';
+require_once 'include/config.php';
+include 'include/' . HEADER_FILE;
 ?>
 
 <main class="content-card content-card-read">

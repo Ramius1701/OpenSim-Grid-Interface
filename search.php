@@ -3,7 +3,8 @@ header('X-Frame-Options: SAMEORIGIN');
 header('X-Content-Type-Options: nosniff');
 
 $title = "Web Search";
-include 'include/header.php';
+require_once 'include/config.php';
+include 'include/' . HEADER_FILE;
 
 function gs_param($keys, $default = '')
 {

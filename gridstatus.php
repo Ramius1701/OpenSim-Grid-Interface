@@ -1,6 +1,7 @@
 <?php
 $title = "Grid Status";
-include_once 'include/header.php';
+require_once 'include/config.php';
+include_once 'include/' . HEADER_FILE;
 require_once __DIR__ . '/include/region_status.php';
 ?>
 

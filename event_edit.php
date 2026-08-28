@@ -13,7 +13,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/include/config.php';
 require_once __DIR__ . '/include/schema_checks.php';
 $title = 'Edit Event';
-require_once __DIR__ . '/include/header.php';
+require_once __DIR__ . '/include/' . HEADER_FILE;
 
 // helper for escaping
 if (!function_exists('h')) {

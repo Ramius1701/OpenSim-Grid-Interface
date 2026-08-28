@@ -250,7 +250,8 @@ if (DEBUG_LOGIN && $login_error !== '') {
 <?php
 // After processing, render the site's header/footer + Bootstrap form
 $title = "Login";
-include_once 'include/header.php';
+require_once 'include/config.php';
+include_once 'include/' . HEADER_FILE;
 
 $login_error = $login_error ?? '';
 $next = isset($_POST['next']) ? safe_next($_POST['next']) : 'account/';

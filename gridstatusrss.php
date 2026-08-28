@@ -1,6 +1,7 @@
 <?php
 $title = "GridStatusRSS";
-include_once 'include/header.php';
+require_once 'include/config.php';
+include_once 'include/' . HEADER_FILE;
 
 // Cache-Dateipfad
 $feedcache_path = __DIR__.'/feed_cache.html';

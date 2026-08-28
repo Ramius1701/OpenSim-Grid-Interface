@@ -1,6 +1,7 @@
 <?php
 $title = "TOS";
-include_once 'include/header.php';
+require_once 'include/config.php';
+include_once 'include/' . HEADER_FILE;
 
 $site       = SITE_NAME;
 $site_html  = htmlspecialchars($site, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
