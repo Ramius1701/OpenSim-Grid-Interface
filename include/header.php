@@ -76,7 +76,26 @@ $__cardBorderColor = ($__bsTheme === 'dark') ? 'rgba(255,255,255,0.12)' : 'rgba(
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="include/theme.css">
+    <style>
+    <?php
+    // Inlined rather than fetched as an external <link> stylesheet: that
+    // separate network request was found to be unreliable inside the
+    // Firestorm embedded viewer browser - confirmed via user screenshots
+    // that everything this file defines (.main-container's width cap,
+    // .card/.card-header colors, .btn-theme buttons) failed to apply
+    // there specifically, while this page's OTHER inline <style> content
+    // (including rules using color-mix(), so it isn't a CSS-feature
+    // problem) rendered correctly in the same screenshots. Reading the
+    // file directly keeps this in sync with include/theme.css
+    // automatically - there is no second copy to maintain, and it now
+    // ships as part of the initial HTML response instead of a second
+    // round-trip that can fail independently of the page itself.
+    $__themeCssPath = __DIR__ . '/theme.css';
+    if (is_file($__themeCssPath)) {
+        readfile($__themeCssPath);
+    }
+    ?>
+    </style>
     <style>
         :root {
             /* 1. INITIAL PHP VALUES */

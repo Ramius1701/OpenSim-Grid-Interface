@@ -1,8 +1,10 @@
-/* Static theme CSS shared by every page (include/header.php).
- * Per-theme colors live in the small inline <style> block in header.php
- * (CSS custom properties on :root) - everything here only ever
- * references those via var(), so it's identical for every color scheme
- * and safe to cache as a normal external stylesheet. */
+/* Static theme CSS shared by every page. Read directly and inlined into
+ * a <style> block by include/header.php (not linked as an external
+ * stylesheet - that fetch was unreliable inside the Firestorm embedded
+ * viewer browser). Per-theme colors live in header.php's own small
+ * inline <style> block (CSS custom properties on :root) - everything
+ * here only ever references those via var(), so it's identical for
+ * every color scheme regardless of how it's delivered. */
 
         /* CASPERIA_LAYOUT_BASE: 2025-12-23 */
 /* Keep width control on main-container; DO NOT globally override Bootstrap .container */
