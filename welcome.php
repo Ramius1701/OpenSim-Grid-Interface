@@ -207,6 +207,50 @@ require_once __DIR__ . "/include/region_status.php";
     /* Link uses Accent Color (same as buttons) */
     .region-link { text-decoration: none; color: var(--accent-color); font-weight: 600; }
     .region-link:hover { color: var(--primary-color); }
+
+    /* Hero CTA buttons (.btn-theme/.btn-theme-outline), duplicated here
+       page-locally rather than relying solely on include/theme.css's
+       external <link>. Reported (with screenshots) as rendering with
+       zero button styling in the Firestorm embedded viewer while the
+       identical page renders correctly in a normal browser, even after
+       a theme.css fix and a viewer cache clear - meaning the external
+       stylesheet fetch itself is unreliable in that environment, not a
+       CSS syntax/feature issue (this page's other inline rules,
+       including ones using color-mix(), render correctly there). An
+       inline <style> block doesn't need a second network round-trip, so
+       it isn't exposed to whatever is causing that external file to
+       fail. Kept in sync with theme.css's copy; harmless duplication
+       when both apply. */
+    .welcome-hero .btn-theme {
+        display: inline-block;
+        padding: .5rem 1rem;
+        border: 1px solid var(--accent-color);
+        background-color: var(--accent-color);
+        color: #fff;
+        text-align: center;
+        text-decoration: none;
+        line-height: 1.5;
+        cursor: pointer;
+    }
+    .welcome-hero .btn-theme:hover, .welcome-hero .btn-theme:focus {
+        filter: brightness(1.05);
+        color: #fff;
+    }
+    .welcome-hero .btn-theme-outline {
+        display: inline-block;
+        padding: .5rem 1rem;
+        border: 1px solid var(--accent-color);
+        color: var(--accent-color);
+        background-color: transparent;
+        text-align: center;
+        text-decoration: none;
+        line-height: 1.5;
+        cursor: pointer;
+    }
+    .welcome-hero .btn-theme-outline:hover, .welcome-hero .btn-theme-outline:focus {
+        background-color: var(--accent-color);
+        color: #fff;
+    }
 </style>
 
 <div class="welcome-hero">
