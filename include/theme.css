@@ -458,14 +458,31 @@ input.form-control:focus, textarea.form-control:focus, .form-select:focus {
         }
 
         /* .btn-theme - solid variant, used by gridsearch.php, gridstatus.php,
-           and message.php. Same story as .btn-theme-outline below - referenced
-           everywhere, only ever actually defined locally in gridsearch.php, so
-           it did nothing at all on the other pages using it. */
+           message.php, and welcome.php's hero. Same story as
+           .btn-theme-outline below - referenced everywhere, only ever
+           actually defined locally in gridsearch.php, so it did nothing
+           at all on the other pages using it.
+
+           These two classes exist ONLY here - unlike .btn-outline-primary
+           (a real Bootstrap class theme.css merely recolors), there's no
+           Bootstrap fallback if bootstrap.min.css's CDN load is ever slow,
+           blocked, or partially fails for a given visitor - the element
+           would render as bare unstyled text with no box at all, since
+           Bootstrap doesn't know these class names. Given full padding/
+           display/border here explicitly instead of only color, so they
+           render as real buttons even if Bootstrap's own .btn/.btn-lg
+           utility classes don't apply for any reason. */
         .btn-theme {
+            display: inline-block;
+            padding: .5rem 1rem;
+            border: 1px solid var(--accent-color) !important;
             background-color: var(--accent-color) !important;
-            border-color: var(--accent-color) !important;
             border-radius: var(--theme-radius);
             color: #fff !important;
+            text-align: center;
+            text-decoration: none;
+            line-height: 1.5;
+            cursor: pointer;
         }
         .btn-theme:hover, .btn-theme:focus {
             filter: brightness(1.05);
@@ -476,10 +493,16 @@ input.form-control:focus, textarea.form-control:focus, .form-select:focus {
            and message.php's tab-style buttons. Was referenced everywhere but never
            actually defined - buttons using it had no real styling at all. */
         .btn-theme-outline {
+            display: inline-block;
+            padding: .5rem 1rem;
+            border: 1px solid var(--accent-color) !important;
             color: var(--accent-color) !important;
-            border-color: var(--accent-color) !important;
             border-radius: var(--theme-radius);
             background-color: transparent !important;
+            text-align: center;
+            text-decoration: none;
+            line-height: 1.5;
+            cursor: pointer;
         }
         .btn-theme-outline:hover, .btn-theme-outline:focus {
             background-color: var(--accent-color) !important;
