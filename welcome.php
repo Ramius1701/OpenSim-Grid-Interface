@@ -141,7 +141,55 @@ require_once __DIR__ . "/include/region_status.php";
         margin-bottom: 1.5rem;
         box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     }
-    
+
+    /* The list itself (rendered by include/rss-feed.php?format=html) had no
+       CSS anywhere in the repo - it was falling back to default browser
+       <ul>/<li>/<h4> spacing, which is what made this box balloon to
+       ~900px tall with just 6 items. Styled it compactly, and capped
+       .update-content's height with a scrollbar as a hard ceiling so it
+       can never dominate the page regardless of how many items come
+       through in the future. */
+    .update-content {
+        max-height: 420px;
+        overflow-y: auto;
+    }
+    .daily-updates-group { margin-bottom: 1rem; }
+    .daily-updates-group:last-child { margin-bottom: 0; }
+    .daily-updates-group h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        opacity: 0.85;
+        margin: 0 0 0.5rem;
+    }
+    .daily-updates-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    .daily-update-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+    .daily-update-item:last-child { border-bottom: none; }
+    .daily-update-item .type-badge {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        background: rgba(255,255,255,0.18);
+        margin-right: 4px;
+    }
+    .daily-update-item .desc {
+        font-size: 0.85rem;
+        opacity: 0.85;
+        margin-top: 2px;
+    }
+    .daily-update-item a { color: inherit; }
+    .daily-updates-more { margin-top: 0.75rem; text-align: center; }
+    .daily-updates-more a { color: white; font-weight: 600; }
+
     /* Region List */
     .region-item {
         display: flex; justify-content: space-between; align-items: center;
