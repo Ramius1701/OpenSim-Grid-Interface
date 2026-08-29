@@ -8,10 +8,23 @@ if (file_exists(__DIR__ . "/include/viewer_context.php")) {
 // Load config early (needed before header outputs HTML)
 require_once __DIR__ . "/include/config.php";
 
-// Build RSS URL (optionally mark viewer mode for compact/compatible rendering)
-$rssUrl = RSS_FEED_URL;
-if (!empty($IS_VIEWER)) {
-    $rssUrl .= (strpos($rssUrl, '?') !== false ? '&' : '?') . 'view=viewer';
+// Pre-render the "Daily Updates" widget server-side (PHP calling PHP
+// directly, not a client-side fetch()/XHR to rss-feed.php as a separate
+// HTTP request after the page loads) so its content ships as part of
+// this page's own HTML response. That second round-trip was found to be
+// unreliable in the Firestorm embedded viewer - same failure class as
+// the theme.css <link> fetch fixed earlier - while server-rendered PHP
+// output baked into the initial response (like the Recent Regions list
+// further down this page) rendered correctly there. See
+// include/rss-feed.php's RSS_FEED_LIBRARY_MODE comment for the other
+// half of this.
+$dailyUpdatesHtml = '';
+if (SHOW_DAILY_UPDATE && DAILY_UPDATE_TYPE === 'rss') {
+    $_GET['format'] = 'html';
+    define('RSS_FEED_LIBRARY_MODE', true);
+    ob_start();
+    include __DIR__ . '/include/rss-feed.php';
+    $dailyUpdatesHtml = ob_get_clean();
 }
 
 require_once __DIR__ . "/include/header.php";
@@ -416,34 +429,7 @@ require_once __DIR__ . "/include/region_status.php";
     <h3 class="mb-3" style="font-weight:700"><i class="bi bi-newspaper me-2"></i> Daily Updates</h3>
     <div class="update-content">
         <?php if (DAILY_UPDATE_TYPE === 'rss'): ?>
-            <div id="rss-content">Loading updates...</div>
-            <script>
-                (function(){
-                    const el = document.getElementById('rss-content');
-                    if (!el) return;
-                    const url = '<?php echo $rssUrl; ?>';
-
-                    // Some embedded viewers are missing fetch(); fall back to XHR.
-                    if (window.fetch) {
-                        fetch(url)
-                            .then(r => r.text())
-                            .then(d => { el.innerHTML = d; })
-                            .catch(() => { el.innerHTML = 'Updates unavailable.'; });
-                    } else {
-                        try {
-                            const xhr = new XMLHttpRequest();
-                            xhr.open('GET', url, true);
-                            xhr.onload = function(){
-                                el.innerHTML = (xhr.status >= 200 && xhr.status < 300) ? xhr.responseText : 'Updates unavailable.';
-                            };
-                            xhr.onerror = function(){ el.innerHTML = 'Updates unavailable.'; };
-                            xhr.send();
-                        } catch (e) {
-                            el.innerHTML = 'Updates unavailable.';
-                        }
-                    }
-                })();
-            </script>
+            <div id="rss-content"><?php echo $dailyUpdatesHtml !== '' ? $dailyUpdatesHtml : '<p>No updates available.</p>'; ?></div>
         <?php else: ?>
             <p class="lead mb-0"><?php echo DAILYTEXT; ?></p>
         <?php endif; ?>

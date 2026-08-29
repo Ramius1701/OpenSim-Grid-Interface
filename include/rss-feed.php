@@ -388,9 +388,31 @@ if ($isHtml && $HTML_DISPLAY_LIMIT > 0 && count($items) > $HTML_DISPLAY_LIMIT) {
 
 // ===== HTML mode (for welcome widget) =======================================
 // Use in config.php: define('RSS_FEED_URL', '/osviewer/include/rss-feed.php?format=html');
+//
+// RSS_FEED_LIBRARY_MODE: welcome.php used to only reach this code via a
+// client-side fetch()/XHR to this file as a standalone HTTP endpoint,
+// after the page had already loaded. That second network round-trip was
+// found to be unreliable in the Firestorm embedded viewer (same failure
+// class as the theme.css <link> fetch fixed earlier - the fetch/XHR call
+// would hang or fail, showing "Updates unavailable."), while server-side
+// PHP output baked directly into the initial HTML response (like the
+// Recent Regions list right below this widget) rendered correctly there.
+// welcome.php now defines this constant and includes this file directly
+// (with $_GET['format'] set to 'html') to get the same HTML as a PHP
+// string instead, with no second request involved. This branch has to
+// avoid header()/exit() in that mode - exit() would kill the *including*
+// script (welcome.php itself), not just this file - and return normally
+// instead, since it's reached via a plain include(), not a fresh request.
 if ($isHtml) {
-    header('Content-Type: text/html; charset=UTF-8');
-    if (!$items) { echo '<p>No updates available.</p>'; exit; }
+    $__libraryMode = defined('RSS_FEED_LIBRARY_MODE') && RSS_FEED_LIBRARY_MODE;
+    if (!$__libraryMode) {
+        header('Content-Type: text/html; charset=UTF-8');
+    }
+    if (!$items) {
+        echo '<p>No updates available.</p>';
+        if ($__libraryMode) { return; }
+        exit;
+    }
 
     // Group by date for readability
     $byDate = [];
@@ -459,6 +481,7 @@ if ($isHtml) {
         $url = htmlspecialchars($HTML_MORE_URL, ENT_QUOTES, 'UTF-8');
         echo '<div class="daily-updates-more"><a href="' . $url . '">+' . (int)$moreCount . ' more…</a></div>';
     }
+    if ($__libraryMode) { return; }
     exit;
 }
 
