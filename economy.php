@@ -191,7 +191,7 @@ if ($isLoggedIn) {
                             <a href="economy.php?action=my_transactions" class="btn btn-outline-info btn-sm">
                                 <i class="bi bi-list-ul"></i> Transactions (<?php echo $myTransactionCount; ?>)
                             </a>
-                            <a href="/account/" class="btn btn-outline-secondary btn-sm">
+                            <a href="<?php echo BASE_URL; ?>/account/" class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-person"></i> My profile
                             </a>
                             <a href="economy.php?logout=1" class="btn btn-outline-danger btn-sm">

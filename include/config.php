@@ -123,7 +123,13 @@ define('REMOTEADMIN_URL', 'casperia.ddns.net'); // URL des RemoteAdmin-Servers /
 define('REMOTEADMIN_PORT', 8002); // Port des RemoteAdmin-Servers / Port of the RemoteAdmin server
 
 // Website addresses
-define('BASE_URL', 'http://casperia.ddns.net'); // Basis-URL der Webseite / Base URL of the website
+// BASE_URL can be overridden from env.php (gitignored, per-deployment) -
+// needed when a deployment serves this site behind a URL prefix (e.g. a
+// reverse proxy Alias), which is specific to that one server and has no
+// business being hardcoded into this shared, tracked file.
+if (!defined('BASE_URL')) {
+    define('BASE_URL', 'http://casperia.ddns.net'); // Basis-URL der Webseite / Base URL of the website
+}
 define('SITE_NAME', 'Casperia Prime'); // Name of the grid
 
 define('HEADER_FILE', 'header.php');

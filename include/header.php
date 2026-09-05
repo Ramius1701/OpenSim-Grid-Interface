@@ -317,8 +317,8 @@ require_once __DIR__ . '/nav_notifications.php';
                             <li><a class="dropdown-item" href="gridstatus.php"><i class="bi bi-activity"></i> Grid Status</a></li>
                             <li><a class="dropdown-item" href="gridlist.php"><i class="bi bi-list-columns-reverse"></i> Grid List</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/maps/gridmap.php" title="Tile-grid view - browse and teleport by region"><i class="bi bi-map"></i> Grid Map</a></li>
-                            <li><a class="dropdown-item" href="/maps/" title="Satellite-style map - pan, zoom, and search visually"><i class="bi bi-globe"></i> World Map</a></li>
+                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/maps/gridmap.php" title="Tile-grid view - browse and teleport by region"><i class="bi bi-map"></i> Grid Map</a></li>
+                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/maps/" title="Satellite-style map - pan, zoom, and search visually"><i class="bi bi-globe"></i> World Map</a></li>
                         </ul>
                     </li>
                     
@@ -441,7 +441,7 @@ require_once __DIR__ . '/nav_notifications.php';
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="/account/offline_messages.php">
+                                    <a class="dropdown-item" href="<?php echo BASE_URL; ?>/account/offline_messages.php">
                                         <i class="bi bi-mailbox"></i> Offline Messages
                                         <?php if (!empty($nav_offlineMessagesCount)): ?>
                                             <span class="badge bg-danger-subtle text-danger-emphasis ms-2">

@@ -198,7 +198,7 @@ $self = ev_h($self);
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-    <a href="/admin/holiday_add.php" class="btn btn-sm btn-primary">
+    <a href="<?php echo BASE_URL; ?>/admin/holiday_add.php" class="btn btn-sm btn-primary">
         <i class="bi bi-plus-circle me-1"></i> Add new holiday
     </a>
 </div>
@@ -224,7 +224,7 @@ $self = ev_h($self);
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-pencil-square me-1"></i> Edit holiday</h5>
-                <a href="/admin/holiday_admin.php" class="btn btn-sm btn-outline-secondary">
+                <a href="<?php echo BASE_URL; ?>/admin/holiday_admin.php" class="btn btn-sm btn-outline-secondary">
                     <i class="bi bi-x-lg me-1"></i> Cancel
                 </a>
             </div>

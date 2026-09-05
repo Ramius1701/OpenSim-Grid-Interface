@@ -869,7 +869,7 @@ if ($con && $editGroupId !== '') {
                                             <?php if ($isHypergridFounder): ?>
                                                 <?php echo ga_h($name !== '' ? $name : '(no name)'); ?>
                                             <?php else: ?>
-                                                <a href="/admin/groups_admin.php?edit=<?php echo urlencode($gid); ?>">
+                                                <a href="<?php echo BASE_URL; ?>/admin/groups_admin.php?edit=<?php echo urlencode($gid); ?>">
                                                     <?php echo ga_h($name !== '' ? $name : '(no name)'); ?>
                                                 </a>
                                             <?php endif; ?>
@@ -925,7 +925,7 @@ if ($con && $editGroupId !== '') {
                                                 Hypergrid (read-only)
                                             </span>
                                         <?php else: ?>
-                                            <a href="/admin/groups_admin.php?edit=<?php echo urlencode($gid); ?>"
+                                            <a href="<?php echo BASE_URL; ?>/admin/groups_admin.php?edit=<?php echo urlencode($gid); ?>"
                                                class="btn btn-sm btn-outline-primary">
                                                 Edit
                                             </a>

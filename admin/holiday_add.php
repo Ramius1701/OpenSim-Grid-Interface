@@ -83,7 +83,7 @@ if ($csrfOk && ($_POST['action'] ?? '') === 'save') {
 
         if (safe_write_json($path, $events)) {
             if (!headers_sent()) {
-                header('Location: /admin/holiday_admin.php?added=1');
+                header('Location: ' . BASE_URL . '/admin/holiday_admin.php?added=1');
                 exit;
             }
             // fallback if headers already sent
@@ -112,7 +112,7 @@ require_once __DIR__ . '/../include/header.php';
                         Creates a new recurring holiday entry in
                         <code><?php echo ev_h(basename($path)); ?></code>.
                     </p>
-                    <a href="/admin/holiday_admin.php" class="btn btn-sm btn-outline-secondary">
+                    <a href="<?php echo BASE_URL; ?>/admin/holiday_admin.php" class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-arrow-left me-1"></i> Back to Holidays
                     </a>
                 </div>
@@ -206,7 +206,7 @@ require_once __DIR__ . '/../include/header.php';
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-check2-circle me-1"></i> Save
                             </button>
-                            <a href="/admin/holiday_admin.php" class="btn btn-outline-secondary">Cancel</a>
+                            <a href="<?php echo BASE_URL; ?>/admin/holiday_admin.php" class="btn btn-outline-secondary">Cancel</a>
                         </div>
                     </form>
                 </div>
